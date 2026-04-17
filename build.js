@@ -55,8 +55,9 @@ const htmlTemplate = `<!DOCTYPE html>
   <!-- Tailwind CSS -->
   <script src="./lib/tailwindcss.js"><\/script>
   <style>
-    /* Prevent scroll bouncing */
-    body { margin: 0; padding: 0; overflow: hidden; background: #0f172a; color: white; font-family: sans-serif; }
+    /* Prevent scroll bouncing and fill window exactly */
+    html, body, #root { height: 100%; margin: 0; padding: 0; }
+    body { overflow: hidden; background: #0f172a; color: white; font-family: sans-serif; }
   </style>
 </head>
 <body>

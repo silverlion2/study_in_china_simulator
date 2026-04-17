@@ -124,18 +124,18 @@ export default function StoryPanel({ node, state, availableChoices, onChoice }) 
   const speakerImg = node?.speaker ? speakerImages[node.speaker] : null;
 
   return (
-    <div className="flex-1 flex flex-col justify-end p-8 pb-32 z-10 w-full max-w-4xl mx-auto relative pt-48">
+    <div className="flex-1 flex flex-col justify-end p-4 pb-16 z-10 w-full max-w-3xl mx-auto relative pt-24">
        
       {/* Choice Menu */}
-      <div className={`flex flex-col mb-8 gap-3 items-end transition-all duration-700 ${showChoices ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+      <div className={`flex flex-col mb-4 gap-2 items-end transition-all duration-700 ${showChoices ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
         {availableChoices && availableChoices.length > 0 && availableChoices.map((choice, i) => (
           <button
             key={i}
             onClick={() => onChoice(choice)}
-            className="bg-slate-900/90 border border-slate-700/50 hover:bg-slate-800 hover:border-amber-500 hover:text-amber-400 text-slate-200 px-6 py-4 rounded-xl text-left w-3/4 shadow-xl backdrop-blur-md transition-all group flex flex-col relative"
+            className="bg-slate-900/90 border border-slate-700/50 hover:bg-slate-800 hover:border-amber-500 hover:text-amber-400 text-slate-200 px-4 py-3 rounded-xl text-left w-2/3 shadow-xl backdrop-blur-md transition-all group flex flex-col relative"
           >
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 font-mono text-sm opacity-50 group-hover:opacity-100 group-hover:text-amber-500 transition-all">[{i+1}]</div>
-            <div className="font-semibold text-lg pl-6">{choice.text}</div>
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600 font-mono text-[10px] opacity-50 group-hover:opacity-100 group-hover:text-amber-500 transition-all">[{i+1}]</div>
+            <div className="font-medium text-base pl-5">{choice.text}</div>
             {choice.effects && <ChoicePreview effects={choice.effects} />}
           </button>
         ))}
@@ -144,26 +144,26 @@ export default function StoryPanel({ node, state, availableChoices, onChoice }) 
       {/* Dialogue Box */}
       <div 
          key={textKey}
-         className="bg-slate-900/95 border border-slate-700 backdrop-blur-xl p-8 rounded-2xl shadow-2xl relative animate-in fade-in slide-in-from-bottom-4 duration-500 w-full"
+         className="bg-slate-900/95 border border-slate-700 backdrop-blur-xl p-5 rounded-xl shadow-2xl relative animate-in fade-in slide-in-from-bottom-4 duration-500 w-full"
       >
         {speakerImg && (
-            <div className="absolute bottom-full mb-[-2rem] left-8 h-[28rem] pointer-events-none drop-shadow-[0_15px_25px_rgba(0,0,0,0.8)] z-[-1] animate-in slide-in-from-bottom-12 fade-in duration-700 ease-out">
+            <div className="absolute bottom-full mb-[-1rem] left-8 h-[20rem] pointer-events-none drop-shadow-[0_15px_25px_rgba(0,0,0,0.8)] z-[-1] animate-in slide-in-from-bottom-12 fade-in duration-700 ease-out">
                <img src={speakerImg} alt={node.speaker} className="h-full w-auto object-contain object-bottom" />
             </div>
         )}
-        <div className="absolute -top-4 left-6 flex gap-3">
-          <div className="bg-amber-500 text-slate-900 font-bold px-4 py-1 rounded shadow-md uppercase tracking-wider text-sm">
+        <div className="absolute -top-3 left-6 flex gap-2">
+          <div className="bg-amber-500 text-slate-900 font-bold px-3 py-0.5 rounded shadow-md uppercase tracking-wider text-xs">
             {node.speaker || "Narrator"}
           </div>
           {node.location && (
-            <div className="bg-slate-700 text-amber-400 border border-amber-500/30 font-bold px-4 py-1 rounded shadow-md uppercase tracking-wider text-sm flex items-center gap-2">
+            <div className="bg-slate-700 text-amber-400 border border-amber-500/30 font-bold px-3 py-0.5 rounded shadow-md uppercase tracking-wider text-xs flex items-center gap-1.5">
               📍 {node.location}
             </div>
           )}
         </div>
-        <p className="text-xl text-slate-100 leading-relaxed font-serif mt-2 min-h-[4rem] whitespace-pre-wrap">
+        <p className="text-lg text-slate-100 leading-relaxed font-serif mt-2 min-h-[3rem] whitespace-pre-wrap">
           {displayText}
-          {!showChoices && <span className="inline-block w-2 bg-amber-500 opacity-50 animate-pulse ml-1">&nbsp;</span>}
+          {!showChoices && <span className="inline-block w-1.5 bg-amber-500 opacity-50 animate-pulse ml-1">&nbsp;</span>}
         </p>
       </div>
     </div>
@@ -224,7 +224,7 @@ function ChoicePreview({ effects }) {
    if (previews.length === 0) return null;
 
    return (
-       <div className="flex flex-wrap gap-4 mt-2 opacity-60 group-hover:opacity-100 transition-opacity">
+       <div className="flex flex-wrap gap-2 mt-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
            {previews}
        </div>
    )

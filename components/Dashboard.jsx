@@ -29,15 +29,15 @@ export default function Dashboard({ state }) {
   const epochLabel = phase === "Application" ? "Epoch 1" : (phase === "Pre-Departure" ? "Epoch 2" : "Epoch 3");
 
   return (
-    <div className="flex flex-col h-full z-10 space-y-6">
+    <div className="flex flex-col h-full z-10 space-y-4">
       <div>
         <h1 className="text-2xl font-black text-amber-500 uppercase tracking-wider mb-2">Sim Panda</h1>
         <p className="text-sm text-slate-400">{epochLabel}: {phase}</p>
         <div className="mt-2 text-3xl text-white font-mono">Week {turn}</div>
       </div>
 
-      <div className="space-y-4">
-        <h2 className="text-xs uppercase tracking-widest text-slate-500 font-semibold">Primary Stats</h2>
+      <div className="space-y-3">
+        <h2 className="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-1">Primary Stats</h2>
         
         <StatBar label="📚 Academics" value={stats.academics} color="bg-blue-500" />
         <StatBar label="🗣️ Chinese" value={stats.chinese} color="bg-rose-500" />
@@ -52,14 +52,14 @@ export default function Dashboard({ state }) {
             <Progress value={stats.sanity} className={`h-2 ${stats.sanity < 30 ? "bg-red-950" : "bg-slate-700"}`} indicatorColor={stats.sanity < 30 ? "bg-red-500" : "bg-teal-400"} />
         </div>
 
-        <div className="pt-4 border-t border-slate-700">
+        <div className="pt-3 border-t border-slate-700">
            <p className="text-sm font-bold text-slate-300">💰 Wealth: <span className="font-mono text-emerald-400">¥{stats.wealth}</span></p>
         </div>
       </div>
 
-      <div className="space-y-2 pt-4 border-t border-slate-700">
-        <h2 className="text-xs uppercase tracking-widest text-slate-500 font-semibold mb-3">Guanxi Network</h2>
-        <div className="grid grid-cols-2 gap-2 text-xs">
+      <div className="space-y-1.5 pt-3 border-t border-slate-700">
+        <h2 className="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-2">Guanxi Network</h2>
+        <div className="grid grid-cols-2 gap-1.5 text-xs">
           <Badge className="border-slate-600 bg-slate-800 text-slate-300 flex justify-between py-1 px-2">
             <span>Professors</span>
             <span className="font-mono font-bold text-amber-400">{guanxi.professors || 0}</span>
@@ -80,9 +80,9 @@ export default function Dashboard({ state }) {
       </div>
 
       {state.relationships && (
-        <div className="space-y-2 pt-4 border-t border-slate-700">
-          <h2 className="text-xs uppercase tracking-widest text-pink-500 font-semibold mb-3">Deep Connections</h2>
-          <div className="space-y-2 text-xs">
+        <div className="space-y-1.5 pt-3 border-t border-slate-700">
+          <h2 className="text-[10px] uppercase tracking-widest text-pink-500 font-semibold mb-2">Deep Connections</h2>
+          <div className="space-y-1.5 text-xs">
             {Object.entries(state.relationships).filter(([k,v]) => v.friendship > 0 || v.romance > 0).map(([character, rel]) => (
                 <div key={character} className="bg-slate-800 border border-slate-600 rounded-md p-2 flex flex-col gap-1">
                     <div className="font-bold text-slate-200">{character}</div>

@@ -13,7 +13,7 @@ const INITIAL_STATE = {
   currentNodeId: "start",
   turn: 1, // 1 turn = 1 week
   phase: "Application", // "Application", "Pre-Departure", "In-China"
-  location: "Shanghai", // The city the player is currently in
+  location: "Home Country", // The city the player is currently in
   stats: { ...INITIAL_STATS },
   guanxi: {
     admin: 0,
@@ -219,7 +219,7 @@ export class EngineState {
         this.state = { ...this.state, ...parsed }; // Merge to preserve structure
         
         // Handle migration for older saves without economy
-        if (!this.state.location) this.state.location = "Shanghai";
+        if (!this.state.location) this.state.location = this.state.phase === "In-China" ? "Shanghai" : "Home Country";
         if (!this.state.jobs) this.state.jobs = { hasJob: false, jobId: null, weeklyIncome: 0, sanityCost: 0 };
         if (!this.state.transactions) this.state.transactions = [{ week: 1, amount: this.state.stats.wealth, desc: "Initial Funds", type: "income" }];
         if (!this.state.items) this.state.items = { ebike: false, headphones: false };

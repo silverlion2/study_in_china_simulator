@@ -12,6 +12,48 @@ import { gameNodes } from './data/hubData';
 import TabletInterface from './components/TabletInterface';
 import MiniGameOverlay from './components/MiniGames';
 
+const QuestTracker = ({ state }) => {
+    let questTitle = "Explore the Campus";
+    let questDesc = "No urgent deadlines right now.";
+    
+    if (!state.flags.completed_application && state.phase === "Application") {
+        questTitle = "Submit Application";
+        questDesc = "Gather documents and apply before Week 8.";
+    } else if (state.phase === "Application" && state.flags.completed_application) {
+         questTitle = "The Waiting Game";
+         questDesc = "Wait to see if you are accepted.";
+    } else if (state.phase === "Pre-Departure" && state.turn < 16) {
+        questTitle = "Prepare for Departure";
+        questDesc = "Say your goodbyes. Flight boards at Week 16.";
+    } else if (state.turn === 16) {
+        questTitle = "Boarding Call";
+        questDesc = "It's time to fly to China!";
+    } else if (!state.flags.decision_e3_taobao && state.location === "Shanghai" && state.phase === "In-China" && state.turn < 20) {
+        questTitle = "Settle In";
+        questDesc = "Buy essentials on Taobao for your dorm.";
+    } else if (state.phase === "In-China" && state.turn < 24) {
+        questTitle = "Midterms Approaching";
+        questDesc = "Prepare for examinations at Week 24.";
+    } else if (state.phase === "In-China" && state.turn < 32) {
+        questTitle = "Final Defense";
+        questDesc = "Get ready for the final evaluation at Week 32.";
+    } else if (state.turn >= 32) {
+        questTitle = "Epilogue";
+        questDesc = "Your journey is coming to an end.";
+    }
+
+    return (
+        <div className="absolute top-14 left-4 z-40 bg-slate-900/80 border border-slate-700/50 backdrop-blur-md p-3 rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.5)] w-64 pointer-events-none transition-all duration-300">
+            <h3 className="text-amber-400 font-bold text-[10px] uppercase tracking-widest mb-1 flex items-center justify-between">
+                <span>🎯 Current Objective</span>
+                <span className="bg-amber-500/20 px-1 py-0.5 rounded text-amber-300">Active</span>
+            </h3>
+            <p className="text-slate-100 font-semibold text-sm leading-tight">{questTitle}</p>
+            <p className="text-slate-400 text-[11px] mt-1.5 leading-tight italic">{questDesc}</p>
+        </div>
+    );
+};
+
 export default function SimulatorPage() {
   const [gameState, setGameState] = useState(gameEngine.getState());
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -205,7 +247,7 @@ export default function SimulatorPage() {
   const currentNode = allEvents[currentNodeId];
 
   return (
-    <div className="flex h-[100dvh] w-full bg-slate-900 text-slate-100 overflow-hidden font-sans">
+    <div className="flex h-full w-full bg-slate-900 text-slate-100 overflow-hidden font-sans">
       {/* Main area: Visual Novel */}
       <div 
          className="w-full flex flex-col relative bg-cover bg-center transition-all duration-1000 ease-in-out" 
@@ -214,12 +256,12 @@ export default function SimulatorPage() {
         <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
 
         {/* Top Info Bar */}
-        <div className="absolute top-0 left-0 w-full h-14 bg-gradient-to-b from-black/80 to-transparent z-40 flex items-center px-6 justify-between text-slate-200">
-            <div className="flex gap-8 font-mono font-semibold ml-2 text-sm">
-                <div className="text-amber-400 text-lg">Week {gameState.turn} <span className="text-slate-400 font-normal ml-2 text-sm">[{gameState.phase}]</span></div>
-                <div className="flex items-center gap-3">
+        <div className="absolute top-0 left-0 w-full h-10 bg-gradient-to-b from-black/80 to-transparent z-40 flex items-center px-4 justify-between text-slate-200">
+            <div className="flex gap-6 font-mono font-semibold ml-2 text-xs">
+                <div className="text-amber-400 text-base">Week {gameState.turn} <span className="text-slate-400 font-normal ml-1 text-xs">[{gameState.phase}]</span></div>
+                <div className="flex items-center gap-2">
                    <span>😌 {gameState.stats.sanity}/100</span>
-                   <div className={`w-32 h-2.5 rounded-full ${gameState.stats.sanity < 30 ? "bg-red-900" : "bg-slate-700"} overflow-hidden shadow-inner`}>
+                   <div className={`w-24 h-1.5 rounded-full ${gameState.stats.sanity < 30 ? "bg-red-900" : "bg-slate-700"} overflow-hidden shadow-inner`}>
                       <div className={`h-full transition-all duration-500 ease-out ${gameState.stats.sanity < 30 ? "bg-red-500" : "bg-teal-400"}`} style={{ width: `${gameState.stats.sanity}%` }}></div>
                    </div>
                 </div>
@@ -228,18 +270,18 @@ export default function SimulatorPage() {
         </div>
 
         {/* Top Menu */}
-        <div className="absolute top-4 right-6 z-50">
-          <div className="flex gap-4 items-center">
+        <div className="absolute top-3 right-4 z-50">
+          <div className="flex gap-3 items-center">
             <button 
               onClick={() => setIsTabletOpen(true)}
-              className="bg-sky-600/80 hover:bg-sky-500 text-white border border-sky-400 px-4 py-2 rounded shadow-[0_0_15px_rgba(14,165,233,0.5)] font-semibold font-mono flex items-center gap-2 backdrop-blur-md transition-all"
+              className="bg-sky-600/80 hover:bg-sky-500 text-white border border-sky-400 px-3 py-1.5 rounded shadow-[0_0_15px_rgba(14,165,233,0.5)] font-semibold font-mono flex items-center gap-1.5 backdrop-blur-md transition-all text-sm"
             >
               📱 SimPad
             </button>
             <div className="relative">
               <button 
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-600 px-4 py-2 rounded shadow-md font-semibold font-mono flex items-center gap-2 backdrop-blur-md transition-colors"
+                className="bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-600 px-3 py-1.5 rounded shadow-md font-semibold font-mono flex items-center gap-1.5 backdrop-blur-md transition-colors text-sm"
               >
                 <span>⚙️</span> Menu
               </button>
@@ -264,6 +306,8 @@ export default function SimulatorPage() {
           </div>
           </div>
         </div>
+
+        <QuestTracker state={gameState} />
 
         {isTabletOpen && <TabletInterface state={gameState} onClose={() => setIsTabletOpen(false)} onReplayGame={(id) => setReplayGameId(id)} onPlayGig={(id) => { setIsTabletOpen(false); setGigGameId(id); }} />}
 

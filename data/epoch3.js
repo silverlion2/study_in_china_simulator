@@ -155,7 +155,9 @@ export const epoch3Events = {
         next: "hub",
         action: "advance_turn",
         effects: {
-          stats: { sanity: -10, culture: 10 }
+          location: "Shanghai",
+          stats: { sanity: -10, culture: 10 },
+          flags: { "arrived_in_china": true }
         }
       },
       {
@@ -163,7 +165,9 @@ export const epoch3Events = {
         next: "hub",
         action: "advance_turn",
         effects: {
-          stats: { wealth: -200, sanity: 20 }
+          location: "Shanghai",
+          stats: { wealth: -200, sanity: 20 },
+          flags: { "arrived_in_china": true }
         }
       }
     ]

@@ -11,8 +11,9 @@
   <!-- Tailwind CSS -->
   <script src="./lib/tailwindcss.js"></script>
   <style>
-    /* Prevent scroll bouncing */
-    body { margin: 0; padding: 0; overflow: hidden; background: #0f172a; color: white; font-family: sans-serif; }
+    /* Prevent scroll bouncing and fill window exactly */
+    html, body, #root { height: 100%; margin: 0; padding: 0; }
+    body { overflow: hidden; background: #0f172a; color: white; font-family: sans-serif; }
   </style>
 </head>
 <body>
@@ -38,7 +39,7 @@ const INITIAL_STATE = {
   currentNodeId: "start",
   turn: 1, // 1 turn = 1 week
   phase: "Application", // "Application", "Pre-Departure", "In-China"
-  location: "Shanghai", // The city the player is currently in
+  location: "Home Country", // The city the player is currently in
   stats: { ...INITIAL_STATS },
   guanxi: {
     admin: 0,
@@ -244,7 +245,7 @@ class EngineState {
         this.state = { ...this.state, ...parsed }; // Merge to preserve structure
         
         // Handle migration for older saves without economy
-        if (!this.state.location) this.state.location = "Shanghai";
+        if (!this.state.location) this.state.location = this.state.phase === "In-China" ? "Shanghai" : "Home Country";
         if (!this.state.jobs) this.state.jobs = { hasJob: false, jobId: null, weeklyIncome: 0, sanityCost: 0 };
         if (!this.state.transactions) this.state.transactions = [{ week: 1, amount: this.state.stats.wealth, desc: "Initial Funds", type: "income" }];
         if (!this.state.items) this.state.items = { ebike: false, headphones: false };
@@ -1181,7 +1182,9 @@ const epoch3Events = {
         next: "hub",
         action: "advance_turn",
         effects: {
-          stats: { sanity: -10, culture: 10 }
+          location: "Shanghai",
+          stats: { sanity: -10, culture: 10 },
+          flags: { "arrived_in_china": true }
         }
       },
       {
@@ -1189,7 +1192,9 @@ const epoch3Events = {
         next: "hub",
         action: "advance_turn",
         effects: {
-          stats: { wealth: -200, sanity: 20 }
+          location: "Shanghai",
+          stats: { wealth: -200, sanity: 20 },
+          flags: { "arrived_in_china": true }
         }
       }
     ]
@@ -1417,38 +1422,59 @@ const gameNodes = {
       },
       {
          text: "🗣️ Language Partner (Tonal Rhythm Game)",
+         condition: { flags: { "arrived_in_china": true } },
          action: "advance_turn",
          next: "minigame_tones",
          effects: { stats: { sanity: 5, wealth: -20 }, guanxi: { localStudents: 2 } }
       },
       {
          text: "🥡 Order Waimai (Delivery Typer Game)",
+         condition: { flags: { "arrived_in_china": true } },
+         action: "advance_turn",
          next: "minigame_delivery"
       },
       {
          text: "🏢 Bureaucratic Admin (Bike Scramble Game)",
+         condition: { flags: { "arrived_in_china": true } },
          action: "advance_turn",
          next: "minigame_bike"
       },
       {
          text: "🎉 Entertainment & Culture (Sanity +, Culture +)",
+         condition: { flags: { "arrived_in_china": true } },
          next: "submenu_entertainment"
       },
       {
          text: "🚄 Weekend Travel (Wealth ---, Culture ++)",
+         condition: { flags: { "arrived_in_china": true } },
          next: "submenu_travel"
       },
       {
          text: "💼 Hustle & Side Gigs (Wealth ++, Sanity -, Risks)",
+         condition: { flags: { "arrived_in_china": true } },
          next: "submenu_hustle"
       },
       {
          text: "🤝 Socialize & Network (Guanxi +, Specific Contacts)",
+         condition: { flags: { "arrived_in_china": true } },
          next: "submenu_social"
       },
       {
          text: "📍 Explore Local Districts (City Specific)",
+         condition: { flags: { "arrived_in_china": true } },
          next: "submenu_districts"
+      },
+      {
+         text: "📖 Study Chinese at Home (Chinese +, Sanity -)",
+         action: "advance_turn",
+         next: "hub",
+         effects: { stats: { chinese: 5, sanity: -10, academics: 3 } }
+      },
+      {
+         text: "😴 Rest & Recharge (Sanity ++)",
+         action: "advance_turn",
+         next: "hub",
+         effects: { stats: { sanity: 25 } }
       }
     ]
   },
@@ -1583,42 +1609,49 @@ const gameNodes = {
     choices: [
       {
         text: "Return to Base: Shanghai",
+        condition: { stats: { wealth: { min: 500 } } },
         action: "advance_turn",
         next: "event_travel_shanghai",
         effects: { location: "Shanghai", stats: { wealth: -500 } }
       },
       {
         text: "Travel to Beijing",
+        condition: { stats: { wealth: { min: 500 } } },
         action: "advance_turn",
         next: "event_travel_beijing",
         effects: { location: "Beijing", stats: { wealth: -500 } }
       },
       {
         text: "Travel to Guangzhou",
+        condition: { stats: { wealth: { min: 500 } } },
         action: "advance_turn",
         next: "event_travel_guangzhou",
         effects: { location: "Guangzhou", stats: { wealth: -500 } }
       },
       {
         text: "Travel to Chengdu",
+        condition: { stats: { wealth: { min: 500 } } },
         action: "advance_turn",
         next: "event_travel_chengdu",
         effects: { location: "Chengdu", stats: { wealth: -500 } }
       },
       {
         text: "Travel to Xi'an",
+        condition: { stats: { wealth: { min: 500 } } },
         action: "advance_turn",
         next: "event_travel_xian",
         effects: { location: "Xi'an", stats: { wealth: -500 } }
       },
       {
         text: "Travel to Hangzhou",
+        condition: { stats: { wealth: { min: 500 } } },
         action: "advance_turn",
         next: "event_travel_hangzhou",
         effects: { location: "Hangzhou", stats: { wealth: -500 } }
       },
       {
         text: "Travel to Sanya",
+        condition: { stats: { wealth: { min: 500 } } },
         action: "advance_turn",
         next: "event_travel_sanya",
         effects: { location: "Sanya", stats: { wealth: -500 } }
@@ -2286,15 +2319,15 @@ function Dashboard({ state }) {
   const epochLabel = phase === "Application" ? "Epoch 1" : (phase === "Pre-Departure" ? "Epoch 2" : "Epoch 3");
 
   return (
-    <div className="flex flex-col h-full z-10 space-y-6">
+    <div className="flex flex-col h-full z-10 space-y-4">
       <div>
         <h1 className="text-2xl font-black text-amber-500 uppercase tracking-wider mb-2">Sim Panda</h1>
         <p className="text-sm text-slate-400">{epochLabel}: {phase}</p>
         <div className="mt-2 text-3xl text-white font-mono">Week {turn}</div>
       </div>
 
-      <div className="space-y-4">
-        <h2 className="text-xs uppercase tracking-widest text-slate-500 font-semibold">Primary Stats</h2>
+      <div className="space-y-3">
+        <h2 className="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-1">Primary Stats</h2>
         
         <StatBar label="📚 Academics" value={stats.academics} color="bg-blue-500" />
         <StatBar label="🗣️ Chinese" value={stats.chinese} color="bg-rose-500" />
@@ -2309,14 +2342,14 @@ function Dashboard({ state }) {
             <Progress value={stats.sanity} className={`h-2 ${stats.sanity < 30 ? "bg-red-950" : "bg-slate-700"}`} indicatorColor={stats.sanity < 30 ? "bg-red-500" : "bg-teal-400"} />
         </div>
 
-        <div className="pt-4 border-t border-slate-700">
+        <div className="pt-3 border-t border-slate-700">
            <p className="text-sm font-bold text-slate-300">💰 Wealth: <span className="font-mono text-emerald-400">¥{stats.wealth}</span></p>
         </div>
       </div>
 
-      <div className="space-y-2 pt-4 border-t border-slate-700">
-        <h2 className="text-xs uppercase tracking-widest text-slate-500 font-semibold mb-3">Guanxi Network</h2>
-        <div className="grid grid-cols-2 gap-2 text-xs">
+      <div className="space-y-1.5 pt-3 border-t border-slate-700">
+        <h2 className="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-2">Guanxi Network</h2>
+        <div className="grid grid-cols-2 gap-1.5 text-xs">
           <Badge className="border-slate-600 bg-slate-800 text-slate-300 flex justify-between py-1 px-2">
             <span>Professors</span>
             <span className="font-mono font-bold text-amber-400">{guanxi.professors || 0}</span>
@@ -2337,9 +2370,9 @@ function Dashboard({ state }) {
       </div>
 
       {state.relationships && (
-        <div className="space-y-2 pt-4 border-t border-slate-700">
-          <h2 className="text-xs uppercase tracking-widest text-pink-500 font-semibold mb-3">Deep Connections</h2>
-          <div className="space-y-2 text-xs">
+        <div className="space-y-1.5 pt-3 border-t border-slate-700">
+          <h2 className="text-[10px] uppercase tracking-widest text-pink-500 font-semibold mb-2">Deep Connections</h2>
+          <div className="space-y-1.5 text-xs">
             {Object.entries(state.relationships).filter(([k,v]) => v.friendship > 0 || v.romance > 0).map(([character, rel]) => (
                 <div key={character} className="bg-slate-800 border border-slate-600 rounded-md p-2 flex flex-col gap-1">
                     <div className="font-bold text-slate-200">{character}</div>
@@ -2384,7 +2417,7 @@ function TabletInterface({ state, onClose, onReplayGame, onPlayGig }) {
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-all animate-in fade-in duration-300" onClick={onClose}>
         <div 
-           className="relative w-full max-w-3xl h-[85vh] bg-slate-900 border-[12px] border-slate-950 rounded-[3rem] shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col animate-in zoom-in-95 duration-300"
+           className="relative w-full max-w-2xl h-[75vh] bg-slate-900 border-[8px] border-slate-950 rounded-[2rem] shadow-[0_0_40px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col animate-in zoom-in-95 duration-300"
            onClick={e => e.stopPropagation()}
         >
             {/* iPad Notch / Camera */}
@@ -2400,51 +2433,55 @@ function TabletInterface({ state, onClose, onReplayGame, onPlayGig }) {
             </div>
 
             {/* Tab Navigation */}
-            <div className="w-full bg-slate-800 border-b border-slate-700 flex p-2 shrink-0 justify-start sm:justify-center gap-2 shadow-sm overflow-x-auto no-scrollbar">
+            <div className="w-full bg-slate-800 border-b border-slate-700 flex p-1.5 shrink-0 justify-start sm:justify-center gap-1 shadow-sm overflow-x-auto no-scrollbar">
                 <button 
-                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'Story' ? 'bg-sky-500 text-white shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'Story' ? 'bg-sky-500 text-white shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
                   onClick={() => setActiveTab('Story')}
                 >🗺️ Story</button>
                 <button 
-                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'Map' ? 'bg-indigo-500 text-white shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'Map' ? 'bg-indigo-500 text-white shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
                   onClick={() => setActiveTab('Map')}
                 >📍 Map</button>
                 <button 
-                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'Stats' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'Stats' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
                   onClick={() => setActiveTab('Stats')}
                 >📊 Stats</button>
                 <button 
-                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'Wallet' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'Wallet' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
                   onClick={() => setActiveTab('Wallet')}
                 >💳 Alipay</button>
                 <button 
-                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'Jobs' ? 'bg-amber-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'Jobs' ? 'bg-amber-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
                   onClick={() => setActiveTab('Jobs')}
                 >💼 Jobs</button>
                 <button 
-                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'Taobao' ? 'bg-orange-500 text-white shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'Taobao' ? 'bg-orange-500 text-white shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
                   onClick={() => setActiveTab('Taobao')}
                 >🛒 Taobao</button>
                 <button 
-                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'Arcade' ? 'bg-purple-500 text-white shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'Arcade' ? 'bg-purple-500 text-white shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
                   onClick={() => setActiveTab('Arcade')}
                 >🕹️ Arcade</button>
                 <button 
-                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'Souvenirs' ? 'bg-pink-500 text-white shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'Souvenirs' ? 'bg-pink-500 text-white shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
                   onClick={() => setActiveTab('Souvenirs')}
                 >🧲 Souvenirs</button>
+                <button 
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'WeChat' ? 'bg-[#1AAD19] text-white shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
+                  onClick={() => setActiveTab('WeChat')}
+                >💬 WeChat</button>
             </div>
 
             {/* Tablet Content */}
-            <div className="p-8 pb-12 flex-1 overflow-y-auto w-full">
+            <div className="p-5 pb-8 flex-1 overflow-y-auto w-full">
                 {activeTab === 'Stats' && (
-                    <div className="max-w-xl mx-auto border border-slate-800 bg-slate-900/50 p-6 rounded-2xl shadow-xl">
+                    <div className="max-w-xl mx-auto border border-slate-800 bg-slate-900/50 p-4 rounded-xl shadow-xl">
                        <Dashboard state={state} />
                     </div>
                 )}
                 
                 {activeTab === 'Story' && (
-                    <div className="max-w-xl mx-auto space-y-8 relative">
+                    <div className="max-w-xl mx-auto space-y-6 relative">
                         {/* Visual Timeline Path */}
                         <div className="absolute left-8 top-8 bottom-8 w-1 bg-slate-700 rounded-full z-0"></div>
 
@@ -2494,20 +2531,20 @@ function TabletInterface({ state, onClose, onReplayGame, onPlayGig }) {
                 )}
 
                 {activeTab === 'Map' && (
-                    <div className="max-w-2xl mx-auto flex flex-col h-full bg-blue-50/5 rounded-3xl p-4 border border-blue-900/30">
-                        <h2 className="text-2xl font-bold text-sky-400 mb-4 text-center">Travel Map</h2>
-                        <div className="relative w-full aspect-[4/3] bg-sky-950 rounded-2xl overflow-hidden border border-sky-800 shadow-inner flex items-center justify-center">
-                            {/* The Map Background */}
-                            <img src="assets/china_map.png" alt="Map of China" className="w-[90%] h-[90%] object-contain drop-shadow-[0_0_15px_rgba(56,189,248,0.3)] opacity-90" />
+                    <div className="max-w-xl mx-auto flex flex-col h-full bg-blue-50/5 rounded-2xl p-4 border border-blue-900/30">
+                        <h2 className="text-xl font-bold text-sky-400 mb-2 text-center">Travel Map</h2>
+                        <div className="relative w-full max-w-sm mx-auto aspect-square bg-sky-950 rounded-2xl overflow-hidden border border-sky-800 shadow-inner flex items-center justify-center">
+                            {/* The Map Background - Square to match image */}
+                            <img src="assets/china_map.png" alt="Map of China" className="absolute inset-0 w-full h-full object-cover drop-shadow-[0_0_15px_rgba(56,189,248,0.3)] opacity-90 mix-blend-screen" />
                             
-                            {/* City Pins (Estimated relative positioning) */}
-                            <CityPin name="Beijing" top="28%" left="65%" active={state.location === 'Beijing'} />
-                            <CityPin name="Shanghai" top="55%" left="82%" active={state.location === 'Shanghai'} />
-                            <CityPin name="Hangzhou" top="58%" left="80%" active={state.location === 'Hangzhou'} />
-                            <CityPin name="Guangzhou" top="82%" left="66%" active={state.location === 'Guangzhou'} />
-                            <CityPin name="Sanya" top="95%" left="60%" active={state.location === 'Sanya'} />
-                            <CityPin name="Chengdu" top="62%" left="50%" active={state.location === 'Chengdu'} />
-                            <CityPin name="Xi'an" top="48%" left="58%" active={state.location === 'Xi\'an'} />
+                            {/* City Pins (Tuned for 1:1 image mapping) */}
+                            <CityPin name="Beijing" top="28%" left="72%" active={state.location === 'Beijing'} />
+                            <CityPin name="Shanghai" top="55%" left="87%" active={state.location === 'Shanghai'} />
+                            <CityPin name="Hangzhou" top="59%" left="85%" active={state.location === 'Hangzhou'} />
+                            <CityPin name="Guangzhou" top="82%" left="68%" active={state.location === 'Guangzhou'} />
+                            <CityPin name="Sanya" top="94%" left="62%" active={state.location === 'Sanya'} />
+                            <CityPin name="Chengdu" top="62%" left="53%" active={state.location === 'Chengdu'} />
+                            <CityPin name="Xi'an" top="48%" left="63%" active={state.location === 'Xi\'an'} />
                         </div>
                         <div className="mt-6 text-center text-slate-300 text-sm bg-slate-800/50 p-4 rounded-xl border border-slate-700">
                             <p>Your current location is <span className="text-sky-400 font-bold text-base px-2">{state.location}</span></p>
@@ -2516,22 +2553,92 @@ function TabletInterface({ state, onClose, onReplayGame, onPlayGig }) {
                     </div>
                 )}
 
+                {activeTab === 'WeChat' && (
+                    <div className="max-w-xl mx-auto h-[60vh] flex flex-col bg-[#ebebeb] rounded-2xl overflow-hidden shadow-2xl relative border border-slate-700/50">
+                        <div className="bg-[#1AAD19] px-4 py-3 text-white shadow relative z-10 flex justify-between items-center shrink-0">
+                            <h2 className="text-md font-bold tracking-wide">微信 WeChat</h2>
+                            <div className="text-xl opacity-80 cursor-pointer">⊕</div>
+                        </div>
+                        <div className="flex-1 overflow-y-auto w-full no-scrollbar">
+                            {Object.keys(state.relationships || {}).length === 0 ? (
+                                <div className="text-center p-8 text-slate-500 flex flex-col items-center justify-center h-full">
+                                    <div className="text-5xl mb-4 grayscale opacity-40">📱</div>
+                                    <p className="font-semibold text-lg text-slate-600 mb-1">No Contacts Yet.</p>
+                                    <p className="text-xs">Go out into the world and meet some people!</p>
+                                </div>
+                            ) : (
+                                Object.entries(state.relationships || {}).map(([name, data], idx) => {
+                                    const meta = {
+                                        "Dr. Mei": { emoji: "👩‍🏫", desc: "University Advisor" },
+                                        "Manager Zhang": { emoji: "👔", desc: "Corporate Recruiter" },
+                                        "Sophie": { emoji: "👱‍♀️", desc: "French Exchange Student" },
+                                        "Xiao Chen": { emoji: "🧑‍💻", desc: "AI Startup Founder" },
+                                        "Uncle Wang": { emoji: "👨🏽‍🍳", desc: "Street BBQ Owner" }
+                                    }[name] || { emoji: "👤", desc: "Acquaintance" };
+
+                                    return (
+                                        <div key={idx} className="bg-white border-b border-gray-200/60 p-3 flex flex-col sm:flex-row sm:items-center gap-3 hover:bg-gray-50 transition-colors cursor-pointer group">
+                                            <div className="flex items-center gap-3 w-full sm:w-auto">
+                                                <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center text-3xl shadow-sm border border-gray-200 shrink-0 transform group-hover:scale-105 transition-transform">
+                                                    {meta.emoji}
+                                                </div>
+                                                <div className="flex-1">
+                                                    <h3 className="font-bold text-gray-900 text-sm mb-0.5">{name}</h3>
+                                                    <p className="text-gray-500 text-[10px] leading-tight line-clamp-1">{meta.desc}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-col gap-1.5 w-full sm:flex-1 bg-gray-50 p-2 sm:p-2.5 rounded-lg border border-gray-100/80">
+                                                <div className="relative">
+                                                    <div className="flex items-center justify-between mb-0.5">
+                                                        <span className="text-[9px] font-semibold text-[#1AAD19] uppercase tracking-wider">Friendship</span>
+                                                        <span className="text-[10px] font-mono text-[#1AAD19]">{data.friendship}/100</span>
+                                                    </div>
+                                                    <div className="overflow-hidden h-1.5 text-xs flex rounded-full bg-green-100">
+                                                        <div style={{ width: `${data.friendship}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-[#1AAD19] transition-all duration-700"></div>
+                                                    </div>
+                                                </div>
+                                                {data.romance > 0 && (
+                                                    <div className="relative mt-0.5">
+                                                        <div className="flex items-center justify-between mb-0.5">
+                                                            <span className="text-[9px] font-semibold text-rose-500 uppercase tracking-wider">Romance</span>
+                                                            <span className="text-[10px] font-mono text-rose-500">{data.romance}/100</span>
+                                                        </div>
+                                                        <div className="overflow-hidden h-1.5 text-xs flex rounded-full bg-rose-100">
+                                                            <div style={{ width: `${data.romance}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-rose-500 transition-all duration-700"></div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                        <div className="bg-white border-t border-gray-200 flex py-2 px-6 justify-between text-gray-400 text-xs font-medium shrink-0">
+                            <div className="flex flex-col items-center text-[#1AAD19]"><span className="text-xl mb-0.5">💬</span>Chats</div>
+                            <div className="flex flex-col items-center hover:text-gray-500"><span className="text-xl mb-0.5">👥</span>Contacts</div>
+                            <div className="flex flex-col items-center hover:text-gray-500"><span className="text-xl mb-0.5">🧭</span>Discover</div>
+                            <div className="flex flex-col items-center hover:text-gray-500"><span className="text-xl mb-0.5">👤</span>Me</div>
+                        </div>
+                    </div>
+                )}
+
                 {activeTab === 'Wallet' && (
                     <div className="max-w-xl mx-auto">
-                        <div className="bg-blue-600 rounded-3xl p-6 text-white shadow-xl mb-6 relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-4 opacity-20 text-6xl">💳</div>
-                            <h2 className="text-blue-100 font-semibold mb-1">Total Balance</h2>
-                            <div className="text-4xl font-bold font-mono">¥{stats.wealth.toLocaleString()}</div>
-                            <div className="mt-4 flex gap-4 text-sm font-medium">
-                                <div className="bg-white/20 px-3 py-1 rounded-full text-blue-50">↓ Receive</div>
-                                <div className="bg-white/20 px-3 py-1 rounded-full text-blue-50">↑ Transfer</div>
+                        <div className="bg-blue-600 rounded-2xl p-5 text-white shadow-xl mb-4 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 p-3 opacity-20 text-5xl">💳</div>
+                            <h2 className="text-blue-100 font-semibold mb-1 text-sm">Total Balance</h2>
+                            <div className="text-3xl font-bold font-mono">¥{stats.wealth.toLocaleString()}</div>
+                            <div className="mt-3 flex gap-3 text-xs font-medium">
+                                <div className="bg-white/20 px-2.5 py-1 rounded-full text-blue-50">↓ Receive</div>
+                                <div className="bg-white/20 px-2.5 py-1 rounded-full text-blue-50">↑ Transfer</div>
                             </div>
                         </div>
 
-                        <h3 className="text-slate-400 font-semibold mb-4 px-2 tracking-wide uppercase text-sm">Recent Transactions</h3>
-                        <div className="bg-slate-900/80 rounded-2xl border border-slate-700/50 shadow-inner overflow-hidden">
+                        <h3 className="text-slate-400 font-semibold mb-2 px-2 tracking-wide uppercase text-xs">Recent Transactions</h3>
+                        <div className="bg-slate-900/80 rounded-xl border border-slate-700/50 shadow-inner overflow-hidden">
                             {(state.transactions || []).slice().reverse().map((tx, idx) => (
-                                <div key={idx} className="flex justify-between items-center p-4 border-b border-slate-800 last:border-0 hover:bg-slate-800/50 transition-colors">
+                                <div key={idx} className="flex justify-between items-center p-3 border-b border-slate-800 last:border-0 hover:bg-slate-800/50 transition-colors">
                                     <div className="flex items-center gap-3">
                                         <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${tx.type === 'income' ? 'bg-emerald-900/30 text-emerald-400' : 'bg-rose-900/30 text-rose-400'}`}>
                                             {tx.type === 'income' ? '↓' : '↑'}
@@ -2554,10 +2661,10 @@ function TabletInterface({ state, onClose, onReplayGame, onPlayGig }) {
                 )}
 
                 {activeTab === 'Jobs' && (
-                    <div className="max-w-xl mx-auto space-y-4">
-                        <div className="bg-amber-600/20 border border-amber-600/50 rounded-2xl p-6 mb-6">
-                            <h2 className="text-xl font-bold text-amber-500 mb-2">Gig Economy</h2>
-                            <p className="text-slate-300 text-sm">Launch into a gig to earn instant RMB. Be careful not to burn out—gigs drain sanity whether you win or lose!</p>
+                    <div className="max-w-xl mx-auto space-y-3">
+                        <div className="bg-amber-600/20 border border-amber-600/50 rounded-xl p-4 mb-4">
+                            <h2 className="text-lg font-bold text-amber-500 mb-1">Gig Economy</h2>
+                            <p className="text-slate-300 text-xs">Launch into a gig to earn instant RMB. Be careful not to burn out—gigs drain sanity whether you win or lose!</p>
                         </div>
 
                         <JobCard 
@@ -2593,12 +2700,12 @@ function TabletInterface({ state, onClose, onReplayGame, onPlayGig }) {
 
                 {activeTab === 'Taobao' && (
                     <div className="max-w-xl mx-auto">
-                        <div className="bg-orange-600 rounded-3xl p-6 text-white shadow-xl mb-6 flex justify-between items-center">
+                        <div className="bg-orange-600 rounded-2xl p-5 text-white shadow-xl mb-4 flex justify-between items-center">
                             <div>
-                                <h2 className="text-2xl font-bold mb-1 tracking-tight">Taobao Mall</h2>
-                                <p className="text-orange-200 text-sm">Upgrade your life in China.</p>
+                                <h2 className="text-xl font-bold mb-1 tracking-tight">Taobao Mall</h2>
+                                <p className="text-orange-200 text-xs">Upgrade your life in China.</p>
                             </div>
-                            <div className="text-5xl">🛒</div>
+                            <div className="text-4xl">🛒</div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2621,8 +2728,8 @@ function TabletInterface({ state, onClose, onReplayGame, onPlayGig }) {
                 )}
                 
                 {activeTab === 'Arcade' && (
-                    <div className="max-w-4xl mx-auto">
-                        <h2 className="text-2xl font-bold text-purple-400 mb-6 text-center">SimPad Arcade</h2>
+                    <div className="max-w-3xl mx-auto">
+                        <h2 className="text-xl font-bold text-purple-400 mb-4 text-center">SimPad Arcade</h2>
                         <div className="grid grid-cols-2 gap-4">
                             <ArcadeGameButton id="visa" title="Visa Bureaucracy" emoji="📄" flags={flags} onReplay={onReplayGame} />
                             <ArcadeGameButton id="subway" title="Subway Squeeze" emoji="🚇" flags={flags} onReplay={onReplayGame} />
@@ -2645,12 +2752,12 @@ function TabletInterface({ state, onClose, onReplayGame, onPlayGig }) {
 
                 {activeTab === 'Souvenirs' && (
                     <div className="max-w-xl mx-auto">
-                        <div className="bg-pink-600 rounded-3xl p-6 text-white shadow-xl mb-6 flex justify-between items-center">
+                        <div className="bg-pink-600 rounded-2xl p-5 text-white shadow-xl mb-4 flex justify-between items-center">
                             <div>
-                                <h2 className="text-2xl font-bold mb-1 tracking-tight">Fridge Magnets</h2>
-                                <p className="text-pink-200 text-sm">Collected from your travels around China.</p>
+                                <h2 className="text-xl font-bold mb-1 tracking-tight">Fridge Magnets</h2>
+                                <p className="text-pink-200 text-xs">Collected from your travels around China.</p>
                             </div>
-                            <div className="text-5xl">🧲</div>
+                            <div className="text-4xl">🧲</div>
                         </div>
 
                         <div className="bg-slate-800/80 rounded-2xl border border-slate-700 p-8 flex flex-wrap gap-4 justify-center items-start min-h-[300px] relative overflow-hidden">
@@ -2699,13 +2806,13 @@ function TimelineNode({ title, desc, active, completed, children }) {
     }
 
     return (
-        <div className="pl-16 relative">
-            <div className={`absolute left-[1.125rem] top-1.5 w-5 h-5 rounded-full border-[5px] z-10 transition-all ${dotColor}`}></div>
-            <div className={`text-lg font-bold ${active ? 'text-sky-400' : (completed ? 'text-emerald-400' : 'text-slate-500')} mb-1`}>
+        <div className="pl-12 relative">
+            <div className={`absolute left-[0.85rem] top-1.5 w-4 h-4 rounded-full border-[4px] z-10 transition-all ${dotColor}`}></div>
+            <div className={`text-base font-bold ${active ? 'text-sky-400' : (completed ? 'text-emerald-400' : 'text-slate-500')} mb-1`}>
                 {title}
             </div>
-            <p className={`${textColor} text-sm mb-3`}>{desc}</p>
-            <div className="bg-slate-800/80 p-4 rounded-xl flex flex-col gap-2 border border-slate-700/50 shadow-inner">
+            <p className={`${textColor} text-xs mb-2`}>{desc}</p>
+            <div className="bg-slate-800/80 p-3 rounded-xl flex flex-col gap-1.5 border border-slate-700/50 shadow-inner">
                 {children}
             </div>
         </div>
@@ -2722,7 +2829,7 @@ function DecisionFlag({ label, value }) {
         );
     }
     return (
-        <div className="flex justify-between items-center text-sm bg-slate-900/50 p-2 rounded-lg border border-slate-700/50">
+        <div className="flex justify-between items-center text-xs bg-slate-900/50 p-1.5 px-2 rounded-lg border border-slate-700/50">
             <span className="text-slate-400">{label}:</span>
             <span className="text-sky-300 font-medium">{value}</span>
         </div>
@@ -2734,12 +2841,12 @@ function ArcadeGameButton({ id, title, emoji, flags, onReplay }) {
     
     if (!isUnlocked) {
         return (
-            <div className="bg-slate-800/30 border border-slate-700/50 p-4 rounded-2xl flex items-center justify-between opacity-50 grayscale">
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center text-2xl">{emoji}</div>
-                    <div className="font-bold text-slate-500">???</div>
+            <div className="bg-slate-800/30 border border-slate-700/50 p-3 rounded-xl flex items-center justify-between opacity-50 grayscale">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center text-xl">{emoji}</div>
+                    <div className="font-bold text-slate-500 text-sm">???</div>
                 </div>
-                <div className="text-slate-600 text-xl">🔒</div>
+                <div className="text-slate-600 text-lg">🔒</div>
             </div>
         );
     }
@@ -2747,35 +2854,35 @@ function ArcadeGameButton({ id, title, emoji, flags, onReplay }) {
     return (
         <button 
             onClick={() => onReplay(id)}
-            className="bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-purple-500 p-4 rounded-2xl flex items-center justify-between transition-all hover:scale-105 group text-left"
+            className="bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-purple-500 p-3 rounded-xl flex items-center justify-between transition-all hover:scale-105 group text-left"
         >
-            <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-purple-900/50 group-hover:bg-purple-600 rounded-xl flex items-center justify-center text-2xl transition-colors">{emoji}</div>
-                <div className="font-bold text-slate-200 group-hover:text-white transition-colors">{title}</div>
+            <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-purple-900/50 group-hover:bg-purple-600 rounded-lg flex items-center justify-center text-xl transition-colors">{emoji}</div>
+                <div className="font-bold text-slate-200 group-hover:text-white transition-colors text-sm">{title}</div>
             </div>
-            <div className="text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity font-bold">PLAY ▶</div>
+            <div className="text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity font-bold text-sm">PLAY ▶</div>
         </button>
     );
 }
 
 function JobCard({ id, title, emoji, income, sanityCost, desc, onSelect, disabled }) {
     return (
-        <div className={`border p-5 rounded-2xl transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-800/50 border-slate-700/50 hover:border-slate-500`}>
-            <div className="flex items-start gap-4 flex-1">
-                <div className="text-4xl bg-slate-900/50 w-14 h-14 rounded-xl flex items-center justify-center shrink-0 border border-slate-700/50">{emoji}</div>
+        <div className={`border p-4 rounded-xl transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-800/50 border-slate-700/50 hover:border-slate-500`}>
+            <div className="flex items-start gap-3 flex-1">
+                <div className="text-3xl bg-slate-900/50 w-12 h-12 rounded-lg flex items-center justify-center shrink-0 border border-slate-700/50">{emoji}</div>
                 <div>
-                    <h3 className="font-bold text-lg text-slate-200">{title}</h3>
-                    <p className="text-sm text-slate-400 mt-1">{desc}</p>
-                    <div className="flex gap-3 mt-3">
-                        <span className="text-xs font-mono bg-emerald-900/40 text-emerald-400 px-2 py-1 rounded">+{income} RMB</span>
-                        <span className="text-xs font-mono bg-rose-900/40 text-rose-400 px-2 py-1 rounded">-{sanityCost} Sanity</span>
+                    <h3 className="font-bold text-base text-slate-200">{title}</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">{desc}</p>
+                    <div className="flex gap-2 mt-2">
+                        <span className="text-[10px] font-mono bg-emerald-900/40 text-emerald-400 px-1.5 py-0.5 rounded">+{income} RMB</span>
+                        <span className="text-[10px] font-mono bg-rose-900/40 text-rose-400 px-1.5 py-0.5 rounded">-{sanityCost} Sanity</span>
                     </div>
                 </div>
             </div>
             <button 
                 onClick={disabled ? null : onSelect}
                 disabled={disabled}
-                className={`w-full md:w-auto px-6 py-2.5 rounded-xl font-bold transition-all shrink-0 ${
+                className={`w-full md:w-auto px-4 py-1.5 rounded-lg font-bold text-sm transition-all shrink-0 ${
                     disabled 
                         ? 'bg-slate-700 text-slate-500 cursor-not-allowed' 
                         : 'bg-amber-600 text-white hover:bg-amber-500 hover:-translate-y-0.5'
@@ -2791,20 +2898,20 @@ function ItemCard({ id, title, emoji, cost, desc, isOwned, wealth, onBuy }) {
     const canAfford = wealth >= cost;
     
     return (
-        <div className={`p-5 rounded-2xl border flex flex-col justify-between h-full transition-all ${isOwned ? 'bg-slate-800/80 border-orange-500/50 opacity-80' : 'bg-slate-800/50 border-slate-700/50 hover:border-slate-500'}`}>
+        <div className={`p-4 rounded-xl border flex flex-col justify-between h-full transition-all ${isOwned ? 'bg-slate-800/80 border-orange-500/50 opacity-80' : 'bg-slate-800/50 border-slate-700/50 hover:border-slate-500'}`}>
             <div>
-                <div className="flex justify-between items-start mb-3">
-                    <div className="text-4xl bg-slate-900/50 w-14 h-14 rounded-xl flex items-center justify-center border border-slate-700/50">{emoji}</div>
-                    <div className="font-mono font-bold text-orange-400">¥{cost}</div>
+                <div className="flex justify-between items-start mb-2">
+                    <div className="text-3xl bg-slate-900/50 w-12 h-12 rounded-lg flex items-center justify-center border border-slate-700/50">{emoji}</div>
+                    <div className="font-mono font-bold text-orange-400 text-sm">¥{cost}</div>
                 </div>
-                <h3 className="font-bold text-slate-200 leading-tight mb-2">{title}</h3>
-                <p className="text-sm text-slate-400 mb-4">{desc}</p>
+                <h3 className="font-bold text-slate-200 leading-tight mb-1 text-sm">{title}</h3>
+                <p className="text-xs text-slate-400 mb-3">{desc}</p>
             </div>
             
             <button 
                 onClick={onBuy}
                 disabled={isOwned || (!canAfford && !isOwned)}
-                className={`w-full py-2.5 rounded-xl font-bold transition-all ${isOwned ? 'bg-slate-700 text-slate-400 cursor-not-allowed' : (!canAfford ? 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed' : 'bg-orange-600 text-white hover:bg-orange-500')}`}
+                className={`w-full py-1.5 rounded-lg font-bold text-sm transition-all ${isOwned ? 'bg-slate-700 text-slate-400 cursor-not-allowed' : (!canAfford ? 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed' : 'bg-orange-600 text-white hover:bg-orange-500')}`}
             >
                 {isOwned ? '✓ Owned' : 'Buy Now'}
             </button>
@@ -2955,18 +3062,18 @@ function StoryPanel({ node, state, availableChoices, onChoice }) {
   const speakerImg = node?.speaker ? speakerImages[node.speaker] : null;
 
   return (
-    <div className="flex-1 flex flex-col justify-end p-8 pb-32 z-10 w-full max-w-4xl mx-auto relative pt-48">
+    <div className="flex-1 flex flex-col justify-end p-4 pb-16 z-10 w-full max-w-3xl mx-auto relative pt-24">
        
       {/* Choice Menu */}
-      <div className={`flex flex-col mb-8 gap-3 items-end transition-all duration-700 ${showChoices ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+      <div className={`flex flex-col mb-4 gap-2 items-end transition-all duration-700 ${showChoices ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
         {availableChoices && availableChoices.length > 0 && availableChoices.map((choice, i) => (
           <button
             key={i}
             onClick={() => onChoice(choice)}
-            className="bg-slate-900/90 border border-slate-700/50 hover:bg-slate-800 hover:border-amber-500 hover:text-amber-400 text-slate-200 px-6 py-4 rounded-xl text-left w-3/4 shadow-xl backdrop-blur-md transition-all group flex flex-col relative"
+            className="bg-slate-900/90 border border-slate-700/50 hover:bg-slate-800 hover:border-amber-500 hover:text-amber-400 text-slate-200 px-4 py-3 rounded-xl text-left w-2/3 shadow-xl backdrop-blur-md transition-all group flex flex-col relative"
           >
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 font-mono text-sm opacity-50 group-hover:opacity-100 group-hover:text-amber-500 transition-all">[{i+1}]</div>
-            <div className="font-semibold text-lg pl-6">{choice.text}</div>
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600 font-mono text-[10px] opacity-50 group-hover:opacity-100 group-hover:text-amber-500 transition-all">[{i+1}]</div>
+            <div className="font-medium text-base pl-5">{choice.text}</div>
             {choice.effects && <ChoicePreview effects={choice.effects} />}
           </button>
         ))}
@@ -2975,26 +3082,26 @@ function StoryPanel({ node, state, availableChoices, onChoice }) {
       {/* Dialogue Box */}
       <div 
          key={textKey}
-         className="bg-slate-900/95 border border-slate-700 backdrop-blur-xl p-8 rounded-2xl shadow-2xl relative animate-in fade-in slide-in-from-bottom-4 duration-500 w-full"
+         className="bg-slate-900/95 border border-slate-700 backdrop-blur-xl p-5 rounded-xl shadow-2xl relative animate-in fade-in slide-in-from-bottom-4 duration-500 w-full"
       >
         {speakerImg && (
-            <div className="absolute bottom-full mb-[-2rem] left-8 h-[28rem] pointer-events-none drop-shadow-[0_15px_25px_rgba(0,0,0,0.8)] z-[-1] animate-in slide-in-from-bottom-12 fade-in duration-700 ease-out">
+            <div className="absolute bottom-full mb-[-1rem] left-8 h-[20rem] pointer-events-none drop-shadow-[0_15px_25px_rgba(0,0,0,0.8)] z-[-1] animate-in slide-in-from-bottom-12 fade-in duration-700 ease-out">
                <img src={speakerImg} alt={node.speaker} className="h-full w-auto object-contain object-bottom" />
             </div>
         )}
-        <div className="absolute -top-4 left-6 flex gap-3">
-          <div className="bg-amber-500 text-slate-900 font-bold px-4 py-1 rounded shadow-md uppercase tracking-wider text-sm">
+        <div className="absolute -top-3 left-6 flex gap-2">
+          <div className="bg-amber-500 text-slate-900 font-bold px-3 py-0.5 rounded shadow-md uppercase tracking-wider text-xs">
             {node.speaker || "Narrator"}
           </div>
           {node.location && (
-            <div className="bg-slate-700 text-amber-400 border border-amber-500/30 font-bold px-4 py-1 rounded shadow-md uppercase tracking-wider text-sm flex items-center gap-2">
+            <div className="bg-slate-700 text-amber-400 border border-amber-500/30 font-bold px-3 py-0.5 rounded shadow-md uppercase tracking-wider text-xs flex items-center gap-1.5">
               📍 {node.location}
             </div>
           )}
         </div>
-        <p className="text-xl text-slate-100 leading-relaxed font-serif mt-2 min-h-[4rem] whitespace-pre-wrap">
+        <p className="text-lg text-slate-100 leading-relaxed font-serif mt-2 min-h-[3rem] whitespace-pre-wrap">
           {displayText}
-          {!showChoices && <span className="inline-block w-2 bg-amber-500 opacity-50 animate-pulse ml-1">&nbsp;</span>}
+          {!showChoices && <span className="inline-block w-1.5 bg-amber-500 opacity-50 animate-pulse ml-1">&nbsp;</span>}
         </p>
       </div>
     </div>
@@ -3055,7 +3162,7 @@ function ChoicePreview({ effects }) {
    if (previews.length === 0) return null;
 
    return (
-       <div className="flex flex-wrap gap-4 mt-2 opacity-60 group-hover:opacity-100 transition-opacity">
+       <div className="flex flex-wrap gap-2 mt-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
            {previews}
        </div>
    )
@@ -3736,6 +3843,48 @@ function PhotoShootGame({ onComplete }) {
 
 
 
+const QuestTracker = ({ state }) => {
+    let questTitle = "Explore the Campus";
+    let questDesc = "No urgent deadlines right now.";
+    
+    if (!state.flags.completed_application && state.phase === "Application") {
+        questTitle = "Submit Application";
+        questDesc = "Gather documents and apply before Week 8.";
+    } else if (state.phase === "Application" && state.flags.completed_application) {
+         questTitle = "The Waiting Game";
+         questDesc = "Wait to see if you are accepted.";
+    } else if (state.phase === "Pre-Departure" && state.turn < 16) {
+        questTitle = "Prepare for Departure";
+        questDesc = "Say your goodbyes. Flight boards at Week 16.";
+    } else if (state.turn === 16) {
+        questTitle = "Boarding Call";
+        questDesc = "It's time to fly to China!";
+    } else if (!state.flags.decision_e3_taobao && state.location === "Shanghai" && state.phase === "In-China" && state.turn < 20) {
+        questTitle = "Settle In";
+        questDesc = "Buy essentials on Taobao for your dorm.";
+    } else if (state.phase === "In-China" && state.turn < 24) {
+        questTitle = "Midterms Approaching";
+        questDesc = "Prepare for examinations at Week 24.";
+    } else if (state.phase === "In-China" && state.turn < 32) {
+        questTitle = "Final Defense";
+        questDesc = "Get ready for the final evaluation at Week 32.";
+    } else if (state.turn >= 32) {
+        questTitle = "Epilogue";
+        questDesc = "Your journey is coming to an end.";
+    }
+
+    return (
+        <div className="absolute top-14 left-4 z-40 bg-slate-900/80 border border-slate-700/50 backdrop-blur-md p-3 rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.5)] w-64 pointer-events-none transition-all duration-300">
+            <h3 className="text-amber-400 font-bold text-[10px] uppercase tracking-widest mb-1 flex items-center justify-between">
+                <span>🎯 Current Objective</span>
+                <span className="bg-amber-500/20 px-1 py-0.5 rounded text-amber-300">Active</span>
+            </h3>
+            <p className="text-slate-100 font-semibold text-sm leading-tight">{questTitle}</p>
+            <p className="text-slate-400 text-[11px] mt-1.5 leading-tight italic">{questDesc}</p>
+        </div>
+    );
+};
+
 function SimulatorPage() {
   const [gameState, setGameState] = useState(gameEngine.getState());
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -3929,7 +4078,7 @@ function SimulatorPage() {
   const currentNode = allEvents[currentNodeId];
 
   return (
-    <div className="flex h-[100dvh] w-full bg-slate-900 text-slate-100 overflow-hidden font-sans">
+    <div className="flex h-full w-full bg-slate-900 text-slate-100 overflow-hidden font-sans">
       {/* Main area: Visual Novel */}
       <div 
          className="w-full flex flex-col relative bg-cover bg-center transition-all duration-1000 ease-in-out" 
@@ -3938,12 +4087,12 @@ function SimulatorPage() {
         <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
 
         {/* Top Info Bar */}
-        <div className="absolute top-0 left-0 w-full h-14 bg-gradient-to-b from-black/80 to-transparent z-40 flex items-center px-6 justify-between text-slate-200">
-            <div className="flex gap-8 font-mono font-semibold ml-2 text-sm">
-                <div className="text-amber-400 text-lg">Week {gameState.turn} <span className="text-slate-400 font-normal ml-2 text-sm">[{gameState.phase}]</span></div>
-                <div className="flex items-center gap-3">
+        <div className="absolute top-0 left-0 w-full h-10 bg-gradient-to-b from-black/80 to-transparent z-40 flex items-center px-4 justify-between text-slate-200">
+            <div className="flex gap-6 font-mono font-semibold ml-2 text-xs">
+                <div className="text-amber-400 text-base">Week {gameState.turn} <span className="text-slate-400 font-normal ml-1 text-xs">[{gameState.phase}]</span></div>
+                <div className="flex items-center gap-2">
                    <span>😌 {gameState.stats.sanity}/100</span>
-                   <div className={`w-32 h-2.5 rounded-full ${gameState.stats.sanity < 30 ? "bg-red-900" : "bg-slate-700"} overflow-hidden shadow-inner`}>
+                   <div className={`w-24 h-1.5 rounded-full ${gameState.stats.sanity < 30 ? "bg-red-900" : "bg-slate-700"} overflow-hidden shadow-inner`}>
                       <div className={`h-full transition-all duration-500 ease-out ${gameState.stats.sanity < 30 ? "bg-red-500" : "bg-teal-400"}`} style={{ width: `${gameState.stats.sanity}%` }}></div>
                    </div>
                 </div>
@@ -3952,18 +4101,18 @@ function SimulatorPage() {
         </div>
 
         {/* Top Menu */}
-        <div className="absolute top-4 right-6 z-50">
-          <div className="flex gap-4 items-center">
+        <div className="absolute top-3 right-4 z-50">
+          <div className="flex gap-3 items-center">
             <button 
               onClick={() => setIsTabletOpen(true)}
-              className="bg-sky-600/80 hover:bg-sky-500 text-white border border-sky-400 px-4 py-2 rounded shadow-[0_0_15px_rgba(14,165,233,0.5)] font-semibold font-mono flex items-center gap-2 backdrop-blur-md transition-all"
+              className="bg-sky-600/80 hover:bg-sky-500 text-white border border-sky-400 px-3 py-1.5 rounded shadow-[0_0_15px_rgba(14,165,233,0.5)] font-semibold font-mono flex items-center gap-1.5 backdrop-blur-md transition-all text-sm"
             >
               📱 SimPad
             </button>
             <div className="relative">
               <button 
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-600 px-4 py-2 rounded shadow-md font-semibold font-mono flex items-center gap-2 backdrop-blur-md transition-colors"
+                className="bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-600 px-3 py-1.5 rounded shadow-md font-semibold font-mono flex items-center gap-1.5 backdrop-blur-md transition-colors text-sm"
               >
                 <span>⚙️</span> Menu
               </button>
@@ -3988,6 +4137,8 @@ function SimulatorPage() {
           </div>
           </div>
         </div>
+
+        <QuestTracker state={gameState} />
 
         {isTabletOpen && <TabletInterface state={gameState} onClose={() => setIsTabletOpen(false)} onReplayGame={(id) => setReplayGameId(id)} onPlayGig={(id) => { setIsTabletOpen(false); setGigGameId(id); }} />}
 

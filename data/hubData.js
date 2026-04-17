@@ -16,38 +16,59 @@ export const gameNodes = {
       },
       {
          text: "🗣️ Language Partner (Tonal Rhythm Game)",
+         condition: { flags: { "arrived_in_china": true } },
          action: "advance_turn",
          next: "minigame_tones",
          effects: { stats: { sanity: 5, wealth: -20 }, guanxi: { localStudents: 2 } }
       },
       {
          text: "🥡 Order Waimai (Delivery Typer Game)",
+         condition: { flags: { "arrived_in_china": true } },
+         action: "advance_turn",
          next: "minigame_delivery"
       },
       {
          text: "🏢 Bureaucratic Admin (Bike Scramble Game)",
+         condition: { flags: { "arrived_in_china": true } },
          action: "advance_turn",
          next: "minigame_bike"
       },
       {
          text: "🎉 Entertainment & Culture (Sanity +, Culture +)",
+         condition: { flags: { "arrived_in_china": true } },
          next: "submenu_entertainment"
       },
       {
          text: "🚄 Weekend Travel (Wealth ---, Culture ++)",
+         condition: { flags: { "arrived_in_china": true } },
          next: "submenu_travel"
       },
       {
          text: "💼 Hustle & Side Gigs (Wealth ++, Sanity -, Risks)",
+         condition: { flags: { "arrived_in_china": true } },
          next: "submenu_hustle"
       },
       {
          text: "🤝 Socialize & Network (Guanxi +, Specific Contacts)",
+         condition: { flags: { "arrived_in_china": true } },
          next: "submenu_social"
       },
       {
          text: "📍 Explore Local Districts (City Specific)",
+         condition: { flags: { "arrived_in_china": true } },
          next: "submenu_districts"
+      },
+      {
+         text: "📖 Study Chinese at Home (Chinese +, Sanity -)",
+         action: "advance_turn",
+         next: "hub",
+         effects: { stats: { chinese: 5, sanity: -10, academics: 3 } }
+      },
+      {
+         text: "😴 Rest & Recharge (Sanity ++)",
+         action: "advance_turn",
+         next: "hub",
+         effects: { stats: { sanity: 25 } }
       }
     ]
   },
@@ -182,42 +203,49 @@ export const gameNodes = {
     choices: [
       {
         text: "Return to Base: Shanghai",
+        condition: { stats: { wealth: { min: 500 } } },
         action: "advance_turn",
         next: "event_travel_shanghai",
         effects: { location: "Shanghai", stats: { wealth: -500 } }
       },
       {
         text: "Travel to Beijing",
+        condition: { stats: { wealth: { min: 500 } } },
         action: "advance_turn",
         next: "event_travel_beijing",
         effects: { location: "Beijing", stats: { wealth: -500 } }
       },
       {
         text: "Travel to Guangzhou",
+        condition: { stats: { wealth: { min: 500 } } },
         action: "advance_turn",
         next: "event_travel_guangzhou",
         effects: { location: "Guangzhou", stats: { wealth: -500 } }
       },
       {
         text: "Travel to Chengdu",
+        condition: { stats: { wealth: { min: 500 } } },
         action: "advance_turn",
         next: "event_travel_chengdu",
         effects: { location: "Chengdu", stats: { wealth: -500 } }
       },
       {
         text: "Travel to Xi'an",
+        condition: { stats: { wealth: { min: 500 } } },
         action: "advance_turn",
         next: "event_travel_xian",
         effects: { location: "Xi'an", stats: { wealth: -500 } }
       },
       {
         text: "Travel to Hangzhou",
+        condition: { stats: { wealth: { min: 500 } } },
         action: "advance_turn",
         next: "event_travel_hangzhou",
         effects: { location: "Hangzhou", stats: { wealth: -500 } }
       },
       {
         text: "Travel to Sanya",
+        condition: { stats: { wealth: { min: 500 } } },
         action: "advance_turn",
         next: "event_travel_sanya",
         effects: { location: "Sanya", stats: { wealth: -500 } }
