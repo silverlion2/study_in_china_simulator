@@ -10,11 +10,14 @@ import { epoch2Events } from './data/epoch2';
 import { epoch3Events } from './data/epoch3';
 import { gameNodes } from './data/hubData';
 import TabletInterface from './components/TabletInterface';
+import MiniGameOverlay from './components/MiniGames';
 
 export default function SimulatorPage() {
   const [gameState, setGameState] = useState(gameEngine.getState());
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isTabletOpen, setIsTabletOpen] = useState(false);
+  const [replayGameId, setReplayGameId] = useState(null);
+  const [gigGameId, setGigGameId] = useState(null);
   // Combine all event nodes
   const allEvents = { ...epoch1Events, ...epoch2Events, ...epoch3Events, ...gameNodes };
 
@@ -68,6 +71,98 @@ export default function SimulatorPage() {
     // Slight delay for effect
     setTimeout(() => {
         gameEngine.setCurrentNode(nextNode);
+    }, 150);
+  };
+
+  const handleGigComplete = (result) => {
+    // Unlock for Arcade automatically
+    gameEngine.setFlag(`unlocked_minigame_${gigGameId}`, true);
+    
+    // Mark as worked this week
+    gameEngine.setFlag('has_worked_this_week', true);
+
+    // Handle gig rewards
+    if (gigGameId === 'tones') {
+       if(result.win) {
+           gameEngine.addTransaction(200, "Gig: English Tutor");
+           gameEngine.updateStats({ sanity: -10, academics: -2 });
+       } else {
+           gameEngine.addTransaction(50, "Gig: English Tutor (Poor)");
+           gameEngine.updateStats({ sanity: -15 });
+       }
+    } else if (gigGameId === 'delivery') {
+       if(result.win) {
+           gameEngine.addTransaction(300, "Gig: Campus Delivery");
+           gameEngine.updateStats({ sanity: -15 });
+       } else {
+           gameEngine.updateStats({ sanity: -20 });
+       }
+    } else if (gigGameId === 'hongbao') {
+       if(result.win) {
+           gameEngine.addTransaction(150, "Gig: Flyer Distributor");
+           gameEngine.updateStats({ sanity: -5 });
+       } else {
+           gameEngine.updateStats({ sanity: -10 });
+       }
+    } else if (gigGameId === 'model') {
+       if(result.win) {
+           gameEngine.addTransaction(500, "Gig: Taobao Model");
+           gameEngine.updateStats({ sanity: -20 });
+       } else {
+           gameEngine.updateStats({ sanity: -25 });
+       }
+    }
+    setGigGameId(null);
+  };
+
+  const handleMinigameComplete = (result) => {
+    const currentNode = allEvents[gameState.currentNodeId];
+    
+    // Unlock the minigame for replay in the tablet
+    gameEngine.setFlag(`unlocked_minigame_${currentNode.minigame}`, true);
+    
+    if (currentNode.minigame === 'bargain') {
+        gameEngine.updateStats({ wealth: -(result.cost || 0) });
+    } else if (currentNode.minigame === 'delivery') {
+        if (result.win) {
+            gameEngine.updateStats({ sanity: 15, wealth: -30 });
+        } else {
+            gameEngine.updateStats({ sanity: -10, wealth: -30 });
+        }
+    } else if (currentNode.minigame === 'tones') {
+        if (result.win) {
+            gameEngine.updateStats({ chinese: 5, academics: 2, sanity: -5 });
+        } else {
+            gameEngine.updateStats({ sanity: -10 });
+        }
+    } else if (currentNode.minigame === 'hongbao') {
+        if (result.win) {
+            gameEngine.updateStats({ wealth: 100, sanity: 10 });
+        } else {
+            gameEngine.updateStats({ sanity: -5 });
+        }
+    } else if (currentNode.minigame === 'banquet') {
+        if (result.win) {
+            gameEngine.updateGuanxi("professors", 10);
+            gameEngine.updateStats({ sanity: -10 });
+        } else {
+            gameEngine.updateGuanxi("professors", -5);
+            gameEngine.updateStats({ sanity: -20 });
+        }
+    } else if (currentNode.minigame === 'bike') {
+        if (result.win) {
+            gameEngine.updateStats({ digitalProficiency: 5, sanity: -5 });
+        } else {
+            gameEngine.updateStats({ sanity: -15 });
+        }
+    } else if (currentNode.minigame === 'subway' && !result.win) {
+        gameEngine.updateStats({ sanity: -15 });
+    }
+    
+    const nextNodeId = result.win ? currentNode.onWin : currentNode.onLose;
+    
+    setTimeout(() => {
+        gameEngine.setCurrentNode(nextNodeId);
     }, 150);
   };
 
@@ -170,10 +265,23 @@ export default function SimulatorPage() {
           </div>
         </div>
 
-        {isTabletOpen && <TabletInterface state={gameState} onClose={() => setIsTabletOpen(false)} />}
+        {isTabletOpen && <TabletInterface state={gameState} onClose={() => setIsTabletOpen(false)} onReplayGame={(id) => setReplayGameId(id)} onPlayGig={(id) => { setIsTabletOpen(false); setGigGameId(id); }} />}
+
+        {currentNode?.minigame && !replayGameId && !gigGameId && (
+            <MiniGameOverlay gameId={currentNode.minigame} onComplete={handleMinigameComplete} />
+        )}
+
+        {replayGameId && (
+            <MiniGameOverlay gameId={replayGameId} onComplete={() => setReplayGameId(null)} />
+        )}
+
+        {gigGameId && (
+            <MiniGameOverlay gameId={gigGameId} onComplete={handleGigComplete} />
+        )}
 
         <StoryPanel 
           node={currentNode} 
+          state={gameState}
           onChoice={handleChoice} 
           availableChoices={events.getAvailableChoices(currentNodeId)}
         />

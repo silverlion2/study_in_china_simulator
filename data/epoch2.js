@@ -15,24 +15,9 @@ export const epoch2Events = {
   "visa_application": {
     speaker: "Chinese Visa Application Service Center",
     text: "Welcome. Please ensure you have your passport, photos, Admission Letter, JW202 form, and Physical Examination record. Missing even one photocopy means instant rejection.",
-    choices: [
-      {
-        text: "Meticulously prepare a binder with 3 copies of everything.",
-        next: "visa_success",
-        effects: {
-          stats: { sanity: -20, academics: 5 },
-          flags: { "got_visa": true, "decision_e2_visa": "Over-prepared Binders" }
-        }
-      },
-      {
-        text: "Just bring the originals and hope they have a printer.",
-        next: "visa_fail",
-        effects: {
-          stats: { wealth: -100 },
-          flags: { "decision_e2_visa": "Winged It (Originals)" }
-        }
-      }
-    ]
+    minigame: "visa",
+    onWin: "visa_success",
+    onLose: "visa_fail"
   },
   "visa_success": {
     speaker: "System",

@@ -9,7 +9,7 @@ export const epoch1Events = {
       },
       {
         text: "I already know how to play. Skip Tutorial.",
-        next: "epoch1_start"
+        next: "char_creation_origin"
       }
     ]
   },
@@ -38,8 +38,81 @@ export const epoch1Events = {
     text: "Almost every major action advances the 'Turn' (Week). Every week, you'll naturally lose Sanity from stress and Wealth from living costs. You must balance grinding with resting!",
     choices: [
       {
-        text: "I understand the risks. Let's begin!",
-        next: "epoch1_start"
+        text: "I understand the risks.",
+        next: "tutorial_choices"
+      }
+    ]
+  },
+  "tutorial_choices": {
+    speaker: "Simulator Tutorial",
+    text: "Finally, every decision you make—from your background to how you study—leaves a permanent mark. These choices will shape the characters you meet, the opportunities that arise, and the endings you unlock. Choose wisely!",
+    choices: [
+      {
+        text: "I'm ready. Let's create my character!",
+        next: "char_creation_origin"
+      }
+    ]
+  },
+  "char_creation_origin": {
+    speaker: "Character Creation",
+    text: "First, where are you from? This will affect your starting language base and cultural shock.",
+    choices: [
+      {
+        text: "Neighboring Country (Southeast Asia / East Asia) [Culture ++, Chinese +]",
+        next: "char_creation_gender",
+        effects: { stats: { culture: 15, chinese: 10 }, flags: { "origin_asian": true } }
+      },
+      {
+        text: "Western World (Europe / North America / Oceania) [Wealth ++, Chinese -]",
+        next: "char_creation_gender",
+        effects: { stats: { wealth: 5000, chinese: -5 }, flags: { "origin_western": true } }
+      },
+      {
+        text: "Developing Nation (Africa / South America / etc) [Academics ++, Sanity ++, Wealth -]",
+        next: "char_creation_gender",
+        effects: { stats: { academics: 15, sanity: 20, wealth: -2000 }, flags: { "origin_developing": true } }
+      }
+    ]
+  },
+  "char_creation_gender": {
+    speaker: "Character Creation",
+    text: "What is your gender? This might occasionally affect dorm assignments and certain social dynamics.",
+    choices: [
+      {
+        text: "Male",
+        next: "char_creation_economy",
+        effects: { flags: { "gender_male": true } }
+      },
+      {
+        text: "Female",
+        next: "char_creation_economy",
+        effects: { flags: { "gender_female": true } }
+      },
+      {
+        text: "Non-binary / Other",
+        next: "char_creation_economy",
+        effects: { flags: { "gender_nonbinary": true } }
+      }
+    ]
+  },
+  "char_creation_economy": {
+    speaker: "Character Creation",
+    text: "Finally, what is your financial background? This dictates how stressful your journey might be.",
+    choices: [
+      {
+        text: "Government Funded / Full Scholarship (Secure, but needs high grades) [Wealth +, Academics +]",
+        next: "epoch1_start",
+        effects: { stats: { wealth: 1000, academics: 10 }, guanxi: { admin: 5 }, flags: { "finance_scholarship": true } }
+      },
+      {
+        text: "Wealthy Family / Self-Funded (Rich but distracted) [Wealth +++, Academics -]",
+        next: "epoch1_start",
+        effects: { stats: { wealth: 20000, sanity: 20, academics: -10 }, flags: { "finance_rich": true } }
+      },
+      {
+        text: "Working Student / Budget Hustler (Low budget, High resilience) [Wealth -, Culture +]",
+        next: "epoch1_start",
+        effects: { stats: { wealth: -2000, sanity: 15, culture: 10 }, flags: { "finance_working": true } }
       }
     ]
   },

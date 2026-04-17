@@ -76,6 +76,23 @@ export default function Dashboard({ state }) {
           </Badge>
         </div>
       </div>
+
+      {state.relationships && (
+        <div className="space-y-2 pt-4 border-t border-slate-700">
+          <h2 className="text-xs uppercase tracking-widest text-pink-500 font-semibold mb-3">Deep Connections</h2>
+          <div className="space-y-2 text-xs">
+            {Object.entries(state.relationships).filter(([k,v]) => v.friendship > 0 || v.romance > 0).map(([character, rel]) => (
+                <div key={character} className="bg-slate-800 border border-slate-600 rounded-md p-2 flex flex-col gap-1">
+                    <div className="font-bold text-slate-200">{character}</div>
+                    <div className="flex gap-4">
+                        <span className="text-blue-300">🤝 Frnd: {rel.friendship}</span>
+                        {rel.romance > 0 && <span className="text-pink-400">💖 Rom: {rel.romance}</span>}
+                    </div>
+                </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -27,25 +27,9 @@ export const epoch3Events = {
     speaker: "Taxi Driver",
     location: "Airport Taxi Stand",
     text: "Nihao! University? 500 RMB. No meter. Traffic is very bad.",
-    choices: [
-      {
-        text: "Pay the exorbitant fee just to get out of the airport.",
-        next: "campus_arrival",
-        effects: {
-          stats: { wealth: -500, sanity: -20 },
-          flags: { "decision_e3_taxi": "Ripped Off" }
-        }
-      },
-      {
-        text: "Haggle intensely in broken Chinese.",
-        condition: { stats: { chinese: { min: 20 } } },
-        next: "campus_arrival",
-        effects: {
-          stats: { wealth: -200, chinese: 5, sanity: -10 },
-          flags: { "decision_e3_taxi": "Successful Haggle" }
-        }
-      }
-    ]
+    minigame: "bargain",
+    onWin: "campus_arrival",
+    onLose: "campus_arrival"
   },
   "didi_success": {
     speaker: "System",

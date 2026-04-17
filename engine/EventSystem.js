@@ -37,6 +37,11 @@ export class EventSystem {
     if (!conditionObj) return true; // No condition = always pass
     const state = this.engine.getState();
 
+    // Check location
+    if (conditionObj.location) {
+      if (state.location !== conditionObj.location) return false;
+    }
+
     // Check stats (e.g., { stats: { academics: { min: 20 } } })
     if (conditionObj.stats) {
       for (const [stat, req] of Object.entries(conditionObj.stats)) {
@@ -59,6 +64,17 @@ export class EventSystem {
         const val = state.guanxi[faction] || 0;
         if (req.min !== undefined && val < req.min) return false;
         if (req.max !== undefined && val > req.max) return false;
+      }
+    }
+
+    // Check relationships
+    if (conditionObj.relationships) {
+      for (const [character, states] of Object.entries(conditionObj.relationships)) {
+        for (const [key, req] of Object.entries(states)) {
+          const val = (state.relationships && state.relationships[character]) ? state.relationships[character][key] || 0 : 0;
+          if (req.min !== undefined && val < req.min) return false;
+          if (req.max !== undefined && val > req.max) return false;
+        }
       }
     }
 
@@ -93,6 +109,23 @@ export class EventSystem {
          this.engine.setFlag(flag, value);
        }
     }
+    
+    // 4. Update relationships
+    if (choice.effects && choice.effects.relationships) {
+       for (const [character, changes] of Object.entries(choice.effects.relationships)) {
+         this.engine.updateRelationship(character, changes);
+       }
+    }
+    
+    // 5. Apply location changes
+    if (choice.effects && choice.effects.location) {
+       this.engine.setLocation(choice.effects.location);
+    }
+    
+    // 6. Obtain Magnets
+    if (choice.effects && choice.effects.magnet) {
+       this.engine.addMagnet(choice.effects.magnet);
+    }
 
     // Intercept: If returning to hub, roll for random events
     let nextNode = choice.next;
@@ -108,6 +141,10 @@ export class EventSystem {
          nextNode = "random_lecture";
       } else if (roll < 0.25) {
          nextNode = "random_club_fair";
+      } else if (roll < 0.3) {
+         nextNode = "random_vpn_down";
+      } else if (roll < 0.35) {
+         nextNode = "random_dorm_inspection";
       }
     }
 
