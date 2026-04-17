@@ -287,12 +287,12 @@ export const epoch3Events = {
       {
         text: "Check Results",
         next: "ending_influencer",
-        condition: { stats: { digitalProficiency: { min: 30 } }, guanxi: { intlStudents: { min: 20 }, localStudents: { min: 20 } }, academics: { max: 79 } }
+        condition: { stats: { digitalProficiency: { min: 30 }, academics: { max: 79 } }, guanxi: { intlStudents: { min: 20 }, localStudents: { min: 20 } } }
       },
       {
         text: "Check Results",
         next: "ending_deportee",
-        condition: { flags: { "illegal_job": true }, stats: { guanxi: { professors: { max: 10 } } } }
+        condition: { flags: { "illegal_job": true }, guanxi: { professors: { max: 10 } } }
       },
       {
         text: "Check Results",

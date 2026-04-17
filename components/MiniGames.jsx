@@ -526,6 +526,8 @@ function BanquetBalanceGame({ onComplete }) {
 function HongbaoSnatchGame({ onComplete }) {
     const [pos, setPos] = useState(null);
     const [waiting, setWaiting] = useState(true);
+    const failTimerRef = useRef(null);
+    const completedRef = useRef(false);
 
     useEffect(() => {
         // Wait random time between 1 and 3 seconds
@@ -538,17 +540,25 @@ function HongbaoSnatchGame({ onComplete }) {
             });
             
             // Disappear after 1 second
-            setTimeout(() => {
-                onComplete({ win: false, message: "A step too late. The envelope is empty." });
+            failTimerRef.current = setTimeout(() => {
+                if (!completedRef.current) {
+                    completedRef.current = true;
+                    onComplete({ win: false, message: "A step too late. The envelope is empty." });
+                }
             }, 1000);
 
         }, waitTime);
 
-        return () => clearTimeout(wTimer);
+        return () => {
+            clearTimeout(wTimer);
+            if (failTimerRef.current) clearTimeout(failTimerRef.current);
+        };
     }, []);
 
     const handleClick = () => {
-        if (!waiting) {
+        if (!waiting && !completedRef.current) {
+            completedRef.current = true;
+            if (failTimerRef.current) clearTimeout(failTimerRef.current);
             onComplete({ win: true, message: "You snatched ¥100 from the group chat!" });
         }
     };

@@ -11,27 +11,6 @@ export class EventSystem {
     this.events = { ...this.events, ...newEvents };
   }
 
-  // Advance time by 1 week
-  advanceTurn() {
-    this.state.turn += 1;
-    
-    // Apply weekly decay
-    this.state.stats.sanity -= 2;
-    this.state.stats.wealth -= 200; // Weekly cost of living
-    
-    if (this.state.stats.sanity < 0) this.state.stats.sanity = 0;
-    if (this.state.stats.wealth < 0) this.state.stats.wealth = 0;
-    
-    // Auto-advance phase
-    if (this.state.turn > 8 && this.state.phase === "Application") {
-      this.state.phase = "Pre-Departure";
-    } else if (this.state.turn > 16 && this.state.phase === "Pre-Departure") {
-      this.state.phase = "In-China";
-    }
-    
-    this.notify();
-  }
-
   // Check if a node's condition passing
   checkCondition(conditionObj) {
     if (!conditionObj) return true; // No condition = always pass

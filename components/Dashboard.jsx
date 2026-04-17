@@ -26,11 +26,13 @@ function Progress({ value, className, indicatorColor }) {
 export default function Dashboard({ state }) {
   const { stats, turn, phase, guanxi } = state;
 
+  const epochLabel = phase === "Application" ? "Epoch 1" : (phase === "Pre-Departure" ? "Epoch 2" : "Epoch 3");
+
   return (
     <div className="flex flex-col h-full z-10 space-y-6">
       <div>
         <h1 className="text-2xl font-black text-amber-500 uppercase tracking-wider mb-2">Sim Panda</h1>
-        <p className="text-sm text-slate-400">Epoch 1: {phase}</p>
+        <p className="text-sm text-slate-400">{epochLabel}: {phase}</p>
         <div className="mt-2 text-3xl text-white font-mono">Week {turn}</div>
       </div>
 

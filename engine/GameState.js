@@ -24,8 +24,6 @@ const INITIAL_STATE = {
   inventory: [],
   flags: {}, // For story tracking, e.g. { "got_vpn": true }
   
-  // New Engine Systems
-  location: "Shanghai",
   relationships: {},
 
   // New Economy System

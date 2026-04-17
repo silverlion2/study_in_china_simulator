@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 export default function StoryPanel({ node, state, availableChoices, onChoice }) {
   const [showChoices, setShowChoices] = useState(false);
   const [textKey, setTextKey] = useState(0);
   const [displayText, setDisplayText] = useState("");
+  const fullTextRef = useRef("");
 
   useEffect(() => {
     // Reset animations when node changes
@@ -66,6 +67,7 @@ export default function StoryPanel({ node, state, availableChoices, onChoice }) 
     }
 
     const fullText = (node.text || "") + epilogues;
+    fullTextRef.current = fullText;
     let i = 0;
     
     const interval = setInterval(() => {
@@ -85,10 +87,10 @@ export default function StoryPanel({ node, state, availableChoices, onChoice }) 
     const handleKeyDown = (e) => {
         if (!showChoices) {
            // Skip typewriter if user presses space or enter
-           if (e.key === " " || e.key === "Enter") {
-             setDisplayText(node?.text || "");
-             setShowChoices(true);
-           }
+            if (e.key === " " || e.key === "Enter") {
+              setDisplayText(fullTextRef.current || node?.text || "");
+              setShowChoices(true);
+            }
            return;
         }
         
@@ -198,7 +200,8 @@ function ChoicePreview({ effects }) {
 
    if (effects.guanxi) {
        Object.entries(effects.guanxi).forEach(([k, v]) => {
-          previews.push(<span key={`guanxi_${k}`} className={`text-amber-400 font-mono text-xs uppercase tracking-wider`}>Guanxi({guanxiNames[k] || k}) +{v}</span>);
+           const gSign = v > 0 ? "+" : "";
+           previews.push(<span key={`guanxi_${k}`} className={`text-amber-400 font-mono text-xs uppercase tracking-wider`}>Guanxi({guanxiNames[k] || k}) {gSign}{v}</span>);
        });
    }
    if (effects.flags) {

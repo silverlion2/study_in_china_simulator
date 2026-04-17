@@ -49,8 +49,6 @@ const INITIAL_STATE = {
   inventory: [],
   flags: {}, // For story tracking, e.g. { "got_vpn": true }
   
-  // New Engine Systems
-  location: "Shanghai",
   relationships: {},
 
   // New Economy System
@@ -275,27 +273,6 @@ class EventSystem {
   // Load event dictionary into the generic pool
   loadEvents(newEvents) {
     this.events = { ...this.events, ...newEvents };
-  }
-
-  // Advance time by 1 week
-  advanceTurn() {
-    this.state.turn += 1;
-    
-    // Apply weekly decay
-    this.state.stats.sanity -= 2;
-    this.state.stats.wealth -= 200; // Weekly cost of living
-    
-    if (this.state.stats.sanity < 0) this.state.stats.sanity = 0;
-    if (this.state.stats.wealth < 0) this.state.stats.wealth = 0;
-    
-    // Auto-advance phase
-    if (this.state.turn > 8 && this.state.phase === "Application") {
-      this.state.phase = "Pre-Departure";
-    } else if (this.state.turn > 16 && this.state.phase === "Pre-Departure") {
-      this.state.phase = "In-China";
-    }
-    
-    this.notify();
   }
 
   // Check if a node's condition passing
@@ -1336,12 +1313,12 @@ const epoch3Events = {
       {
         text: "Check Results",
         next: "ending_influencer",
-        condition: { stats: { digitalProficiency: { min: 30 } }, guanxi: { intlStudents: { min: 20 }, localStudents: { min: 20 } }, academics: { max: 79 } }
+        condition: { stats: { digitalProficiency: { min: 30 }, academics: { max: 79 } }, guanxi: { intlStudents: { min: 20 }, localStudents: { min: 20 } } }
       },
       {
         text: "Check Results",
         next: "ending_deportee",
-        condition: { flags: { "illegal_job": true }, stats: { guanxi: { professors: { max: 10 } } } }
+        condition: { flags: { "illegal_job": true }, guanxi: { professors: { max: 10 } } }
       },
       {
         text: "Check Results",
@@ -2306,11 +2283,13 @@ function Progress({ value, className, indicatorColor }) {
 function Dashboard({ state }) {
   const { stats, turn, phase, guanxi } = state;
 
+  const epochLabel = phase === "Application" ? "Epoch 1" : (phase === "Pre-Departure" ? "Epoch 2" : "Epoch 3");
+
   return (
     <div className="flex flex-col h-full z-10 space-y-6">
       <div>
         <h1 className="text-2xl font-black text-amber-500 uppercase tracking-wider mb-2">Sim Panda</h1>
-        <p className="text-sm text-slate-400">Epoch 1: {phase}</p>
+        <p className="text-sm text-slate-400">{epochLabel}: {phase}</p>
         <div className="mt-2 text-3xl text-white font-mono">Week {turn}</div>
       </div>
 
@@ -2858,6 +2837,7 @@ function StoryPanel({ node, state, availableChoices, onChoice }) {
   const [showChoices, setShowChoices] = useState(false);
   const [textKey, setTextKey] = useState(0);
   const [displayText, setDisplayText] = useState("");
+  const fullTextRef = useRef("");
 
   useEffect(() => {
     // Reset animations when node changes
@@ -2918,6 +2898,7 @@ function StoryPanel({ node, state, availableChoices, onChoice }) {
     }
 
     const fullText = (node.text || "") + epilogues;
+    fullTextRef.current = fullText;
     let i = 0;
     
     const interval = setInterval(() => {
@@ -2937,10 +2918,10 @@ function StoryPanel({ node, state, availableChoices, onChoice }) {
     const handleKeyDown = (e) => {
         if (!showChoices) {
            // Skip typewriter if user presses space or enter
-           if (e.key === " " || e.key === "Enter") {
-             setDisplayText(node?.text || "");
-             setShowChoices(true);
-           }
+            if (e.key === " " || e.key === "Enter") {
+              setDisplayText(fullTextRef.current || node?.text || "");
+              setShowChoices(true);
+            }
            return;
         }
         
@@ -3050,7 +3031,8 @@ function ChoicePreview({ effects }) {
 
    if (effects.guanxi) {
        Object.entries(effects.guanxi).forEach(([k, v]) => {
-          previews.push(<span key={`guanxi_${k}`} className={`text-amber-400 font-mono text-xs uppercase tracking-wider`}>Guanxi({guanxiNames[k] || k}) +{v}</span>);
+           const gSign = v > 0 ? "+" : "";
+           previews.push(<span key={`guanxi_${k}`} className={`text-amber-400 font-mono text-xs uppercase tracking-wider`}>Guanxi({guanxiNames[k] || k}) {gSign}{v}</span>);
        });
    }
    if (effects.flags) {
@@ -3608,6 +3590,8 @@ function BanquetBalanceGame({ onComplete }) {
 function HongbaoSnatchGame({ onComplete }) {
     const [pos, setPos] = useState(null);
     const [waiting, setWaiting] = useState(true);
+    const failTimerRef = useRef(null);
+    const completedRef = useRef(false);
 
     useEffect(() => {
         // Wait random time between 1 and 3 seconds
@@ -3620,17 +3604,25 @@ function HongbaoSnatchGame({ onComplete }) {
             });
             
             // Disappear after 1 second
-            setTimeout(() => {
-                onComplete({ win: false, message: "A step too late. The envelope is empty." });
+            failTimerRef.current = setTimeout(() => {
+                if (!completedRef.current) {
+                    completedRef.current = true;
+                    onComplete({ win: false, message: "A step too late. The envelope is empty." });
+                }
             }, 1000);
 
         }, waitTime);
 
-        return () => clearTimeout(wTimer);
+        return () => {
+            clearTimeout(wTimer);
+            if (failTimerRef.current) clearTimeout(failTimerRef.current);
+        };
     }, []);
 
     const handleClick = () => {
-        if (!waiting) {
+        if (!waiting && !completedRef.current) {
+            completedRef.current = true;
+            if (failTimerRef.current) clearTimeout(failTimerRef.current);
             onComplete({ win: true, message: "You snatched ¥100 from the group chat!" });
         }
     };
