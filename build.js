@@ -29,6 +29,7 @@ const templates = [
     'components/Dashboard.jsx',
     'components/TabletInterface.jsx',
     'components/StoryPanel.jsx',
+    'components/MiniGames.jsx',
     'page.js'
 ];
 

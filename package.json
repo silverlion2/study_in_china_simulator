@@ -8,6 +8,18 @@
     "build:win": "electron-builder --win"
   },
   "author": "silverlion2",
+  "repository": "silverlion2/study_in_china_simulator",
+  "keywords": [
+    "study-in-china",
+    "simulator",
+    "indie-game",
+    "react-game",
+    "electron-app",
+    "life-simulation",
+    "visual-novel",
+    "rpg",
+    "educational-game"
+  ],
   "license": "ISC",
   "dependencies": {},
   "devDependencies": {
