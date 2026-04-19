@@ -76,3 +76,18 @@ const htmlTemplate = `<!DOCTYPE html>
 
 fs.writeFileSync(path.join(dir, 'index.html'), htmlTemplate);
 console.log('Successfully generated index.html!');
+
+// Auto-push to PandaOffer website folder
+const targetDir = 'c:\\Users\\T480S\\pandaoffer\\public\\tools\\simulator';
+try {
+    if (!fs.existsSync(targetDir)) {
+        fs.mkdirSync(targetDir, { recursive: true });
+    }
+    fs.cpSync(path.join(dir, 'index.html'), path.join(targetDir, 'index.html'));
+    fs.cpSync(path.join(dir, 'lib'), path.join(targetDir, 'lib'), { recursive: true, force: true });
+    fs.cpSync(path.join(dir, 'images'), path.join(targetDir, 'images'), { recursive: true, force: true });
+    fs.cpSync(path.join(dir, 'assets'), path.join(targetDir, 'assets'), { recursive: true, force: true });
+    console.log('Successfully pushed build to PandaOffer website!');
+} catch (err) {
+    console.error('Failed to copy to PandaOffer website:', err);
+}
