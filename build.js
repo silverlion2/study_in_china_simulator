@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const dir = 'c:\\Users\\T480S\\Desktop\\study_in_china_simulator';
+const dir = __dirname;
 
 function readAndStrip(filePath) {
     let content = fs.readFileSync(path.join(dir, filePath), 'utf8');
@@ -22,6 +22,8 @@ function readAndStrip(filePath) {
 const templates = [
     'engine/GameState.js',
     'engine/EventSystem.js',
+    'engine/AudioManager.js',
+    'data/audioManifest.js',
     'data/epoch1.js',
     'data/epoch2.js',
     'data/epoch3.js',
@@ -58,6 +60,8 @@ const htmlTemplate = `<!DOCTYPE html>
     /* Prevent scroll bouncing and fill window exactly */
     html, body, #root { height: 100%; margin: 0; padding: 0; }
     body { overflow: hidden; background: #0f172a; color: white; font-family: sans-serif; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
   </style>
 </head>
 <body>
@@ -77,17 +81,22 @@ const htmlTemplate = `<!DOCTYPE html>
 fs.writeFileSync(path.join(dir, 'index.html'), htmlTemplate);
 console.log('Successfully generated index.html!');
 
-// Auto-push to PandaOffer website folder
-const targetDir = 'c:\\Users\\T480S\\pandaoffer\\public\\tools\\simulator';
-try {
-    if (!fs.existsSync(targetDir)) {
-        fs.mkdirSync(targetDir, { recursive: true });
+// Auto-copy to PandaOffer website folder on the Windows dev machine.
+// On other platforms, set PANDAOFFER_SIMULATOR_DIR explicitly to opt in.
+const targetDir = process.env.PANDAOFFER_SIMULATOR_DIR || (process.platform === 'win32' ? 'c:\\Users\\T480S\\pandaoffer\\public\\tools\\simulator' : '');
+if (targetDir) {
+    try {
+        if (!fs.existsSync(targetDir)) {
+            fs.mkdirSync(targetDir, { recursive: true });
+        }
+        fs.cpSync(path.join(dir, 'index.html'), path.join(targetDir, 'index.html'));
+        fs.cpSync(path.join(dir, 'lib'), path.join(targetDir, 'lib'), { recursive: true, force: true });
+        fs.cpSync(path.join(dir, 'images'), path.join(targetDir, 'images'), { recursive: true, force: true });
+        fs.cpSync(path.join(dir, 'assets'), path.join(targetDir, 'assets'), { recursive: true, force: true });
+        console.log('Successfully pushed build to PandaOffer website!');
+    } catch (err) {
+        console.error('Failed to copy to PandaOffer website:', err);
     }
-    fs.cpSync(path.join(dir, 'index.html'), path.join(targetDir, 'index.html'));
-    fs.cpSync(path.join(dir, 'lib'), path.join(targetDir, 'lib'), { recursive: true, force: true });
-    fs.cpSync(path.join(dir, 'images'), path.join(targetDir, 'images'), { recursive: true, force: true });
-    fs.cpSync(path.join(dir, 'assets'), path.join(targetDir, 'assets'), { recursive: true, force: true });
-    console.log('Successfully pushed build to PandaOffer website!');
-} catch (err) {
-    console.error('Failed to copy to PandaOffer website:', err);
+} else {
+    console.log('Skipped PandaOffer website copy; set PANDAOFFER_SIMULATOR_DIR to enable it.');
 }

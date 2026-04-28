@@ -1,0 +1,114 @@
+[
+  {
+    "id": "title",
+    "priority": "P0",
+    "manifestKey": "title",
+    "output": "assets/audio/bgm/bgm_title_shanghai_evening_loop.mp3",
+    "prompt": "Loopable instrumental background music for a visual novel about studying abroad in Shanghai. Warm evening skyline atmosphere, soft piano, gentle synth pads, subtle city-pop inspired rhythm, hopeful but not childish, modern Chinese megacity feeling, no vocals, seamless loop, 90 seconds."
+  },
+  {
+    "id": "application_late_night",
+    "priority": "P0",
+    "manifestKey": "applicationLateNight",
+    "output": "assets/audio/bgm/bgm_application_late_night_loop.mp3",
+    "prompt": "Loopable lo-fi study music for a university application scene. Late-night laptop, quiet room, soft electric piano, muted percussion, gentle anxiety, focused and intimate, no vocals, seamless loop, 90 seconds."
+  },
+  {
+    "id": "documents_admin",
+    "priority": "P0",
+    "manifestKey": "documentsAdmin",
+    "output": "assets/audio/bgm/bgm_documents_admin_loop.mp3",
+    "prompt": "Loopable instrumental music for visa paperwork and university documents. Subtle ticking rhythm, low synth pulse, paper-and-printer office mood, bureaucratic tension without becoming horror, no vocals, seamless loop, 75 seconds."
+  },
+  {
+    "id": "predeparture_home",
+    "priority": "P0",
+    "manifestKey": "predepartureHome",
+    "output": "assets/audio/bgm/bgm_predeparture_home_loop.mp3",
+    "prompt": "Loopable emotional background music for packing before leaving home to study in China. Warm piano, soft strings, gentle acoustic texture, bittersweet but hopeful, no vocals, seamless loop, 90 seconds."
+  },
+  {
+    "id": "flight_arrival",
+    "priority": "P0",
+    "manifestKey": "flightArrival",
+    "output": "assets/audio/bgm/bgm_flight_arrival_loop.mp3",
+    "prompt": "Loopable ambient instrumental music for an international flight landing in Shanghai and entering an airport arrival hall. Airy synth pads, slow piano notes, distant airport ambience feeling, unfamiliar but exciting, no vocals, seamless loop, 90 seconds."
+  },
+  {
+    "id": "campus_daily",
+    "priority": "P0",
+    "manifestKey": "campusDaily",
+    "output": "assets/audio/bgm/bgm_campus_daily_loop.mp3",
+    "prompt": "Loopable background music for everyday campus life at a modern Chinese university in Shanghai. Bright but relaxed, youthful, light percussion, marimba or plucked synth, warm chords, no vocals, seamless loop, 120 seconds."
+  },
+  {
+    "id": "crisis_money",
+    "priority": "P0",
+    "manifestKey": "crisisMoney",
+    "output": "assets/audio/bgm/bgm_crisis_money_loop.mp3",
+    "prompt": "Loopable tense instrumental music for running out of money while studying abroad. Low bass pulse, sparse piano, restrained pressure, realistic anxiety, no horror jumpscares, no vocals, seamless loop, 60 seconds."
+  },
+  {
+    "id": "good_ending",
+    "priority": "P0",
+    "manifestKey": "goodEnding",
+    "output": "assets/audio/bgm/bgm_good_ending_loop.mp3",
+    "prompt": "Loopable ending music for a hopeful study-abroad success ending. Expansive piano, warm strings, subtle electronic lift, emotional reward, future opening up, no vocals, seamless loop, 100 seconds."
+  },
+  {
+    "id": "quiet_ending",
+    "priority": "P0",
+    "manifestKey": "quietEnding",
+    "output": "assets/audio/bgm/bgm_quiet_ending_loop.mp3",
+    "prompt": "Loopable quiet ending music for a bittersweet failed study-abroad route. Sparse piano, cold room tone, distant pad, regretful but dignified, no vocals, seamless loop, 75 seconds."
+  },
+  {
+    "id": "application_pressure",
+    "priority": "P1",
+    "manifestKey": "applicationPressure",
+    "output": "assets/audio/bgm/bgm_application_deadline_pressure_loop.mp3",
+    "prompt": "Loopable instrumental music for university application deadlines, interviews, and submission pressure. Restrained tension, low pulse, soft ticking, focused nervous energy, not horror, no vocals, seamless loop, 60 seconds."
+  },
+  {
+    "id": "study_library",
+    "priority": "P1",
+    "manifestKey": "studyLibrary",
+    "output": "assets/audio/bgm/bgm_study_library_loop.mp3",
+    "prompt": "Loopable focused study background music for library nights and academic office hours. Minimal piano, soft clock-like percussion, restrained tension, intellectual and calm, no vocals, seamless loop, 90 seconds."
+  },
+  {
+    "id": "social_warm",
+    "priority": "P1",
+    "manifestKey": "socialWarm",
+    "output": "assets/audio/bgm/bgm_social_warm_loop.mp3",
+    "prompt": "Loopable warm background music for international student friendships, dorm common room conversations, and WeChat meetups. Cozy chords, gentle beat, soft guitar or electric piano, friendly and human, no vocals, seamless loop, 90 seconds."
+  },
+  {
+    "id": "shanghai_city",
+    "priority": "P1",
+    "manifestKey": "shanghaiCity",
+    "output": "assets/audio/bgm/bgm_shanghai_city_loop.mp3",
+    "prompt": "Loopable instrumental city exploration music for Shanghai metro, the Bund, and evening streets. Modern electronic groove, neon atmosphere, clean bass, light percussion, energetic but not nightclub-heavy, no vocals, seamless loop, 100 seconds."
+  },
+  {
+    "id": "career_office",
+    "priority": "P1",
+    "manifestKey": "careerOffice",
+    "output": "assets/audio/bgm/bgm_career_office_loop.mp3",
+    "prompt": "Loopable instrumental background music for a legal internship, office badge, career fair, and Shanghai business office scenes. Clean modern synths, confident rhythm, subtle corporate polish, aspirational but grounded, no vocals, seamless loop, 90 seconds."
+  },
+  {
+    "id": "startup_demo",
+    "priority": "P1",
+    "manifestKey": "startupDemo",
+    "output": "assets/audio/bgm/bgm_startup_demo_loop.mp3",
+    "prompt": "Loopable instrumental music for a student startup demo day in a Shanghai incubator. Forward motion, youthful tech energy, bright synth arpeggios, light drums, optimistic investor pitch feeling, no vocals, seamless loop, 90 seconds."
+  },
+  {
+    "id": "local_life",
+    "priority": "P1",
+    "manifestKey": "localLife",
+    "output": "assets/audio/bgm/bgm_local_life_loop.mp3",
+    "prompt": "Loopable warm background music for Shanghai neighborhood life, BBQ stall, dorm auntie, local festival preparation. Human, cozy, slightly playful, acoustic plucks, soft percussion, street warmth without stereotypes, no vocals, seamless loop, 100 seconds."
+  }
+]

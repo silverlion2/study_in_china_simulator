@@ -345,7 +345,7 @@ function VisaBureaucracyGame({ onComplete }) {
         "Movie Ticket", "Library Card", "Expired Visa", "Restaurant Receipt"
     ].sort(() => Math.random() - 0.5);
 
-    const targetDocs = ["Passport", "JW202 Form", "Admission Letter"];
+    const targetDocs = ["Passport", "JW202 Form", "Admission Letter", "Physical Exam"];
     const [selected, setSelected] = useState([]);
     const [timeLeft, setTimeLeft] = useState(15);
 
@@ -382,7 +382,7 @@ function VisaBureaucracyGame({ onComplete }) {
         <div className="p-4 h-80 flex flex-col justify-center items-center relative">
             <div className="absolute top-4 right-4 text-xl font-mono text-amber-400">⏱️ {timeLeft}s</div>
             <h3 className="text-2xl font-bold text-rose-400 mb-2">Bureaucracy Puzzle</h3>
-            <p className="text-sm text-slate-400 mb-6">Select requested documents: Passport, JW202, Admission Letter</p>
+            <p className="text-sm text-slate-400 mb-6">Select requested documents: Passport, JW202, Admission Letter, Physical Exam</p>
 
             <div className="flex flex-wrap gap-3 justify-center mb-8 max-w-lg">
                 {docs.map(doc => (
@@ -455,26 +455,26 @@ function BikeScrambleGame({ onComplete }) {
 // 7. Banquet Balance Game
 function BanquetBalanceGame({ onComplete }) {
     const [round, setRound] = useState(1);
-    const [guanxi, setGuanxi] = useState(0);
+    const [tableTrust, setTableTrust] = useState(0);
     const [intox, setIntox] = useState(0);
 
-    const playTurn = (g, i, msg) => {
+    const playTurn = (trust, i, msg) => {
         const newIntox = intox + i;
-        const newGuanxi = guanxi + g;
+        const newTableTrust = tableTrust + trust;
         
         if (newIntox >= 100) {
-            onComplete({ win: false, message: "You threw up under the table. Extreme loss of face." });
+            onComplete({ win: false, message: "You pushed past your limit and lost face at the table." });
             return;
         }
 
         setIntox(newIntox);
-        setGuanxi(newGuanxi);
+        setTableTrust(newTableTrust);
         
         if (round >= 5) {
-            if (newGuanxi >= 30) {
-                onComplete({ win: true, message: "You survived the dinner and gained massive respect." });
+            if (newTableTrust >= 30) {
+                onComplete({ win: true, message: "You handled the dinner and gained massive respect." });
             } else {
-                onComplete({ win: false, message: "You survived, but were antisocial. Guanxi lost." });
+                onComplete({ win: false, message: "You made it through, but the table never quite warmed to you." });
             }
         } else {
             setRound(r => r + 1);
@@ -498,24 +498,24 @@ function BanquetBalanceGame({ onComplete }) {
                 </div>
                 <div>
                     <div className="flex justify-between text-xs text-slate-400 font-bold mb-1">
-                        <span>Guanxi Gained</span>
-                        <span className="text-amber-400">{guanxi} (Goal: 30)</span>
+                        <span>Table Trust</span>
+                        <span className="text-amber-400">{tableTrust} (Goal: 30)</span>
                     </div>
                     <div className="w-full bg-slate-800 rounded-full h-2">
-                        <div className="bg-amber-500 h-full rounded-full transition-all" style={{width: `${Math.min(100, (guanxi/30)*100)}%`}}></div>
+                        <div className="bg-amber-500 h-full rounded-full transition-all" style={{width: `${Math.min(100, (tableTrust/30)*100)}%`}}></div>
                     </div>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 gap-3 w-full max-w-sm">
                 <button onClick={() => playTurn(15, 25, "Ganbei")} className="bg-red-900 hover:bg-red-800 text-white font-bold py-3 rounded-xl border border-red-500 transition-colors">
-                   🥂 "Ganbei!" (Drain the glass: +15 G, +25 Intox)
+                   🥂 "Ganbei!" (Drain the glass: +15 Trust, +25 Intox)
                 </button>
                 <button onClick={() => playTurn(5, 5, "Sip")} className="bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-xl border border-slate-500 transition-colors">
-                   🍷 Polite Sip (+5 G, +5 Intox)
+                   🍷 Polite Sip (+5 Trust, +5 Intox)
                 </button>
                 <button onClick={() => playTurn(-5, -10, "Eat")} className="bg-emerald-900 hover:bg-emerald-800 text-white font-bold py-3 rounded-xl border border-emerald-500 transition-colors">
-                   🥢 Eat Food (-5 G, -10 Intox)
+                   🥢 Eat Food (-5 Trust, -10 Intox)
                 </button>
             </div>
         </div>
@@ -579,7 +579,7 @@ function HongbaoSnatchGame({ onComplete }) {
                        className="absolute w-16 h-20 bg-red-600 rounded drop-shadow-xl flex items-center justify-center shadow-[inset_0_0_10px_rgba(0,0,0,0.5)] border-2 border-red-400 hover:scale-110 active:scale-90"
                        style={{ top: pos.top, left: pos.left }}
                     >
-                        <div className="w-8 h-8 rounded-full bg-yellow-400 flex items-center justify-center font-bold text-red-600 text-xs shadow-inner">開</div>
+                        <div className="w-8 h-8 rounded-full bg-yellow-400 flex items-center justify-center font-bold text-red-600 text-[9px] shadow-inner">OPEN</div>
                     </button>
                 )}
             </div>

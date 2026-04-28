@@ -46,10 +46,10 @@ export default function Dashboard({ state }) {
         
         <div className="pt-2">
             <div className="flex justify-between mb-1 text-sm font-medium text-slate-200">
-                <span>😌 Sanity</span>
-                <span className={stats.sanity < 30 ? "text-red-400 font-bold" : ""}>{stats.sanity}/100</span>
+                <span>😌 Energy</span>
+                <span className={stats.energy < 30 ? "text-red-400 font-bold" : ""}>{stats.energy}/100</span>
             </div>
-            <Progress value={stats.sanity} className={`h-2 ${stats.sanity < 30 ? "bg-red-950" : "bg-slate-700"}`} indicatorColor={stats.sanity < 30 ? "bg-red-500" : "bg-teal-400"} />
+            <Progress value={stats.energy} className={`h-2 ${stats.energy < 30 ? "bg-red-950" : "bg-slate-700"}`} indicatorColor={stats.energy < 30 ? "bg-red-500" : "bg-teal-400"} />
         </div>
 
         <div className="pt-3 border-t border-slate-700">
@@ -58,7 +58,7 @@ export default function Dashboard({ state }) {
       </div>
 
       <div className="space-y-1.5 pt-3 border-t border-slate-700">
-        <h2 className="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-2">Guanxi Network</h2>
+        <h2 className="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-2">Relationship Network</h2>
         <div className="grid grid-cols-2 gap-1.5 text-xs">
           <Badge className="border-slate-600 bg-slate-800 text-slate-300 flex justify-between py-1 px-2">
             <span>Professors</span>
@@ -81,14 +81,14 @@ export default function Dashboard({ state }) {
 
       {state.relationships && (
         <div className="space-y-1.5 pt-3 border-t border-slate-700">
-          <h2 className="text-[10px] uppercase tracking-widest text-pink-500 font-semibold mb-2">Deep Connections</h2>
+          <h2 className="text-[10px] uppercase tracking-widest text-pink-500 font-semibold mb-2">Character Bonds</h2>
           <div className="space-y-1.5 text-xs">
             {Object.entries(state.relationships).filter(([k,v]) => v.friendship > 0 || v.romance > 0).map(([character, rel]) => (
                 <div key={character} className="bg-slate-800 border border-slate-600 rounded-md p-2 flex flex-col gap-1">
                     <div className="font-bold text-slate-200">{character}</div>
                     <div className="flex gap-4">
-                        <span className="text-blue-300">🤝 Frnd: {rel.friendship}</span>
-                        {rel.romance > 0 && <span className="text-pink-400">💖 Rom: {rel.romance}</span>}
+                        <span className="text-blue-300">🤝 Bond: {rel.friendship}</span>
+                        {rel.romance > 0 && <span className="text-pink-400">💖 Closeness: {rel.romance}</span>}
                     </div>
                 </div>
             ))}

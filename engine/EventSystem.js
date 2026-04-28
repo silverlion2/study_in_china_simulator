@@ -21,6 +21,13 @@ export class EventSystem {
       if (state.location !== conditionObj.location) return false;
     }
 
+    // Check week/turn gates (e.g., { turn: { min: 25 } })
+    if (conditionObj.turn) {
+      const val = state.turn || 0;
+      if (conditionObj.turn.min !== undefined && val < conditionObj.turn.min) return false;
+      if (conditionObj.turn.max !== undefined && val > conditionObj.turn.max) return false;
+    }
+
     // Check stats (e.g., { stats: { academics: { min: 20 } } })
     if (conditionObj.stats) {
       for (const [stat, req] of Object.entries(conditionObj.stats)) {

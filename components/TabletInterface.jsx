@@ -7,10 +7,96 @@ import { gameEngine } from '../engine/GameState';
 export default function TabletInterface({ state, onClose, onReplayGame, onPlayGig }) {
   const { stats, guanxi, turn, phase, flags } = state;
   const [activeTab, setActiveTab] = useState('Story');
+  const [selectedMemory, setSelectedMemory] = useState(null);
+  const [utilityMessage, setUtilityMessage] = useState("");
+  const housingChoice = flags.housing_choice || flags.decision_e2_housing || "";
+  const originLabel = flags.origin_asian ? "Neighboring Asia" : flags.origin_western ? "Western background" : flags.origin_developing ? "Global South" : null;
+  const identityLabel = flags.gender_male ? "Male" : flags.gender_female ? "Female" : flags.gender_nonbinary ? "Non-binary / another identity" : null;
+  const majorLabel = flags.major_business ? "Business and Management" : flags.major_stem ? "Engineering and Computing" : flags.major_humanities ? "Humanities and China Studies" : null;
+  const fundingLabel = flags.finance_scholarship ? "Scholarship-funded" : flags.finance_rich ? "Family support budget" : flags.finance_working ? "Budget planner" : null;
+  const applicationStatus = flags.accepted_offer ? "Offer accepted" : flags.completed_application ? "Submitted, awaiting result" : flags.target_minghai ? "Minghai selected" : flags.decision_e1_start ? "Application shaping" : "Departure eve";
+  const routeLabels = [
+    flags.route_academic && "Academic",
+    flags.route_local && "Local Integration",
+    flags.route_intl && "International Circle",
+    flags.route_career && "Career Bridge",
+    flags.route_city && "Shanghai Opportunity"
+  ].filter(Boolean).join(" / ");
+  const relationshipTensionLabel = [
+    flags.lin_feedback_repaired && "Lin feedback repaired",
+    flags.lin_feedback_avoided && "Lin feedback avoided",
+    flags.dr_mei_ethics_reframed && "Dr. Mei ethics reframed",
+    flags.dr_mei_efficiency_choice && "Dr. Mei efficiency choice",
+    flags.neighbor_li_boundary_repaired && "Neighbor Li boundary repaired",
+    flags.neighbor_li_boundary_avoided && "Neighbor Li boundary avoided",
+    flags.uncle_wang_honest_answer && "Uncle Wang honest answer",
+    flags.uncle_wang_polite_answer && "Uncle Wang polite answer",
+    flags.sophie_bridge_plan && "Sophie bridge plan",
+    flags.sophie_safe_bubble_choice && "Sophie safe bubble",
+    flags.manager_zhang_boundaries_accepted && "Manager Zhang boundaries accepted",
+    flags.career_shortcut_temptation && "Career shortcut temptation",
+    flags.career_shortcut_repaired && "Career shortcut repaired",
+    flags.xiao_chen_responsible_pace && "Xiao Chen responsible pace",
+    flags.city_speed_over_care && "Shanghai speed over care",
+    flags.city_reliability_debt && "Prototype reliability debt",
+    flags.city_reliability_repaired && "Prototype reliability repaired"
+  ].filter(Boolean).join(" / ");
+  const routeMemoryLabel = [
+    flags.academic_empty_lecture && "Almost-empty Friday lecture",
+    flags.local_rain_gate && "Rainy dorm gate help",
+    flags.intl_common_room_meal && "Common-room comfort meal",
+    flags.career_mock_interview && "Brutally useful mock interview",
+    flags.city_qr_complaint_night && "Broken QR complaint night"
+  ].filter(Boolean).join(" / ");
+  const riskStatusLabel = [
+    flags.unapproved_work_risk && "Unapproved work risk active",
+    flags.compliance_cleanup_done && "Compliance cleanup completed",
+    flags.career_shortcut_temptation && "Career shortcut risk active",
+    flags.career_shortcut_repaired && "Career shortcut repaired",
+    flags.city_reliability_debt && "Prototype reliability debt active",
+    flags.city_reliability_repaired && "Prototype reliability repaired"
+  ].filter(Boolean).join(" / ");
+  const calendarItems = getCalendarItems(state);
+  const memoryEntries = getMemoryEntries(flags);
+  const unlockedMemoryCount = memoryEntries.filter(memory => isMemoryUnlocked(memory, flags)).length;
+
+  const launchStoryNode = (nodeId, cost = 0, statEffects = {}) => {
+    if (cost > 0 && stats.wealth < cost) return;
+    const effects = { ...statEffects };
+    if (cost > 0) effects.wealth = -cost;
+    if (Object.keys(effects).length > 0) gameEngine.updateStats(effects);
+    gameEngine.setCurrentNode(nodeId);
+    onClose();
+  };
+
+  const handleTaobaoService = (orderId) => {
+    const result = gameEngine.useTaobaoServiceOrder(orderId);
+    setUtilityMessage(result.message);
+  };
+
+  const handleHousingChoice = (housing) => {
+    if (phase === "Application") {
+      setUtilityMessage("Housing opens once Minghai starts sending real pre-departure paperwork.");
+      return;
+    }
+    if (stats.wealth < housing.deposit) {
+      setUtilityMessage(`You need at least RMB ${housing.deposit.toLocaleString()} to choose ${housing.title}.`);
+      return;
+    }
+    if (housing.deposit > 0) {
+      gameEngine.addTransaction(-housing.deposit, `Housing deposit: ${housing.title}`);
+    }
+    gameEngine.updateStats(housing.stats || {});
+    gameEngine.setFlag("has_housing", true);
+    gameEngine.setFlag("housing_choice", housing.title);
+    gameEngine.setFlag("housing_rent_weekly", housing.weeklyRent);
+    gameEngine.setFlag("housing_commute", housing.commute);
+    setUtilityMessage(`${housing.title} selected. Your Shanghai life now has an address.`);
+  };
 
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-all animate-in fade-in duration-300" onClick={onClose}>
-        <div 
+        <div
            className="relative w-full max-w-2xl h-[75vh] bg-slate-900 border-[8px] border-slate-950 rounded-[2rem] shadow-[0_0_40px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col animate-in zoom-in-95 duration-300"
            onClick={e => e.stopPropagation()}
         >
@@ -27,40 +113,56 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
             </div>
 
             {/* Tab Navigation */}
-            <div className="w-full bg-slate-800 border-b border-slate-700 flex p-1.5 shrink-0 justify-start sm:justify-center gap-1 shadow-sm overflow-x-auto no-scrollbar">
-                <button 
+            <div className="w-full bg-slate-800 border-b border-slate-700 flex flex-wrap p-1.5 shrink-0 justify-start gap-1 shadow-sm">
+                <button
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'Story' ? 'bg-sky-500 text-white shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
                   onClick={() => setActiveTab('Story')}
                 >🗺️ Story</button>
-                <button 
+                <button
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'Calendar' ? 'bg-cyan-500 text-white shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
+                  onClick={() => setActiveTab('Calendar')}
+                >📅 Calendar</button>
+                <button
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'Map' ? 'bg-indigo-500 text-white shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
                   onClick={() => setActiveTab('Map')}
-                >📍 Map</button>
-                <button 
+                >📍 Shanghai Map</button>
+                <button
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'Housing' ? 'bg-lime-500 text-slate-950 shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
+                  onClick={() => setActiveTab('Housing')}
+                >Housing</button>
+                <button
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'Stats' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
                   onClick={() => setActiveTab('Stats')}
                 >📊 Stats</button>
-                <button 
+                <button
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'Wallet' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
                   onClick={() => setActiveTab('Wallet')}
                 >💳 Alipay</button>
-                <button 
+                <button
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'DiDi' ? 'bg-yellow-500 text-slate-950 shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
+                  onClick={() => setActiveTab('DiDi')}
+                >🚕 DiDi</button>
+                <button
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'Jobs' ? 'bg-amber-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
                   onClick={() => setActiveTab('Jobs')}
                 >💼 Jobs</button>
-                <button 
+                <button
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'Taobao' ? 'bg-orange-500 text-white shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
                   onClick={() => setActiveTab('Taobao')}
                 >🛒 Taobao</button>
-                <button 
+                <button
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'Arcade' ? 'bg-purple-500 text-white shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
                   onClick={() => setActiveTab('Arcade')}
                 >🕹️ Arcade</button>
-                <button 
+                <button
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'Gallery' ? 'bg-fuchsia-500 text-white shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
+                  onClick={() => setActiveTab('Gallery')}
+                >🖼️ Gallery</button>
+                <button
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'Souvenirs' ? 'bg-pink-500 text-white shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
                   onClick={() => setActiveTab('Souvenirs')}
                 >🧲 Souvenirs</button>
-                <button 
+                <button
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'WeChat' ? 'bg-[#1AAD19] text-white shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
                   onClick={() => setActiveTab('WeChat')}
                 >💬 WeChat</button>
@@ -73,50 +175,75 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
                        <Dashboard state={state} />
                     </div>
                 )}
-                
+
                 {activeTab === 'Story' && (
                     <div className="max-w-xl mx-auto space-y-6 relative">
                         {/* Visual Timeline Path */}
                         <div className="absolute left-8 top-8 bottom-8 w-1 bg-slate-700 rounded-full z-0"></div>
 
-                        <TimelineNode 
-                            title="Epoch 1: Application (Weeks 1-8)" 
-                            active={turn <= 8} 
-                            completed={turn > 8}
-                            desc="Did you secure the scholarship and acceptance?"
+                        <TimelineNode
+                            title="Epoch 1: Departure Eve & Application"
+                            active={phase === "Application"}
+                            completed={phase !== "Application"}
+                            desc="From the night before departure back through the choices that made Minghai University real."
                         >
-                            <DecisionFlag label="Preparation Strategy" value={flags.decision_e1_start} />
-                            <DecisionFlag label="Study Plan" value={flags.decision_e1_plan} />
-                            <DecisionFlag label="Medical Examination" value={flags.decision_e1_med} />
-                            <DecisionFlag label="Language Proof" value={flags.decision_e1_hsk} />
-                            <DecisionFlag label="Application Submission" value={flags.decision_e1_submit} />
-                            {flags.completed_application && <p className="text-emerald-400 text-sm font-semibold mt-2">✅ Application Submitted Successfully</p>}
+                            <DecisionFlag label="Status" value={applicationStatus} />
+                            <DecisionFlag label="Motivation" value={flags.decision_e1_start} />
+                            <DecisionFlag label="Starting Point" value={originLabel} />
+                            <DecisionFlag label="Identity" value={identityLabel} />
+                            <DecisionFlag label="Chinese Foundation" value={flags.decision_e1_hsk} />
+                            <DecisionFlag label="Major Track" value={majorLabel} />
+                            <DecisionFlag label="Statement" value={flags.decision_e1_plan} />
+                            <DecisionFlag label="Funding Plan" value={fundingLabel} />
+                            <DecisionFlag label="Medical Form" value={flags.decision_e1_med} />
+                            <DecisionFlag label="Submission" value={flags.decision_e1_submit} />
+                            {flags.accepted_offer && <p className="text-emerald-400 text-sm font-semibold mt-2">✅ Minghai University Offer Accepted</p>}
+                            {!flags.accepted_offer && flags.completed_application && <p className="text-sky-400 text-sm font-semibold mt-2">📨 Application Submitted to Minghai</p>}
                         </TimelineNode>
 
-                        <TimelineNode 
-                            title="Epoch 2: Pre-Departure (Weeks 9-16)" 
-                            active={turn > 8 && turn <= 16} 
-                            completed={turn > 16}
-                            desc="Bureaucracy, logistics, and digital adaptation."
+                        <TimelineNode
+                            title="Epoch 2: Pre-Departure (Weeks 9-16)"
+                            active={phase === "Pre-Departure"}
+                            completed={phase === "In-China" || turn > 16}
+                            desc="Admission package, X1 visa, digital setup, housing, flights, packing, and the emotional work of actually leaving."
                         >
-                            <DecisionFlag label="Visa Interview" value={flags.decision_e2_visa} />
+                            <DecisionFlag label="Admission Package" value={flags.decision_e2_package} />
+                            <DecisionFlag label="X1 Visa" value={flags.decision_e2_visa} />
+                            <DecisionFlag label="Digital Access" value={flags.decision_e2_vpn} />
+                            <DecisionFlag label="Digital Setup" value={flags.decision_e2_wechat} />
+                            <DecisionFlag label="Housing" value={flags.decision_e2_housing} />
                             <DecisionFlag label="Flight Routing" value={flags.decision_e2_flight} />
-                            <DecisionFlag label="Digital Readiness" value={flags.decision_e2_wechat} />
+                            <DecisionFlag label="Arrival Transport" value={flags.airport_transfer_plan} />
+                            <DecisionFlag label="Semester Setup" value={flags.semester_plan} />
                             <DecisionFlag label="Luggage Priority" value={flags.decision_e2_pack} />
+                            <DecisionFlag label="Farewell" value={flags.decision_e2_farewell} />
                             {flags.got_visa && <p className="text-emerald-400 text-sm font-semibold mt-2">✅ X1 Visa Secured</p>}
+                            {flags.departed_for_shanghai && <p className="text-sky-400 text-sm font-semibold mt-2">✈️ Boarded for Shanghai</p>}
                         </TimelineNode>
 
-                        <TimelineNode 
-                            title="Epoch 3: In-China (Weeks 17-32)" 
-                            active={turn > 16 && turn <= 32} 
+                        <TimelineNode
+                            title="Epoch 3: In-China (Weeks 17-32)"
+                            active={phase === "In-China" && turn <= 32}
                             completed={turn > 32}
-                            desc="The reality of living and studying abroad."
+                            desc="Arrival at Minghai, first classes, campus relationships, route direction, and the year-end review."
                         >
                             {flags.arrived_in_china && <p className="text-emerald-400 text-sm font-semibold mb-2">🛬 Arrived in China</p>}
                             <DecisionFlag label="Airport Transport" value={flags.decision_e3_transport} />
+                            <DecisionFlag label="First Meal" value={flags.decision_e3_food} />
                             <DecisionFlag label="Dorm Setup" value={flags.decision_e3_taobao} />
+                            <DecisionFlag label="Registration" value={flags.decision_e3_registration} />
+                            <DecisionFlag label="First Class" value={flags.decision_e3_first_class} />
+                            <DecisionFlag label="Major Lens" value={flags.major_identity_confirmed} />
+                            <DecisionFlag label="Social Circle" value={flags.decision_e3_social_circle} />
+                            <DecisionFlag label="Life Rhythm" value={flags.decision_e3_rhythm} />
+                            <DecisionFlag label="Route Bias" value={routeLabels} />
+                            <DecisionFlag label="Weekly Focus" value={flags.weekly_focus} />
+                            <DecisionFlag label="Route Memory" value={routeMemoryLabel} />
+                            <DecisionFlag label="Relationship Tension" value={relationshipTensionLabel} />
+                            <DecisionFlag label="Risk Status" value={riskStatusLabel} />
                             <DecisionFlag label="Midterm Focus" value={flags.decision_e3_midterm} />
-                            <DecisionFlag label="Career Direction" value={flags.decision_e3_internship} />
+                            <DecisionFlag label="Future Direction" value={flags.decision_e3_internship} />
+                            <DecisionFlag label="Year-End Reflection" value={flags.decision_e3_final} />
                             <div className="mt-4 text-sky-400 text-sm font-semibold">
                                 {turn < 32 ? "⏳ Story unfolding..." : "🎓 Ready for Final Evaluation"}
                             </div>
@@ -124,33 +251,162 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
                     </div>
                 )}
 
+                {activeTab === 'Calendar' && (
+                    <div className="max-w-xl mx-auto space-y-4">
+                        <div className="rounded-2xl border border-cyan-400/30 bg-cyan-500/15 p-5 shadow-xl">
+                            <div className="flex items-start justify-between gap-4">
+                                <div>
+                                    <h2 className="text-xl font-black text-cyan-200">Semester Calendar</h2>
+                                    <p className="mt-1 text-xs leading-relaxed text-cyan-100/80">Deadlines, pressure points, and useful prep. This is the part of studying abroad that turns hopes into a schedule.</p>
+                                </div>
+                                <div className="rounded-2xl bg-cyan-300/20 px-3 py-2 text-center font-mono text-cyan-100">
+                                    <div className="text-[10px] uppercase tracking-widest">Week</div>
+                                    <div className="text-2xl font-black">{turn}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            {calendarItems.map((item) => (
+                                <CalendarCard
+                                    key={item.id}
+                                    item={item}
+                                    onPin={() => {
+                                        gameEngine.setFlag('calendar_focus', item.title);
+                                        setUtilityMessage(`Pinned: ${item.title}`);
+                                    }}
+                                    pinned={flags.calendar_focus === item.title}
+                                />
+                            ))}
+                        </div>
+
+                        {utilityMessage && (
+                            <div className="rounded-xl border border-cyan-400/30 bg-slate-950/80 p-3 text-xs text-cyan-100">{utilityMessage}</div>
+                        )}
+                    </div>
+                )}
+
                 {activeTab === 'Map' && (
-                    <div className="max-w-xl mx-auto flex flex-col h-full bg-blue-50/5 rounded-2xl p-4 border border-blue-900/30">
-                        <h2 className="text-xl font-bold text-sky-400 mb-2 text-center">Travel Map</h2>
-                        <div className="relative w-full max-w-sm mx-auto aspect-square bg-sky-950 rounded-2xl overflow-hidden border border-sky-800 shadow-inner flex items-center justify-center">
-                            {/* The Map Background - Square to match image */}
-                            <img src="assets/china_map.png" alt="Map of China" className="absolute inset-0 w-full h-full object-cover drop-shadow-[0_0_15px_rgba(56,189,248,0.3)] opacity-90 mix-blend-screen" />
-                            
-                            {/* City Pins (Tuned for 1:1 image mapping) */}
-                            <CityPin name="Beijing" top="28%" left="72%" active={state.location === 'Beijing'} />
-                            <CityPin name="Shanghai" top="55%" left="87%" active={state.location === 'Shanghai'} />
-                            <CityPin name="Hangzhou" top="59%" left="85%" active={state.location === 'Hangzhou'} />
-                            <CityPin name="Guangzhou" top="82%" left="68%" active={state.location === 'Guangzhou'} />
-                            <CityPin name="Sanya" top="94%" left="62%" active={state.location === 'Sanya'} />
-                            <CityPin name="Chengdu" top="62%" left="53%" active={state.location === 'Chengdu'} />
-                            <CityPin name="Xi'an" top="48%" left="63%" active={state.location === 'Xi\'an'} />
+                    <div className="max-w-3xl mx-auto space-y-4">
+                        <div className="rounded-2xl border border-sky-400/30 bg-sky-500/15 p-5 shadow-xl">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                                <div>
+                                    <h2 className="text-xl font-black text-sky-100">Shanghai Map</h2>
+                                    <p className="mt-1 text-xs leading-relaxed text-sky-100/75">One city for now: campus, housing, daily errands, and the places that can turn a normal week into a story.</p>
+                                </div>
+                                <div className="rounded-xl bg-slate-950/60 px-3 py-2 text-right font-mono text-xs text-sky-100">
+                                    <div className="uppercase tracking-[0.2em] text-sky-300">Current</div>
+                                    <div className="font-black">{state.location === "Home Country" ? "Pre-arrival" : state.location}</div>
+                                </div>
+                            </div>
                         </div>
-                        <div className="mt-6 text-center text-slate-300 text-sm bg-slate-800/50 p-4 rounded-xl border border-slate-700">
-                            <p>Your current location is <span className="text-sky-400 font-bold text-base px-2">{state.location}</span></p>
-                            <p className="mt-1 text-slate-500 text-xs">Return to the main Hub menu to use the High-Speed Rail network.</p>
+
+                        <div className="relative min-h-[360px] overflow-hidden rounded-2xl border border-sky-900/60 bg-slate-950 shadow-2xl">
+                            <img src="/images/simulator/backgrounds/bg_shanghai_bund_evening.jpg" alt="Shanghai evening map" className="absolute inset-0 h-full w-full object-cover opacity-35" />
+                            <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(15,23,42,0.92),rgba(2,6,23,0.72))]"></div>
+                            <div className="absolute left-[12%] right-[12%] top-1/2 h-0.5 bg-cyan-300/50"></div>
+                            <div className="absolute left-[26%] top-[16%] h-[66%] w-0.5 bg-amber-200/40"></div>
+                            <div className="absolute left-[50%] top-[18%] h-[64%] w-0.5 rotate-12 bg-lime-200/30"></div>
+                            <ShanghaiPin name="Minghai Campus" top="58%" left="27%" active />
+                            <ShanghaiPin name="Dorm Office" top="72%" left="24%" />
+                            <ShanghaiPin name="Rental Street" top="44%" left="42%" />
+                            <ShanghaiPin name="The Bund" top="38%" left="65%" />
+                            <ShanghaiPin name="Lujiazui" top="32%" left="74%" />
+                            <ShanghaiPin name="Fuxing Park" top="56%" left="57%" />
+                            <ShanghaiPin name="Pudong Airport" top="80%" left="84%" />
                         </div>
+
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                            <MapDestinationCard
+                                title="Minghai Campus"
+                                meta="Classes, registration, dorm life"
+                                desc="Keep the core loop grounded in one school instead of scattering attention across China."
+                                disabled={phase !== "In-China"}
+                                onSelect={() => {
+                                    gameEngine.setLocation("Shanghai");
+                                    setUtilityMessage("Pinned Minghai Campus as your current Shanghai base.");
+                                }}
+                            />
+                            <MapDestinationCard
+                                title="Rental Street"
+                                meta="Housing pressure"
+                                desc="Open Housing to choose where this year actually sleeps."
+                                disabled={phase === "Application"}
+                                onSelect={() => setActiveTab("Housing")}
+                            />
+                            <MapDestinationCard
+                                title="The Bund Evening Walk"
+                                meta="RMB 80 / reflection"
+                                desc="A city scene for awe, loneliness, and the first time Shanghai feels less abstract."
+                                disabled={phase !== "In-China" || stats.wealth < 80}
+                                onSelect={() => launchStoryNode('event_sh_bund_walk', 80, { energy: -2, culture: 2 })}
+                            />
+                            <MapDestinationCard
+                                title="Lujiazui Fintech Talk"
+                                meta="RMB 100 / opportunity"
+                                desc="A practical route into internships, payments, and the speed of Shanghai work culture."
+                                disabled={phase !== "In-China" || stats.wealth < 100}
+                                onSelect={() => launchStoryNode('event_sh_lujiazui_mixer', 100, { energy: -3, digitalProficiency: 2 })}
+                            />
+                        </div>
+                        {utilityMessage && (
+                            <div className="rounded-xl border border-sky-400/30 bg-slate-950/80 p-3 text-xs text-sky-100">{utilityMessage}</div>
+                        )}
+                    </div>
+                )}
+
+                {activeTab === 'Housing' && (
+                    <div className="max-w-3xl mx-auto space-y-4">
+                        <div className="rounded-2xl border border-lime-400/30 bg-lime-500/15 p-5 shadow-xl">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                                <div>
+                                    <h2 className="text-xl font-black text-lime-100">Shanghai Housing</h2>
+                                    <p className="mt-1 text-xs leading-relaxed text-lime-100/75">A small first version: pick one living situation. Later events can remember this address, commute, privacy, and rent pressure.</p>
+                                </div>
+                                <div className="rounded-xl bg-slate-950/60 px-3 py-2 text-right text-xs">
+                                    <div className="font-mono uppercase tracking-[0.2em] text-lime-300">Current</div>
+                                    <div className="font-black text-lime-50">{housingChoice || "Unchosen"}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {phase === "Application" && (
+                            <div className="rounded-xl border border-amber-400/30 bg-amber-500/10 p-4 text-sm text-amber-100">
+                                Housing unlocks after the application turns into real pre-departure logistics.
+                            </div>
+                        )}
+
+                        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                            {getHousingOptions().map((option) => (
+                                <HousingOptionCard
+                                    key={option.id}
+                                    option={option}
+                                    selected={housingChoice === option.title}
+                                    disabled={phase === "Application" || stats.wealth < option.deposit}
+                                    onSelect={() => handleHousingChoice(option)}
+                                />
+                            ))}
+                        </div>
+
+                        <div className="rounded-2xl border border-lime-400/20 bg-slate-950/70 p-4">
+                            <h3 className="text-sm font-black uppercase tracking-[0.18em] text-lime-300">What this unlocks</h3>
+                            <div className="mt-3 grid grid-cols-1 gap-3 text-xs text-slate-300 sm:grid-cols-3">
+                                <div className="rounded-xl bg-slate-900/80 p-3">Rent pressure can become a monthly tradeoff instead of abstract wealth loss.</div>
+                                <div className="rounded-xl bg-slate-900/80 p-3">Commute can affect energy, punctuality, and whether late-night city scenes are tempting.</div>
+                                <div className="rounded-xl bg-slate-900/80 p-3">Roommates and dorm rules can feed long-term event chains later.</div>
+                            </div>
+                        </div>
+
+                        {utilityMessage && (
+                            <div className="rounded-xl border border-lime-400/30 bg-slate-950/80 p-3 text-xs text-lime-100">{utilityMessage}</div>
+                        )}
                     </div>
                 )}
 
                 {activeTab === 'WeChat' && (
                     <div className="max-w-xl mx-auto h-[60vh] flex flex-col bg-[#ebebeb] rounded-2xl overflow-hidden shadow-2xl relative border border-slate-700/50">
                         <div className="bg-[#1AAD19] px-4 py-3 text-white shadow relative z-10 flex justify-between items-center shrink-0">
-                            <h2 className="text-md font-bold tracking-wide">微信 WeChat</h2>
+                            <h2 className="text-md font-bold tracking-wide">WeChat</h2>
                             <div className="text-xl opacity-80 cursor-pointer">⊕</div>
                         </div>
                         <div className="flex-1 overflow-y-auto w-full no-scrollbar">
@@ -162,13 +418,12 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
                                 </div>
                             ) : (
                                 Object.entries(state.relationships || {}).map(([name, data], idx) => {
-                                    const meta = {
-                                        "Dr. Mei": { emoji: "👩‍🏫", desc: "University Advisor" },
-                                        "Manager Zhang": { emoji: "👔", desc: "Corporate Recruiter" },
-                                        "Sophie": { emoji: "👱‍♀️", desc: "French Exchange Student" },
-                                        "Xiao Chen": { emoji: "🧑‍💻", desc: "AI Startup Founder" },
-                                        "Uncle Wang": { emoji: "👨🏽‍🍳", desc: "Street BBQ Owner" }
-                                    }[name] || { emoji: "👤", desc: "Acquaintance" };
+                                    const meta = getContactMeta(name);
+                                    const stage = getRelationshipStage(name, data, flags);
+                                    const recent = getRecentInteraction(name, flags);
+                                    const meetup = getWeChatMeetup(name, flags, phase, turn);
+                                    const maxFriendshipWidth = Math.min(100, Math.max(0, data.friendship || 0));
+                                    const maxRomanceWidth = Math.min(100, Math.max(0, data.romance || 0));
 
                                     return (
                                         <div key={idx} className="bg-white border-b border-gray-200/60 p-3 flex flex-col sm:flex-row sm:items-center gap-3 hover:bg-gray-50 transition-colors cursor-pointer group">
@@ -179,26 +434,61 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
                                                 <div className="flex-1">
                                                     <h3 className="font-bold text-gray-900 text-sm mb-0.5">{name}</h3>
                                                     <p className="text-gray-500 text-[10px] leading-tight line-clamp-1">{meta.desc}</p>
+                                                    <div className="flex flex-wrap gap-1 mt-1">
+                                                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${stage.className}`}>{stage.label}</span>
+                                                        <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-gray-100 border border-gray-200 text-gray-500">{meta.route}</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div className="flex flex-col gap-1.5 w-full sm:flex-1 bg-gray-50 p-2 sm:p-2.5 rounded-lg border border-gray-100/80">
+                                                <div className="flex items-start justify-between gap-2 mb-1">
+                                                    <div className="text-[10px] text-gray-500 leading-snug">{recent}</div>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            const sent = gameEngine.sendWeChatCheckIn(name);
+                                                            setUtilityMessage(sent ? `You sent ${name} a short WeChat check-in.` : `You cannot message ${name} right now.`);
+                                                        }}
+                                                        disabled={phase !== "In-China" || flags.sent_wechat_ping_this_week}
+                                                        className={`shrink-0 rounded-full px-2 py-1 text-[9px] font-bold transition-all ${phase !== "In-China" || flags.sent_wechat_ping_this_week ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-[#1AAD19] text-white hover:bg-[#159014]'}`}
+                                                    >
+                                                        {phase !== "In-China" ? 'Locked' : flags.sent_wechat_ping_this_week ? 'Sent' : 'Check in'}
+                                                    </button>
+                                                    {meetup && (
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                launchStoryNode(meetup.nodeId, meetup.cost || 0, meetup.effects || {});
+                                                            }}
+                                                            disabled={(meetup.cost || 0) > stats.wealth}
+                                                            className={`shrink-0 rounded-full px-2 py-1 text-[9px] font-bold transition-all ${(meetup.cost || 0) > stats.wealth ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-slate-900 text-white hover:bg-slate-700'}`}
+                                                        >
+                                                            {meetup.label}
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                <div className="grid grid-cols-4 gap-1 mb-1">
+                                                    {["Contact", "Trust", "Tension", "Commitment"].map(label => (
+                                                        <div key={label} className={`h-1 rounded-full ${stage.order >= getStageOrder(label) ? stage.barClass : "bg-gray-200"}`} title={label}></div>
+                                                    ))}
+                                                </div>
                                                 <div className="relative">
                                                     <div className="flex items-center justify-between mb-0.5">
-                                                        <span className="text-[9px] font-semibold text-[#1AAD19] uppercase tracking-wider">Friendship</span>
+                                                            <span className="text-[9px] font-semibold text-[#1AAD19] uppercase tracking-wider">Bond</span>
                                                         <span className="text-[10px] font-mono text-[#1AAD19]">{data.friendship}/100</span>
                                                     </div>
                                                     <div className="overflow-hidden h-1.5 text-xs flex rounded-full bg-green-100">
-                                                        <div style={{ width: `${data.friendship}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-[#1AAD19] transition-all duration-700"></div>
+                                                        <div style={{ width: `${maxFriendshipWidth}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-[#1AAD19] transition-all duration-700"></div>
                                                     </div>
                                                 </div>
                                                 {data.romance > 0 && (
                                                     <div className="relative mt-0.5">
                                                         <div className="flex items-center justify-between mb-0.5">
-                                                            <span className="text-[9px] font-semibold text-rose-500 uppercase tracking-wider">Romance</span>
+                                                            <span className="text-[9px] font-semibold text-rose-500 uppercase tracking-wider">Closeness</span>
                                                             <span className="text-[10px] font-mono text-rose-500">{data.romance}/100</span>
                                                         </div>
                                                         <div className="overflow-hidden h-1.5 text-xs flex rounded-full bg-rose-100">
-                                                            <div style={{ width: `${data.romance}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-rose-500 transition-all duration-700"></div>
+                                                            <div style={{ width: `${maxRomanceWidth}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-rose-500 transition-all duration-700"></div>
                                                         </div>
                                                     </div>
                                                 )}
@@ -229,6 +519,13 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
                             </div>
                         </div>
 
+                        <div className="mb-4 rounded-xl border border-blue-400/25 bg-slate-950/70 p-4 text-sm text-blue-100">
+                            {phase !== "In-China" && "Alipay can be prepared before arrival, but the first real scan happens when a counter, a QR code, and a hungry student all meet."}
+                            {phase === "In-China" && flags.first_alipay_used && "First Alipay lesson completed: scan, confirm amount, pay, and leave the counter before the lunch rush swallows you."}
+                            {phase === "In-China" && !flags.first_alipay_used && flags.has_alipay && "Alipay is linked, but you have not used it in a real scene yet. The first canteen scan is still a useful confidence checkpoint."}
+                            {phase === "In-China" && !flags.first_alipay_used && !flags.has_alipay && "Alipay is not ready yet. Expect more cash, help requests, and payment friction until you fix the setup."}
+                        </div>
+
                         <h3 className="text-slate-400 font-semibold mb-2 px-2 tracking-wide uppercase text-xs">Recent Transactions</h3>
                         <div className="bg-slate-900/80 rounded-xl border border-slate-700/50 shadow-inner overflow-hidden">
                             {(state.transactions || []).slice().reverse().map((tx, idx) => (
@@ -254,39 +551,123 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
                     </div>
                 )}
 
+                {activeTab === 'DiDi' && (
+                    <div className="max-w-xl mx-auto space-y-4">
+                        <div className="bg-yellow-500 rounded-2xl p-5 text-slate-950 shadow-xl relative overflow-hidden">
+                            <div className="absolute -right-3 -top-4 text-7xl opacity-20">🚕</div>
+                            <h2 className="text-xl font-black mb-1 tracking-tight">DiDi</h2>
+                            <p className="text-slate-800 text-xs font-semibold max-w-sm">Use the phone like a real student tool: spend RMB to buy back time and Energy when Shanghai is too big for your week.</p>
+                        </div>
+
+                        {phase !== "In-China" && (
+                            <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-4 text-sm text-yellow-100">
+                                DiDi is prepared before arrival, but it only becomes an active city tool after you reach Shanghai.
+                            </div>
+                        )}
+                        {phase === "In-China" && (
+                            <div className="rounded-xl border border-yellow-500/30 bg-slate-950/70 p-4 text-sm text-yellow-100">
+                                {flags.first_didi_used ? "First DiDi lesson completed: pickup zone, plate check, route sharing, and payment are now part of your city toolkit." : "You can use DiDi now, but the airport-to-campus first-use lesson will matter most if you chose that arrival route."}
+                            </div>
+                        )}
+
+                        <RideCard
+                            title="Campus Errand Ride"
+                            cost={45}
+                            energyGain={8}
+                            desc="A short ride across campus or to a nearby print shop. Useful when one small task would otherwise eat the day."
+                            disabled={phase !== "In-China" || flags.used_didi_this_week || stats.wealth < 45}
+                            onSelect={() => gameEngine.useDidiRide('standard')}
+                        />
+                        <RideCard
+                            title="Cross-Town Shortcut"
+                            cost={88}
+                            energyGain={14}
+                            desc="Skip the worst transfer and arrive with enough focus left to actually talk to people."
+                            disabled={phase !== "In-China" || flags.used_didi_this_week || stats.wealth < 88}
+                            onSelect={() => gameEngine.useDidiRide('comfort')}
+                        />
+                        <RideCard
+                            title="Airport Transfer Practice"
+                            cost={160}
+                            energyGain={20}
+                            desc="A more expensive rehearsal for handling luggage, pickup points, and app-based transport under pressure."
+                            disabled={phase !== "In-China" || flags.used_didi_this_week || stats.wealth < 160}
+                            onSelect={() => gameEngine.useDidiRide('airport')}
+                        />
+
+                        <div className="rounded-2xl border border-yellow-500/20 bg-slate-950/70 p-4">
+                            <h3 className="text-sm font-black uppercase tracking-[0.18em] text-yellow-300">City Shortcuts</h3>
+                            <p className="mt-1 text-xs text-slate-400">Use DiDi as a story launcher. These start a Shanghai scene immediately, so pick one when you want the week to become more than routine planning.</p>
+                            <div className="mt-3 grid grid-cols-1 gap-3">
+                                <DidiDestinationCard
+                                    title="Bund Evening Walk"
+                                    cost={80}
+                                    desc="Cross town for the skyline and a quieter city reflection."
+                                    disabled={phase !== "In-China" || stats.wealth < 80}
+                                    onSelect={() => launchStoryNode('event_sh_bund_walk', 80, { energy: -2, culture: 2 })}
+                                />
+                                <DidiDestinationCard
+                                    title="Lujiazui Fintech Talk"
+                                    cost={100}
+                                    desc="A practical city-opportunity scene for payments, offices, and Shanghai speed."
+                                    disabled={phase !== "In-China" || stats.wealth < 100}
+                                    onSelect={() => launchStoryNode('event_sh_lujiazui_mixer', 100, { energy: -3, digitalProficiency: 2 })}
+                                />
+                                <DidiDestinationCard
+                                    title="Fuxing Park Night"
+                                    cost={120}
+                                    desc="Nightlife as a cultural scene, not just a stat button."
+                                    disabled={phase !== "In-China" || stats.wealth < 120}
+                                    onSelect={() => launchStoryNode('event_sh_ins_clubbing', 120, { energy: -5, culture: 2 })}
+                                />
+                            </div>
+                        </div>
+
+                        {flags.used_didi_this_week && (
+                            <div className="text-center text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Ride used this week. Calendar reset unlocks the app again.</div>
+                        )}
+                    </div>
+                )}
+
                 {activeTab === 'Jobs' && (
                     <div className="max-w-xl mx-auto space-y-3">
                         <div className="bg-amber-600/20 border border-amber-600/50 rounded-xl p-4 mb-4">
-                            <h2 className="text-lg font-bold text-amber-500 mb-1">Gig Economy</h2>
-                            <p className="text-slate-300 text-xs">Launch into a gig to earn instant RMB. Be careful not to burn out—gigs drain sanity whether you win or lose!</p>
+                            <h2 className="text-lg font-bold text-amber-500 mb-1">Student Work Board</h2>
+                            <p className="text-slate-300 text-xs">Campus-approved microtasks can earn RMB, but they still cost Energy. Risky off-campus work lives under Money & Compliance, not here.</p>
                         </div>
 
-                        <JobCard 
-                            id="english_tutor" title="English Tutor" emoji="🗣️" 
-                            income={200} sanityCost={10} 
-                            desc="Teach English to local kids via the Tonal Rhythm mini-game. Good pay but mentally exhausting."
-                            disabled={flags.has_worked_this_week}
+                        <div className="rounded-xl border border-amber-400/25 bg-slate-950/70 p-4 text-sm text-amber-100">
+                            {phase !== "In-China" && "Student tasks unlock after arrival, once you understand campus rules and your visa boundaries."}
+                            {phase === "In-China" && flags.first_student_task_used && "First student task completed: you have learned that earning RMB also spends time, Energy, and attention."}
+                            {phase === "In-China" && !flags.first_student_task_used && "This board is for small campus-safe tasks. Use it when money pressure matters, but do not mistake every paid opportunity for a legal one."}
+                        </div>
+
+                        <JobCard
+                            id="english_tutor" title="English Tutor" emoji="🗣️"
+                            income={200} energyCost={10}
+                            desc="Help with language practice through the Tonal Rhythm mini-game. Good pay, but mentally draining."
+                            disabled={phase !== "In-China" || flags.has_worked_this_week}
                             onSelect={() => onPlayGig && onPlayGig('tones')}
                         />
-                        <JobCard 
-                            id="delivery_rider" title="Campus Delivery" emoji="🛵" 
-                            income={300} sanityCost={15} 
-                            desc="High risk, high reward. Beat the Delivery Typer game to earn big."
-                            disabled={flags.has_worked_this_week}
+                        <JobCard
+                            id="delivery_rider" title="Campus Delivery" emoji="🛵"
+                            income={300} energyCost={15}
+                            desc="Fast money, fast pressure. Beat the Delivery Typer game to finish the run."
+                            disabled={phase !== "In-China" || flags.has_worked_this_week}
                             onSelect={() => onPlayGig && onPlayGig('delivery')}
                         />
-                        <JobCard 
-                            id="flyer_distributor" title="Flyer Distributor" emoji="🧧" 
-                            income={150} sanityCost={5} 
-                            desc="Hand out flyers in the subway. Play the Hongbao Snatch game."
-                            disabled={flags.has_worked_this_week}
+                        <JobCard
+                            id="flyer_distributor" title="Flyer Distributor" emoji="🧧"
+                            income={150} energyCost={5}
+                            desc="Hand out campus flyers and play the Hongbao Snatch game."
+                            disabled={phase !== "In-China" || flags.has_worked_this_week}
                             onSelect={() => onPlayGig && onPlayGig('hongbao')}
                         />
-                        <JobCard 
-                            id="taobao_model" title="Taobao Model" emoji="📸" 
-                            income={500} sanityCost={20} 
-                            desc="Strike the perfect pose for an e-commerce shoot. High pay but very demanding."
-                            disabled={flags.has_worked_this_week}
+                        <JobCard
+                            id="taobao_model" title="Taobao Model" emoji="📸"
+                            income={500} energyCost={20}
+                            desc="Help with a student e-commerce shoot. High pay, high energy cost."
+                            disabled={phase !== "In-China" || flags.has_worked_this_week}
                             onSelect={() => onPlayGig && onPlayGig('model')}
                         />
                     </div>
@@ -297,33 +678,106 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
                         <div className="bg-orange-600 rounded-2xl p-5 text-white shadow-xl mb-4 flex justify-between items-center">
                             <div>
                                 <h2 className="text-xl font-bold mb-1 tracking-tight">Taobao Mall</h2>
-                                <p className="text-orange-200 text-xs">Upgrade your life in China.</p>
+                                <p className="text-orange-200 text-xs">Shopping is only half the lesson. Address fields, couriers, sizing, and timing are the other half.</p>
                             </div>
                             <div className="text-4xl">🛒</div>
                         </div>
 
+                        {phase !== "In-China" && (
+                            <div className="mb-4 rounded-xl border border-orange-400/30 bg-orange-500/10 p-4 text-sm text-orange-100">
+                                Taobao becomes useful after you reach the dorm. The first story order teaches address setup before this app becomes a weekly utility.
+                            </div>
+                        )}
+                        {phase === "In-China" && (
+                            <div className="mb-4 rounded-xl border border-orange-400/30 bg-slate-950/70 p-4 text-sm text-orange-100">
+                                {flags.first_taobao_used ? "First Taobao lesson completed: you now understand address setup, delivery timing, seller ratings, and courier friction." : "Your first dorm order has not become a story lesson yet. Use Taobao carefully: cheap, fast, and correct are three different promises."}
+                            </div>
+                        )}
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <ItemCard 
-                                id="ebike" title="Electric Bike" emoji="🛵" cost={1500} 
-                                desc="Reduces weekly sanity drain from walking/commuting by 1 point."
+                            <ItemCard
+                                id="ebike" title="Electric Bike" emoji="🛵" cost={1500}
+                                desc="Reduces weekly energy drain from walking/commuting by 1 point."
                                 isOwned={state.items?.ebike}
                                 wealth={stats.wealth}
-                                onBuy={() => gameEngine.purchaseItem('ebike', 1500)}
+                                onBuy={() => gameEngine.purchaseItem('ebike', 1500, 'Taobao: Electric Bike')}
                             />
-                            <ItemCard 
-                                id="headphones" title="Noise-Canceling Headphones" emoji="🎧" cost={800} 
-                                desc="Prevents Academics and Sanity penalties when working part-time jobs."
+                            <ItemCard
+                                id="headphones" title="Noise-Canceling Headphones" emoji="🎧" cost={800}
+                                desc="Prevents Academics and Energy penalties when working part-time jobs."
                                 isOwned={state.items?.headphones}
                                 wealth={stats.wealth}
-                                onBuy={() => gameEngine.purchaseItem('headphones', 800)}
+                                onBuy={() => gameEngine.purchaseItem('headphones', 800, 'Taobao: Noise-Canceling Headphones')}
                             />
+                            <ItemCard
+                                id="beddingSet" title="Dorm Bedding Set" emoji="🛏️" cost={280}
+                                desc="Turns the first dorm week from bare mattress panic into actual recovery. +10 Energy once."
+                                isOwned={state.items?.beddingSet}
+                                wealth={stats.wealth}
+                                onBuy={() => gameEngine.purchaseItem('beddingSet', 280, 'Taobao: Dorm Bedding Set', { stats: { energy: 10 } })}
+                            />
+                            <ItemCard
+                                id="deskLamp" title="Desk Lamp Kit" emoji="💡" cost={180}
+                                desc="A small study setup upgrade. +3 Academics and +3 Energy once."
+                                isOwned={state.items?.deskLamp}
+                                wealth={stats.wealth}
+                                onBuy={() => gameEngine.purchaseItem('deskLamp', 180, 'Taobao: Desk Lamp Kit', { stats: { academics: 3, energy: 3 } })}
+                            />
+                            <ItemCard
+                                id="phraseCards" title="Mandarin Phrase Cards" emoji="🗂️" cost={120}
+                                desc="Tiny scripts for canteen, delivery, and office counters. +4 Chinese and +2 Culture once."
+                                isOwned={state.items?.phraseCards}
+                                wealth={stats.wealth}
+                                onBuy={() => gameEngine.purchaseItem('phraseCards', 120, 'Taobao: Mandarin Phrase Cards', { stats: { chinese: 4, culture: 2 } })}
+                            />
+                            <ItemCard
+                                id="cityDataPack" title="City Data Pack" emoji="📶" cost={88}
+                                desc="Maps, transit, payments, and translation backups. +5 Digital Proficiency once."
+                                isOwned={state.items?.cityDataPack}
+                                wealth={stats.wealth}
+                                onBuy={() => gameEngine.purchaseItem('cityDataPack', 88, 'Taobao: City Data Pack', { stats: { digitalProficiency: 5 } })}
+                            />
+                        </div>
+
+                        <div className="mt-5 rounded-2xl border border-orange-400/30 bg-slate-950/70 p-4">
+                            <h3 className="text-sm font-black uppercase tracking-[0.18em] text-orange-300">Service Orders</h3>
+                            <p className="mt-1 text-xs text-slate-400">Small weekly orders turn Taobao into a lived-in tool: courier calls, wrong addresses, and meal planning.</p>
+                            <div className="mt-3 grid grid-cols-1 gap-3">
+                                <ServiceOrderCard
+                                    title="Same-Day Dorm Fix"
+                                    cost={65}
+                                    desc="Batteries, hooks, detergent, and one small thing you forgot you needed. +4 Energy, +1 Digital."
+                                    disabled={phase !== "In-China" || flags.used_taobao_service_this_week || stats.wealth < 65}
+                                    onSelect={() => handleTaobaoService('dormFix')}
+                                />
+                                <ServiceOrderCard
+                                    title="Wrong-Address Recovery"
+                                    cost={35}
+                                    desc="Practice fixing a courier issue without panicking. +3 Digital, +1 Culture, -1 Energy."
+                                    disabled={phase !== "In-China" || flags.used_taobao_service_this_week || stats.wealth < 35}
+                                    onSelect={() => handleTaobaoService('wrongAddress')}
+                                />
+                                <ServiceOrderCard
+                                    title="Meal Prep Box"
+                                    cost={120}
+                                    desc="A not-glamorous order that saves a future evening. +6 Energy, +1 Digital."
+                                    disabled={phase !== "In-China" || flags.used_taobao_service_this_week || stats.wealth < 120}
+                                    onSelect={() => handleTaobaoService('mealPrep')}
+                                />
+                            </div>
+                            {utilityMessage && (
+                                <div className="mt-3 rounded-xl border border-orange-400/20 bg-orange-500/10 p-3 text-xs text-orange-100">{utilityMessage}</div>
+                            )}
                         </div>
                     </div>
                 )}
-                
+
                 {activeTab === 'Arcade' && (
                     <div className="max-w-3xl mx-auto">
                         <h2 className="text-xl font-bold text-purple-400 mb-4 text-center">SimPad Arcade</h2>
+                        <div className="mb-4 rounded-xl border border-purple-400/25 bg-slate-950/70 p-4 text-sm text-purple-100">
+                            Arcade is a replay archive for systems you have already encountered in the story. If a game is locked, it means that life lesson has not happened to you yet.
+                        </div>
                         <div className="grid grid-cols-2 gap-4">
                             <ArcadeGameButton id="visa" title="Visa Bureaucracy" emoji="📄" flags={flags} onReplay={onReplayGame} />
                             <ArcadeGameButton id="subway" title="Subway Squeeze" emoji="🚇" flags={flags} onReplay={onReplayGame} />
@@ -344,6 +798,47 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
                     </div>
                 )}
 
+                {activeTab === 'Gallery' && (
+                    <div className="max-w-3xl mx-auto space-y-4">
+                        <div className="rounded-2xl bg-fuchsia-600 p-5 text-white shadow-xl">
+                            <div className="flex items-start justify-between gap-4">
+                                <div>
+                                    <h2 className="text-xl font-black tracking-tight">Memory Archive</h2>
+                                    <p className="mt-1 text-xs leading-relaxed text-fuchsia-100">Replay the CG moments your choices have unlocked. Locked cards show what kind of memory still exists somewhere in the year.</p>
+                                </div>
+                                <div className="rounded-2xl bg-white/15 px-3 py-2 text-center font-mono">
+                                    <div className="text-[10px] uppercase tracking-widest text-fuchsia-100">Unlocked</div>
+                                    <div className="text-2xl font-black">{unlockedMemoryCount}/{memoryEntries.length}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                            {memoryEntries.map((memory) => {
+                                const unlocked = isMemoryUnlocked(memory, flags);
+                                return (
+                                    <button
+                                        key={memory.id}
+                                        onClick={() => unlocked && setSelectedMemory(memory)}
+                                        disabled={!unlocked}
+                                        className={`group overflow-hidden rounded-2xl border text-left shadow-xl transition-all ${unlocked ? 'border-fuchsia-300/40 bg-slate-900 hover:-translate-y-1 hover:border-fuchsia-200' : 'border-slate-700 bg-slate-900/60 opacity-60 grayscale'}`}
+                                    >
+                                        <div className="relative aspect-square overflow-hidden bg-slate-950">
+                                            <img src={memory.image} alt={memory.title} className={`h-full w-full object-cover transition-transform duration-500 ${unlocked ? 'group-hover:scale-105' : 'blur-sm'}`} />
+                                            {!unlocked && <div className="absolute inset-0 flex items-center justify-center bg-black/45 text-3xl">🔒</div>}
+                                            <div className="absolute left-2 top-2 rounded-full bg-black/60 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-fuchsia-100">{memory.route}</div>
+                                        </div>
+                                        <div className="p-3">
+                                            <div className="font-bold text-slate-100">{unlocked ? memory.title : "Locked Memory"}</div>
+                                            <p className="mt-1 text-xs leading-snug text-slate-400">{unlocked ? memory.desc : memory.hint}</p>
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+
                 {activeTab === 'Souvenirs' && (
                     <div className="max-w-xl mx-auto">
                         <div className="bg-pink-600 rounded-2xl p-5 text-white shadow-xl mb-4 flex justify-between items-center">
@@ -357,7 +852,7 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
                         <div className="bg-slate-800/80 rounded-2xl border border-slate-700 p-8 flex flex-wrap gap-4 justify-center items-start min-h-[300px] relative overflow-hidden">
                             {/* Refrigerator background styling */}
                             <div className="absolute inset-0 bg-slate-200 opacity-10 pointer-events-none border-x-8 border-t-8 border-slate-300"></div>
-                            
+
                             {!state.inventory || state.inventory.length === 0 ? (
                                 <div className="text-slate-400 italic mt-20 z-10 text-center w-full font-medium">Your fridge is empty.<br/><span className="text-sm opacity-70">Travel and explore local entertainment to collect magnets!</span></div>
                             ) : (
@@ -378,6 +873,27 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
                     </div>
                 )}
             </div>
+
+            {selectedMemory && (
+                <div className="absolute inset-0 z-30 flex flex-col bg-slate-950/95 animate-in fade-in duration-200">
+                    <div className="flex items-center justify-between border-b border-slate-800 px-5 py-3">
+                        <div>
+                            <div className="text-[10px] font-bold uppercase tracking-[0.24em] text-fuchsia-300">{selectedMemory.route}</div>
+                            <h3 className="text-lg font-black text-white">{selectedMemory.title}</h3>
+                        </div>
+                        <button
+                            onClick={() => setSelectedMemory(null)}
+                            className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-sm font-bold text-slate-200 hover:bg-slate-800"
+                        >
+                            Close
+                        </button>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-5">
+                        <img src={selectedMemory.image} alt={selectedMemory.title} className="mx-auto max-h-[48vh] w-full max-w-xl rounded-2xl object-contain shadow-2xl" />
+                        <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-slate-300">{selectedMemory.desc}</p>
+                    </div>
+                </div>
+            )}
 
             {/* Home Button area */}
             <div className="w-full h-8 bg-slate-950 flex justify-center items-start pt-2 shrink-0">
@@ -424,15 +940,472 @@ function DecisionFlag({ label, value }) {
     }
     return (
         <div className="flex justify-between items-center text-xs bg-slate-900/50 p-1.5 px-2 rounded-lg border border-slate-700/50">
-            <span className="text-slate-400">{label}:</span>
-            <span className="text-sky-300 font-medium">{value}</span>
+            <span className="text-slate-400 shrink-0 mr-3">{label}:</span>
+            <span className="text-sky-300 font-medium text-right break-words">{value}</span>
         </div>
     );
 }
 
+function getCalendarItems(state) {
+    const flags = state.flags || {};
+    const items = [];
+
+    const addItem = (id, week, title, desc) => {
+        const weeksAway = week - state.turn;
+        const tone = weeksAway <= 0 ? "urgent" : weeksAway <= 2 ? "soon" : "future";
+        const weekLabel = weeksAway <= 0 ? `Week ${week} • due now` : `Week ${week} • in ${weeksAway} week${weeksAway === 1 ? "" : "s"}`;
+        items.push({ id, week, title, desc, tone, weekLabel });
+    };
+
+    if (state.phase === "Application") {
+        if (!flags.completed_application) {
+            addItem("application_deadline", 8, "Minghai Application Deadline", "Statement, school research, documents, interview prep, and final submission all converge here.");
+        }
+        if (!flags.decision_e1_plan) {
+            addItem("statement_draft", 5, "Statement Draft Lock", "A credible study plan should explain why China, why Minghai, and why this major now.");
+        }
+        if (!flags.finance_scholarship && !flags.finance_rich && !flags.finance_working) {
+            addItem("funding_plan", 6, "Funding Plan Check", "Your first serious economic choice shapes pressure for the whole year.");
+        }
+    }
+
+    if (state.phase === "Pre-Departure") {
+        if (!flags.got_visa) {
+            addItem("x1_visa", 12, "X1 Visa Appointment", "Passport, Admission Letter, JW202, copies, photos, and one careful queue.");
+        }
+        if (!flags.decision_e2_wechat) {
+            addItem("phone_payment", 13, "Digital Setup", "WeChat, Alipay, maps, translation backups, and ride-hailing preparation make later arrival choices possible.");
+        }
+        if (!flags.departed_for_shanghai) {
+            addItem("flight_week", 16, "Boarding Week", "Shanghai stops being a plan and becomes a place.");
+        }
+    }
+
+    if (state.phase === "In-China") {
+        if (!flags.decision_e3_registration) {
+            addItem("registration", 18, "Registration Window", "Student card, account setup, campus systems, and residence-permit rhythm.");
+        }
+        if (state.turn < 24) {
+            addItem("midterm", 24, "Midterm Checkpoint", "Your habits start showing receipts: classes, energy, relationships, and money all speak at once.");
+        }
+        if (state.turn < 28) {
+            addItem("future_direction", 28, "Future Direction", "Research, career, local integration, student support, or city opportunity becomes more than a vibe.");
+        }
+        if (state.turn < 32) {
+            addItem("year_end_review", 32, "Year-End Review", "Routes, relationships, and pressure turn into an ending.");
+        }
+    }
+
+    if (items.length === 0) {
+        items.push({
+            id: "open_week",
+            week: state.turn,
+            title: "Open Week",
+            desc: "No critical deadline is screaming right now. This is a good week to invest in a route, repair a relationship, or recover Energy.",
+            tone: "ready",
+            weekLabel: `Week ${state.turn} • flexible`
+        });
+    }
+
+    return items.sort((a, b) => a.week - b.week).slice(0, 5);
+}
+
+function getMemoryEntries(flags) {
+    return [
+        {
+            id: "admission",
+            title: "Admission Email",
+            route: "Application",
+            image: "images/simulator/cg/cg_admission_email.jpg",
+            desc: "The China plan becomes real on a glowing screen.",
+            hint: "Submit and accept the Minghai offer.",
+            unlocked: flags.accepted_offer
+        },
+        {
+            id: "documents",
+            title: "Document Stack",
+            route: "Pre-Departure",
+            image: "images/simulator/cg/cg_document_stack_jw202.jpg",
+            desc: "The paperwork pile that turns a dream into an appointment.",
+            hint: "Decode the admission package or visa documents.",
+            unlocked: flags.jw202_understood || flags.got_visa
+        },
+        {
+            id: "family_farewell",
+            title: "Family Farewell",
+            route: "Pre-Departure",
+            image: "images/simulator/cg/cg_family_farewell_keepsake.jpg",
+            desc: "A small keepsake makes the flight feel less like leaving and more like carrying home forward.",
+            hint: "Reach the last night at home before departure.",
+            unlocked: flags.decision_e2_farewell
+        },
+        {
+            id: "language",
+            title: "Language Breakthrough",
+            route: "Campus Life",
+            image: "images/simulator/cg/cg_language_breakthrough.jpg",
+            desc: "One ordinary sentence lands correctly, and the campus feels a little less sealed.",
+            hint: "Keep investing in Chinese until a daily-life breakthrough appears.",
+            unlocked: flags.language_breakthrough || flags.decision_e3_first_class || flags.chinese_confidence
+        },
+        {
+            id: "language_partner",
+            title: "Language Partner Cafe",
+            route: "Campus Life",
+            image: "images/simulator/cg/cg_language_partner_cafe.jpg",
+            desc: "Useful phrases become less embarrassing when someone patient sits across the table.",
+            hint: "Practice useful daily-life Chinese with a language partner.",
+            unlocked: flags.language_partner_cafe
+        },
+        {
+            id: "professor",
+            title: "Professor Lin Office Hours",
+            route: "Academic",
+            image: "images/simulator/cg/cg_professor_lin_office_hours.jpg",
+            desc: "A recommendation is not a favor. It is his name attached to your habits.",
+            hint: "Earn Professor Lin's recommendation path.",
+            unlocked: flags.lin_recommendation_ready
+        },
+        {
+            id: "mei",
+            title: "Dr. Mei Project Meeting",
+            route: "Academic",
+            image: "images/simulator/cg/cg_dr_mei_project_meeting.jpg",
+            desc: "The research question becomes too real to treat as a line on a resume.",
+            hint: "Commit to Dr. Mei's research project.",
+            unlocked: flags.dr_mei_project_commitment
+        },
+        {
+            id: "research_poster",
+            title: "Research Poster",
+            route: "Academic",
+            image: "images/simulator/cg/cg_research_poster.jpg",
+            desc: "Charts, field notes, and one careful answer after another turn into public confidence.",
+            hint: "Reach an academic or research ending.",
+            unlocked: flags.ending_scholar || flags.ending_researcher || flags.dr_mei_project_commitment
+        },
+        {
+            id: "sophie",
+            title: "Sophie Support Circle",
+            route: "International",
+            image: "images/simulator/cg/cg_sophie_support_circle.jpg",
+            desc: "A support dinner becomes infrastructure for the next students.",
+            hint: "Build Sophie's support circle.",
+            unlocked: flags.sophie_support_circle || flags.sophie_orientation_committee
+        },
+        {
+            id: "orientation",
+            title: "Orientation Guide",
+            route: "International",
+            image: "images/simulator/cg/cg_orientation_guide.jpg",
+            desc: "Your arrival notes become someone else's soft landing.",
+            hint: "Turn international-student care into a reusable guide.",
+            unlocked: flags.sophie_orientation_committee || flags.sophie_guide_published
+        },
+        {
+            id: "xiao",
+            title: "Xiao Chen Demo Day",
+            route: "Shanghai",
+            image: "images/simulator/cg/cg_xiao_chen_demo_day.jpg",
+            desc: "The prototype meets real feedback, then real money starts to feel possible.",
+            hint: "Reach Xiao Chen's demo day.",
+            unlocked: flags.xiao_chen_demo_day
+        },
+        {
+            id: "angel_demo",
+            title: "Angel Demo",
+            route: "Shanghai",
+            image: "images/simulator/cg/cg_angel_demo.jpg",
+            desc: "A dorm-room problem travels through group chats until investors start asking practical questions.",
+            hint: "Turn the student prototype into an investment-worthy demo.",
+            unlocked: flags.ending_entrepreneur || flags.xiao_chen_demo_day
+        },
+        {
+            id: "zhang",
+            title: "Manager Zhang Badge",
+            route: "Career",
+            image: "images/simulator/cg/cg_manager_zhang_office_badge.jpg",
+            desc: "The office badge makes legal preparation feel suddenly physical.",
+            hint: "Prepare Manager Zhang's referral path.",
+            unlocked: flags.manager_zhang_referral_ready || flags.legal_internship_ready
+        },
+        {
+            id: "office_badge",
+            title: "Shanghai Office Badge",
+            route: "Career",
+            image: "images/simulator/cg/cg_office_badge.jpg",
+            desc: "The approved internship stops being a phrase and becomes a card against a glass gate.",
+            hint: "Enter the legal internship route.",
+            unlocked: flags.legal_internship_ready || flags.ending_diplomat || flags.ending_return_offer
+        },
+        {
+            id: "return_offer",
+            title: "Return Offer",
+            route: "Career",
+            image: "images/simulator/cg/cg_return_offer.jpg",
+            desc: "The internship becomes a future with a start date.",
+            hint: "Earn the full-time return-offer ending.",
+            unlocked: flags.ending_diplomat || flags.ending_return_offer
+        },
+        {
+            id: "wang",
+            title: "Uncle Wang's Regular Table",
+            route: "Local",
+            image: "images/simulator/cg/cg_uncle_wang_regular_table.jpg",
+            desc: "A plastic stool, a saved seat, and the quiet dignity of being expected.",
+            hint: "Become a regular at Uncle Wang's table.",
+            unlocked: flags.uncle_wang_regular
+        },
+        {
+            id: "canteen_auntie",
+            title: "Canteen Auntie",
+            route: "Local",
+            image: "images/simulator/cg/cg_canteen_auntie_kind_portion.jpg",
+            desc: "A rushed lunch line becomes the first place your practical Chinese holds.",
+            hint: "Keep the canteen line moving in Chinese.",
+            unlocked: flags.canteen_auntie_kindness
+        },
+        {
+            id: "dorm_auntie",
+            title: "Dorm Auntie Parcel Help",
+            route: "Local",
+            image: "images/simulator/cg/cg_dorm_auntie_parcel_help.jpg",
+            desc: "The parcel shelf teaches app codes, dorm rules, and the value of greeting people first.",
+            hint: "Turn a package pickup into daily-life language practice.",
+            unlocked: flags.dorm_auntie_parcel_help
+        },
+        {
+            id: "study_group",
+            title: "Local Study Group",
+            route: "Local",
+            image: "images/simulator/cg/cg_local_study_group_night.jpg",
+            desc: "Homework, snacks, and campus slang make belonging feel practical.",
+            hint: "Stay through the awkward parts with a local study group.",
+            unlocked: flags.local_study_group_night
+        },
+        {
+            id: "local_regular",
+            title: "Local Regular",
+            route: "Local",
+            image: "images/simulator/cg/cg_local_regular.jpg",
+            desc: "Belonging arrives without ceremony: someone remembers your order.",
+            hint: "Keep showing up in the neighborhood route.",
+            unlocked: flags.ending_local_insider || flags.uncle_wang_regular
+        },
+        {
+            id: "neighbor",
+            title: "Neighbor Li Festival Prep",
+            route: "Local",
+            image: "images/simulator/cg/cg_neighbor_li_festival_prep.jpg",
+            desc: "Belonging arrives as tape, lanterns, and someone trusting you with boxes.",
+            hint: "Help Neighbor Li with festival prep.",
+            unlocked: flags.neighbor_li_festival_invite
+        },
+        {
+            id: "money",
+            title: "Money Crisis",
+            route: "Risk",
+            image: "images/simulator/cg/cg_money_crisis.jpg",
+            desc: "The budget stops being abstract when every small cost becomes a locked gate.",
+            hint: "Reach the financial emergency route.",
+            unlocked: flags.emergency_funding_used || flags.money_crisis_seen
+        },
+        {
+            id: "quiet_return",
+            title: "Quiet Return",
+            route: "Risk",
+            image: "images/simulator/cg/cg_quiet_return.jpg",
+            desc: "Not every ending explodes. Some simply go quiet before you are ready.",
+            hint: "Reach a low-resource ending.",
+            unlocked: flags.ending_out_of_money || flags.ending_quiet_return
+        }
+    ];
+}
+
+function isMemoryUnlocked(memory) {
+    return Boolean(memory.unlocked);
+}
+
+function getWeChatMeetup(name, flags, phase, turn) {
+    if (phase !== "In-China" || turn < 21) return null;
+
+    const meetups = {
+        "Professor Lin": flags.lin_academic_method && !flags.lin_recommendation_ready && {
+            label: "Office hours",
+            nodeId: "event_academic_lin_recommendation"
+        },
+        "Dr. Mei": flags.dr_mei_research_question && !flags.dr_mei_project_commitment && {
+            label: "Project meet",
+            nodeId: "event_academic_dr_mei_project_commitment"
+        },
+        "Sophie": flags.sophie_support_circle && !flags.sophie_orientation_committee && {
+            label: "Plan guide",
+            nodeId: "event_intl_sophie_orientation_committee"
+        },
+        "Neighbor Li": flags.neighbor_li_local_trust && !flags.neighbor_li_festival_invite && {
+            label: "Festival prep",
+            nodeId: "event_local_neighbor_li_festival",
+            cost: 20
+        },
+        "Uncle Wang": flags.uncle_wang_neighborhood_story && !flags.uncle_wang_regular && {
+            label: "Regular table",
+            nodeId: "event_local_uncle_wang_regular",
+            cost: 35
+        },
+        "Manager Zhang": flags.manager_zhang_career_trust && !flags.manager_zhang_referral_ready && {
+            label: "Referral prep",
+            nodeId: "event_career_manager_zhang_referral"
+        },
+        "Xiao Chen": flags.xiao_chen_city_prototype && !flags.xiao_chen_demo_day && {
+            label: "Demo day",
+            nodeId: "event_city_xiao_chen_demo_day"
+        }
+    };
+
+    return meetups[name] || null;
+}
+
+function getContactMeta(name) {
+    return {
+        "Professor Lin": { emoji: "👨‍🏫", desc: "Academic Mentor", route: "Academic" },
+        "Dr. Mei": { emoji: "👩‍🏫", desc: "Research Advisor", route: "Academic" },
+        "Sophie": { emoji: "👱‍♀️", desc: "International Student Mirror", route: "International" },
+        "Neighbor Li": { emoji: "🧑‍🎓", desc: "Dorm Neighbor", route: "Local" },
+        "Uncle Wang": { emoji: "👨🏽‍🍳", desc: "Neighborhood Regular", route: "Local" },
+        "Manager Zhang": { emoji: "👔", desc: "Corporate Recruiter", route: "Career" },
+        "Xiao Chen": { emoji: "🧑‍💻", desc: "Campus Builder", route: "Shanghai" },
+        "Family": { emoji: "🏠", desc: "Home Country Support", route: "Origin" }
+    }[name] || { emoji: "👤", desc: "Acquaintance", route: "General" };
+}
+
+function getStageOrder(label) {
+    return {
+        Contact: 1,
+        Trust: 2,
+        Tension: 3,
+        Commitment: 4
+    }[label] || 0;
+}
+
+function getRelationshipStage(name, data, flags) {
+    const friendship = data.friendship || 0;
+    const commitmentFlags = {
+        "Professor Lin": flags.lin_recommendation_ready,
+        "Dr. Mei": flags.dr_mei_project_commitment,
+        "Sophie": flags.sophie_orientation_committee,
+        "Neighbor Li": flags.neighbor_li_festival_invite,
+        "Uncle Wang": flags.uncle_wang_regular,
+        "Manager Zhang": flags.manager_zhang_referral_ready,
+        "Xiao Chen": flags.xiao_chen_demo_day
+    };
+    const tensionFlags = {
+        "Professor Lin": flags.lin_midterm_tension_resolved,
+        "Dr. Mei": flags.dr_mei_midterm_tension_resolved,
+        "Sophie": flags.sophie_midterm_tension_resolved,
+        "Neighbor Li": flags.neighbor_li_midterm_tension_resolved,
+        "Uncle Wang": flags.uncle_wang_midterm_tension_resolved,
+        "Manager Zhang": flags.manager_zhang_midterm_tension_resolved,
+        "Xiao Chen": flags.xiao_chen_midterm_tension_resolved
+    };
+    const trustFlags = {
+        "Professor Lin": flags.lin_academic_method,
+        "Dr. Mei": flags.dr_mei_project_trust,
+        "Sophie": flags.sophie_support_circle,
+        "Neighbor Li": flags.neighbor_li_local_trust,
+        "Uncle Wang": flags.uncle_wang_neighborhood_story,
+        "Manager Zhang": flags.manager_zhang_career_trust,
+        "Xiao Chen": flags.xiao_chen_city_prototype
+    };
+
+    if (commitmentFlags[name]) {
+        return { label: "Commitment", order: 4, className: "bg-amber-50 border-amber-300 text-amber-700", barClass: "bg-amber-400" };
+    }
+    if (tensionFlags[name]) {
+        return { label: "Tension Resolved", order: 3, className: "bg-orange-50 border-orange-300 text-orange-700", barClass: "bg-orange-400" };
+    }
+    if (trustFlags[name] || friendship >= 12) {
+        return { label: "Trust", order: 2, className: "bg-sky-50 border-sky-300 text-sky-700", barClass: "bg-sky-400" };
+    }
+    if (friendship > 0) {
+        return { label: "Contact", order: 1, className: "bg-emerald-50 border-emerald-300 text-emerald-700", barClass: "bg-emerald-400" };
+    }
+    return { label: "Unknown", order: 0, className: "bg-gray-50 border-gray-300 text-gray-500", barClass: "bg-gray-300" };
+}
+
+function getRecentInteraction(name, flags) {
+    const notes = {
+        "Professor Lin": [
+            [flags.lin_recommendation_ready, "He is willing to attach his name to your habits."],
+            [flags.lin_feedback_repaired, "You turned blunt feedback into a better working method."],
+            [flags.lin_feedback_avoided, "You recovered privately after his draft comments."],
+            [flags.academic_empty_lecture, "You stayed for the almost-empty lecture and asked the real question."],
+            [flags.lin_academic_method, "He helped you rebuild your academic method."],
+            [flags.met_professor_lin_on_campus, "Your first Minghai class turned him from an application name into a real professor."]
+        ],
+        "Dr. Mei": [
+            [flags.dr_mei_project_commitment, "You joined the harder research question."],
+            [flags.dr_mei_ethics_reframed, "You reframed the project around people, not just data."],
+            [flags.dr_mei_efficiency_choice, "You kept the research scope efficient and narrow."],
+            [flags.dr_mei_project_trust, "She trusts you with a real research contradiction."],
+            [flags.dr_mei_followup_ready, "Her reading list turned a nervous question into a possible research path."],
+            [flags.met_dr_mei, "You first met her after a research talk, when one specific question earned a real reply."]
+        ],
+        "Sophie": [
+            [flags.sophie_orientation_committee, "Your support circle is becoming orientation infrastructure."],
+            [flags.sophie_bridge_plan, "You planned a bridge beyond the international bubble."],
+            [flags.sophie_safe_bubble_choice, "You protected the group as a safe place for now."],
+            [flags.intl_common_room_meal, "You helped make the common-room meal feel like a temporary home."],
+            [flags.sophie_support_circle, "You designed support before people fall apart."],
+            [flags.wechat_sophie_added, "You first added her at orientation, when the group chats stopped being abstract."]
+        ],
+        "Neighbor Li": [
+            [flags.neighbor_li_festival_invite, "You were trusted with neighborhood festival prep."],
+            [flags.neighbor_li_boundary_repaired, "You repaired a dorm boundary misunderstanding."],
+            [flags.neighbor_li_boundary_avoided, "You chose politeness over direct repair."],
+            [flags.local_rain_gate, "You helped keep the rainy dorm gate moving."],
+            [flags.neighbor_li_local_trust, "You handled a dorm misunderstanding with care."],
+            [flags.wechat_neighbor_li_added, "Your dorm floor became less mysterious after Li explained the unwritten rules."]
+        ],
+        "Uncle Wang": [
+            [flags.uncle_wang_regular, "His table has become part of your weekly rhythm."],
+            [flags.uncle_wang_honest_answer, "You answered why you came to China honestly."],
+            [flags.uncle_wang_polite_answer, "You gave the safe answer and kept some distance."],
+            [flags.uncle_wang_neighborhood_story, "He gave the neighborhood more context than any guidebook."],
+            [flags.met_uncle_wang, "You first found his skewer stall by following smoke, laughter, and hungry Minghai students."]
+        ],
+        "Manager Zhang": [
+            [flags.manager_zhang_referral_ready, "A real referral path is open, with boundaries attached."],
+            [flags.career_shortcut_repaired, "You repaired the shortcut impression before it became your reputation."],
+            [flags.career_mock_interview, "A brutal mock interview made your story more specific."],
+            [flags.manager_zhang_boundaries_accepted, "You accepted that relationships and boundaries both matter."],
+            [flags.career_shortcut_temptation, "You felt the pull of faster introductions and shortcuts."],
+            [flags.manager_zhang_career_trust, "He pushed you to look useful, not decorative."],
+            [flags.manager_zhang_followup_ready, "A careful follow-up turned his panel into an actual checklist."],
+            [flags.met_manager_zhang, "You first met him after a recruiting panel, resume in hand and timing suddenly important."]
+        ],
+        "Xiao Chen": [
+            [flags.xiao_chen_demo_day, "You tested the project in front of real feedback."],
+            [flags.city_reliability_repaired, "You repaired trust in the prototype before chasing growth."],
+            [flags.city_reliability_debt, "The fast launch left reliability debt behind."],
+            [flags.city_qr_complaint_night, "You read the complaint screenshots instead of defending the idea."],
+            [flags.xiao_chen_responsible_pace, "You slowed down until the service was reliable."],
+            [flags.city_speed_over_care, "You chose Shanghai speed and accepted the mess."],
+            [flags.xiao_chen_city_prototype, "You learned how to argue about the prototype honestly."],
+            [flags.wechat_xiao_chen_added, "You first saved his contact after he treated campus like a map of small systems."]
+        ],
+        "Family": [
+            [flags.decision_e2_farewell, "Home is no longer just a place. It is part of the cost of leaving."],
+            [flags.accepted_offer, "They watched the China plan become real."]
+        ]
+    }[name] || [];
+
+    const found = notes.find(([condition]) => condition);
+    return found ? found[1] : "No major story beat yet. Keep showing up.";
+}
+
 function ArcadeGameButton({ id, title, emoji, flags, onReplay }) {
     const isUnlocked = flags[`unlocked_minigame_${id}`];
-    
+
     if (!isUnlocked) {
         return (
             <div className="bg-slate-800/30 border border-slate-700/50 p-3 rounded-xl flex items-center justify-between opacity-50 grayscale">
@@ -444,9 +1417,9 @@ function ArcadeGameButton({ id, title, emoji, flags, onReplay }) {
             </div>
         );
     }
-    
+
     return (
-        <button 
+        <button
             onClick={() => onReplay(id)}
             className="bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-purple-500 p-3 rounded-xl flex items-center justify-between transition-all hover:scale-105 group text-left"
         >
@@ -459,7 +1432,188 @@ function ArcadeGameButton({ id, title, emoji, flags, onReplay }) {
     );
 }
 
-function JobCard({ id, title, emoji, income, sanityCost, desc, onSelect, disabled }) {
+function RideCard({ title, cost, energyGain, desc, disabled, onSelect }) {
+    return (
+        <div className="rounded-xl border border-yellow-500/30 bg-slate-900/70 p-4 shadow-xl transition-all hover:border-yellow-400/60">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-3">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-yellow-400/30 bg-yellow-400/10 text-2xl">🚕</div>
+                    <div>
+                        <h3 className="font-bold text-yellow-100">{title}</h3>
+                        <p className="mt-1 text-xs leading-relaxed text-slate-400">{desc}</p>
+                        <div className="mt-2 flex gap-2">
+                            <span className="rounded bg-rose-900/40 px-1.5 py-0.5 font-mono text-[10px] text-rose-300">-¥{cost}</span>
+                            <span className="rounded bg-teal-900/40 px-1.5 py-0.5 font-mono text-[10px] text-teal-300">+{energyGain} Energy</span>
+                        </div>
+                    </div>
+                </div>
+                <button
+                    onClick={disabled ? null : onSelect}
+                    disabled={disabled}
+                    className={`w-full shrink-0 rounded-lg px-4 py-2 text-sm font-bold transition-all sm:w-auto ${disabled ? 'cursor-not-allowed bg-slate-800 text-slate-500' : 'bg-yellow-400 text-slate-950 hover:-translate-y-0.5 hover:bg-yellow-300'}`}
+                >
+                    {disabled ? 'Unavailable' : 'Call Ride'}
+                </button>
+            </div>
+        </div>
+    );
+}
+
+function DidiDestinationCard({ title, cost, desc, disabled, onSelect }) {
+    return (
+        <div className="flex flex-col gap-3 rounded-xl border border-yellow-400/20 bg-slate-900/80 p-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <div className="font-bold text-yellow-100">{title}</div>
+                <p className="mt-1 text-xs leading-snug text-slate-400">{desc}</p>
+                <div className="mt-2 rounded bg-rose-900/40 px-1.5 py-0.5 font-mono text-[10px] text-rose-300 inline-block">-¥{cost}</div>
+            </div>
+            <button
+                onClick={disabled ? null : onSelect}
+                disabled={disabled}
+                className={`rounded-lg px-4 py-2 text-xs font-bold transition-all ${disabled ? 'cursor-not-allowed bg-slate-800 text-slate-500' : 'bg-yellow-400 text-slate-950 hover:bg-yellow-300'}`}
+            >
+                Start Scene
+            </button>
+        </div>
+    );
+}
+
+function getHousingOptions() {
+    return [
+        {
+            id: "campus_dorm",
+            title: "Minghai Dorm",
+            deposit: 0,
+            weeklyRent: 180,
+            commute: "5 minutes",
+            stats: { energy: 8, culture: -1 },
+            tags: ["Lowest friction", "Dorm rules", "Close to class"],
+            desc: "The safest first address: simple, supervised, close to class, and sometimes too close to everyone else's noise."
+        },
+        {
+            id: "shared_flat",
+            title: "Shared Flat",
+            deposit: 1500,
+            weeklyRent: 420,
+            commute: "25 minutes",
+            stats: { culture: 4, energy: -3 },
+            tags: ["Roommates", "More city", "Moderate rent"],
+            desc: "A shared apartment near campus. More privacy than the dorm, more negotiation than you expected."
+        },
+        {
+            id: "studio",
+            title: "Small Studio",
+            deposit: 3200,
+            weeklyRent: 760,
+            commute: "35 minutes",
+            stats: { energy: 5, culture: 2 },
+            tags: ["Privacy", "High rent", "Longer commute"],
+            desc: "A tiny room with a door that is fully yours. The silence helps, but the rent starts every month with a raised eyebrow."
+        }
+    ];
+}
+
+function MapDestinationCard({ title, meta, desc, disabled, onSelect }) {
+    return (
+        <div className="flex flex-col justify-between rounded-xl border border-sky-400/20 bg-slate-900/80 p-4 shadow-xl">
+            <div>
+                <div className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-sky-300">{meta}</div>
+                <h3 className="mt-1 font-black text-sky-50">{title}</h3>
+                <p className="mt-2 text-xs leading-relaxed text-slate-400">{desc}</p>
+            </div>
+            <button
+                onClick={disabled ? null : onSelect}
+                disabled={disabled}
+                className={`mt-4 rounded-lg px-4 py-2 text-xs font-bold transition-all ${disabled ? 'cursor-not-allowed bg-slate-800 text-slate-500' : 'bg-sky-400 text-slate-950 hover:-translate-y-0.5 hover:bg-sky-300'}`}
+            >
+                {disabled ? 'Locked' : 'Open'}
+            </button>
+        </div>
+    );
+}
+
+function HousingOptionCard({ option, selected, disabled, onSelect }) {
+    return (
+        <div className={`flex min-h-[300px] flex-col rounded-2xl border p-4 shadow-xl transition-all ${selected ? 'border-lime-300 bg-lime-400/15' : 'border-lime-400/20 bg-slate-900/80 hover:border-lime-300/50'}`}>
+            <div className="mb-3 flex items-start justify-between gap-3">
+                <div>
+                    <div className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-lime-300">{option.commute}</div>
+                    <h3 className="mt-1 text-lg font-black text-lime-50">{option.title}</h3>
+                </div>
+                <div className="rounded-xl bg-slate-950/70 px-3 py-2 text-right font-mono">
+                    <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Deposit</div>
+                    <div className="font-black text-lime-100">RMB {option.deposit.toLocaleString()}</div>
+                </div>
+            </div>
+            <p className="text-sm leading-relaxed text-slate-300">{option.desc}</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+                {option.tags.map(tag => (
+                    <span key={tag} className="rounded-full border border-lime-300/20 bg-lime-300/10 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-lime-100">{tag}</span>
+                ))}
+            </div>
+            <div className="mt-auto pt-5">
+                <div className="mb-3 rounded-xl bg-slate-950/55 p-3 text-xs text-slate-300">
+                    Weekly rent estimate: <span className="font-mono font-black text-lime-200">RMB {option.weeklyRent}</span>
+                </div>
+                <button
+                    onClick={disabled || selected ? null : onSelect}
+                    disabled={disabled || selected}
+                    className={`w-full rounded-lg px-4 py-2 text-sm font-bold transition-all ${selected ? 'cursor-not-allowed bg-lime-300 text-slate-950' : disabled ? 'cursor-not-allowed bg-slate-800 text-slate-500' : 'bg-lime-400 text-slate-950 hover:-translate-y-0.5 hover:bg-lime-300'}`}
+                >
+                    {selected ? 'Selected' : disabled ? 'Unavailable' : 'Choose Address'}
+                </button>
+            </div>
+        </div>
+    );
+}
+
+function ServiceOrderCard({ title, cost, desc, disabled, onSelect }) {
+    return (
+        <div className="flex flex-col gap-3 rounded-xl border border-orange-400/20 bg-slate-900/80 p-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <div className="font-bold text-orange-100">{title}</div>
+                <p className="mt-1 text-xs leading-snug text-slate-400">{desc}</p>
+                <div className="mt-2 rounded bg-rose-900/40 px-1.5 py-0.5 font-mono text-[10px] text-rose-300 inline-block">-¥{cost}</div>
+            </div>
+            <button
+                onClick={disabled ? null : onSelect}
+                disabled={disabled}
+                className={`rounded-lg px-4 py-2 text-xs font-bold transition-all ${disabled ? 'cursor-not-allowed bg-slate-800 text-slate-500' : 'bg-orange-500 text-white hover:bg-orange-400'}`}
+            >
+                Order
+            </button>
+        </div>
+    );
+}
+
+function CalendarCard({ item, onPin, pinned }) {
+    const tone = {
+        urgent: "border-rose-400/40 bg-rose-500/10 text-rose-100",
+        soon: "border-amber-400/40 bg-amber-500/10 text-amber-100",
+        ready: "border-emerald-400/40 bg-emerald-500/10 text-emerald-100",
+        future: "border-slate-700 bg-slate-900/80 text-slate-300"
+    }[item.tone] || "border-slate-700 bg-slate-900/80 text-slate-300";
+
+    return (
+        <div className={`rounded-2xl border p-4 shadow-xl ${tone}`}>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <div className="font-mono text-[10px] font-bold uppercase tracking-[0.22em] opacity-70">{item.weekLabel}</div>
+                    <h3 className="mt-1 font-black text-white">{item.title}</h3>
+                    <p className="mt-1 text-xs leading-relaxed opacity-80">{item.desc}</p>
+                </div>
+                <button
+                    onClick={onPin}
+                    className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${pinned ? 'bg-white text-slate-950' : 'bg-slate-950/60 text-white hover:bg-slate-950'}`}
+                >
+                    {pinned ? 'Pinned' : 'Pin Focus'}
+                </button>
+            </div>
+        </div>
+    );
+}
+
+function JobCard({ id, title, emoji, income, energyCost, desc, onSelect, disabled }) {
     return (
         <div className={`border p-4 rounded-xl transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-800/50 border-slate-700/50 hover:border-slate-500`}>
             <div className="flex items-start gap-3 flex-1">
@@ -469,20 +1623,20 @@ function JobCard({ id, title, emoji, income, sanityCost, desc, onSelect, disable
                     <p className="text-xs text-slate-400 mt-0.5">{desc}</p>
                     <div className="flex gap-2 mt-2">
                         <span className="text-[10px] font-mono bg-emerald-900/40 text-emerald-400 px-1.5 py-0.5 rounded">+{income} RMB</span>
-                        <span className="text-[10px] font-mono bg-rose-900/40 text-rose-400 px-1.5 py-0.5 rounded">-{sanityCost} Sanity</span>
+                        <span className="text-[10px] font-mono bg-rose-900/40 text-rose-400 px-1.5 py-0.5 rounded">-{energyCost} Energy</span>
                     </div>
                 </div>
             </div>
-            <button 
+            <button
                 onClick={disabled ? null : onSelect}
                 disabled={disabled}
                 className={`w-full md:w-auto px-4 py-1.5 rounded-lg font-bold text-sm transition-all shrink-0 ${
-                    disabled 
-                        ? 'bg-slate-700 text-slate-500 cursor-not-allowed' 
+                    disabled
+                        ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
                         : 'bg-amber-600 text-white hover:bg-amber-500 hover:-translate-y-0.5'
                 }`}
             >
-                {disabled ? 'Already Worked' : 'Start Gig'}
+                {disabled ? 'Already Used This Week' : 'Start Task'}
             </button>
         </div>
     );
@@ -490,7 +1644,7 @@ function JobCard({ id, title, emoji, income, sanityCost, desc, onSelect, disable
 
 function ItemCard({ id, title, emoji, cost, desc, isOwned, wealth, onBuy }) {
     const canAfford = wealth >= cost;
-    
+
     return (
         <div className={`p-4 rounded-xl border flex flex-col justify-between h-full transition-all ${isOwned ? 'bg-slate-800/80 border-orange-500/50 opacity-80' : 'bg-slate-800/50 border-slate-700/50 hover:border-slate-500'}`}>
             <div>
@@ -501,14 +1655,25 @@ function ItemCard({ id, title, emoji, cost, desc, isOwned, wealth, onBuy }) {
                 <h3 className="font-bold text-slate-200 leading-tight mb-1 text-sm">{title}</h3>
                 <p className="text-xs text-slate-400 mb-3">{desc}</p>
             </div>
-            
-            <button 
+
+            <button
                 onClick={onBuy}
                 disabled={isOwned || (!canAfford && !isOwned)}
                 className={`w-full py-1.5 rounded-lg font-bold text-sm transition-all ${isOwned ? 'bg-slate-700 text-slate-400 cursor-not-allowed' : (!canAfford ? 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed' : 'bg-orange-600 text-white hover:bg-orange-500')}`}
             >
                 {isOwned ? '✓ Owned' : 'Buy Now'}
             </button>
+        </div>
+    );
+}
+
+function ShanghaiPin({ name, top, left, active }) {
+    return (
+        <div className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1" style={{ top, left }}>
+            <div className={`h-3 w-3 rounded-full border-2 ${active ? 'border-white bg-amber-300 shadow-[0_0_18px_rgba(252,211,77,0.8)]' : 'border-sky-100 bg-sky-400'}`}></div>
+            <div className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${active ? 'border-amber-200/60 bg-amber-300 text-slate-950' : 'border-white/10 bg-slate-950/75 text-slate-200'}`}>
+                {name}
+            </div>
         </div>
     );
 }

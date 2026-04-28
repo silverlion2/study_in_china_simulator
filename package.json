@@ -5,7 +5,8 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build:win": "electron-builder --win"
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac"
   },
   "author": "silverlion2",
   "repository": "silverlion2/study_in_china_simulator",
@@ -30,6 +31,9 @@
     "productName": "Sim Panda",
     "win": {
       "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg"
     },
     "directories": {
       "output": "dist"
