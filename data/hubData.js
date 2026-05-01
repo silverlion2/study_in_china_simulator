@@ -5,50 +5,59 @@ export const gameNodes = {
   "hub": {
     speaker: "Weekly Planner",
     bgImage: '/images/simulator/hub_bg.jpg',
-    text: "It is the start of a new week at Minghai. Your year is no longer one big question; it is becoming a pattern. Which part of your life in China do you build this week?",
+    text: "It is the start of a new week at Minghai.\n\nYou have 2 weekday actions and 1 weekend action. Pick an area, then choose a concrete activity inside it. When all actions are spent, the calendar moves forward automatically.",
     choices: [
       {
         text: "📚 Academic Track",
+        detail: "Study blocks, office hours, research talks, and Professor Lin / Dr. Mei relationship events.",
         condition: { flags: { "arrived_in_china": true } },
         next: "submenu_academic_track"
       },
       {
         text: "🧭 Local Integration",
+        detail: "Chinese practice, canteen routines, dorm rules, local classmates, and Neighbor Li.",
         condition: { flags: { "arrived_in_china": true } },
         next: "submenu_local_integration"
       },
       {
         text: "🌏 International Student Circle",
+        detail: "Sophie, group chats, support nights, peer help, and international-student friendships.",
         condition: { flags: { "arrived_in_china": true } },
         next: "submenu_international_circle"
       },
       {
         text: "💼 Career Bridge",
+        detail: "Internship preparation, alumni, professional contacts, and Manager Zhang.",
         condition: { flags: { "arrived_in_china": true } },
         next: "submenu_career_bridge"
       },
       {
         text: "🏙️ Shanghai Opportunity",
+        detail: "City projects, transport, local tech/payment habits, and Xiao Chen's idea pipeline.",
         condition: { flags: { "arrived_in_china": true } },
         next: "submenu_shanghai_opportunity"
       },
       {
         text: "💬 Character Contacts",
+        detail: "Direct hangouts and conversations with people you have already met.",
         condition: { flags: { "arrived_in_china": true } },
         next: "submenu_character_contacts"
       },
       {
         text: "🧾 Life Admin & Recovery",
+        detail: "Residence permit, money pressure, housing friction, health, and emergency recovery.",
         condition: { flags: { "arrived_in_china": true } },
         next: "submenu_life_admin"
       },
       {
         text: "🕹️ City, Travel & Arcade Extras",
+        detail: "Optional city scenes, weekend travel, and minigame extras.",
         condition: { flags: { "arrived_in_china": true } },
         next: "submenu_extras"
       },
       {
          text: "😴 Rest & Recharge [Energy +]",
+         detail: "Spend the week recovering instead of pushing another route.",
          action: "advance_turn",
          next: "hub",
          effects: { stats: { energy: 25 }, flags: { weekly_focus: "Rest and recovery" } }

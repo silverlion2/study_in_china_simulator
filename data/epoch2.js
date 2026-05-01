@@ -234,32 +234,22 @@ export const epoch2Events = {
     speaker: "Minghai Housing Portal",
     bgImage: '/images/simulator/backgrounds/bg_dorm_room.jpg',
     location: "Home Country",
-    text: "The dorm reservation page opens at 08:00 sharp. The page is simple in the way high-stakes things are simple: room type, deposit, campus, confirm. Privacy, money, sleep, and future friendships are all pretending to be a dropdown menu.",
+    text: "The housing portal opens at 08:00 sharp, but this time it is not a normal story choice.\n\nTask: open SimPad, enter the Housing app, compare the options, and submit one address plan there. The story will continue after the housing choice is confirmed.",
     choices: [
       {
-        text: "Reserve a single dorm room. [Wealth -, Energy +]",
-        next: "e2_w12_roommate_intro",
+        text: "Open SimPad > Housing and choose where you will live. [Required phone action]",
+        next: "e2_w12_housing",
         effects: {
-          stats: { wealth: -1000, energy: 12 },
-          flags: { decision_e2_housing: "Single dorm, higher cost", housing_sorted: true, dorm_single: true }
+          flags: { housing_simpad_required: true, housing_portal_seen: true }
         }
       },
       {
-        text: "Choose a cheaper double room and accept the roommate lottery. [Wealth -, Intl network +]",
+        text: "Ask Minghai to auto-assign campus housing for now. [Fallback, Energy -]",
         next: "e2_w12_roommate_intro",
         effects: {
-          stats: { wealth: -600, culture: 3 },
-          guanxi: { intlStudents: 6 },
-          flags: { decision_e2_housing: "Double dorm, roommate lottery", housing_sorted: true, dorm_double: true }
-        }
-      },
-      {
-        text: "Wait for campus allocation and save cash. [Wealth -, Energy -, Admin network +]",
-        next: "e2_w12_roommate_intro",
-        effects: {
-          stats: { wealth: -300, energy: -8 },
+          stats: { energy: -8 },
           guanxi: { admin: 4 },
-          flags: { decision_e2_housing: "Campus allocation pending", housing_sorted: false, dorm_pending: true }
+          flags: { decision_e2_housing: "Campus allocation pending", housing_sorted: false, dorm_pending: true, housing_simpad_required: false }
         }
       }
     ]

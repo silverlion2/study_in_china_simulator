@@ -153,7 +153,7 @@ export default function StoryPanel({ node, state, availableChoices, availableDia
     <div className="flex-1 flex flex-col justify-end p-4 pb-16 z-10 w-full max-w-5xl mx-auto relative pt-24">
 
       {/* Choice Menu */}
-      <div className={`flex flex-col mb-4 gap-2 items-end transition-all duration-700 ${showChoices ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+      <div className={`flex max-h-[58vh] flex-col mb-4 gap-2 items-end overflow-y-auto pr-1 transition-all duration-700 ${showChoices ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
         {pendingDialogueChoices.length > 0 && pendingDialogueChoices.map((choice, i) => (
           <button
             key={`dialogue-${i}`}
@@ -165,6 +165,7 @@ export default function StoryPanel({ node, state, availableChoices, availableDia
             <div className="pl-5">
               <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-300">Reply</div>
               <div className="font-medium text-base">{choice.text}</div>
+              {choice.detail && <div className="mt-1 text-xs leading-snug text-cyan-100/70">{choice.detail}</div>}
             </div>
             {choice.effects && <ChoicePreview effects={choice.effects} />}
           </button>
@@ -177,7 +178,10 @@ export default function StoryPanel({ node, state, availableChoices, availableDia
             className="bg-slate-900/90 border border-slate-700/50 hover:bg-slate-800 hover:border-amber-500 hover:text-amber-400 text-slate-200 px-4 py-3 rounded-xl text-left w-full sm:w-2/3 shadow-xl backdrop-blur-md transition-all group flex flex-col relative"
           >
             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600 font-mono text-[10px] opacity-50 group-hover:opacity-100 group-hover:text-amber-500 transition-all">[{i+1}]</div>
-            <div className="font-medium text-base pl-5">{choice.text}</div>
+            <div className="pl-5">
+              <div className="font-medium text-base">{choice.text}</div>
+              {choice.detail && <div className="mt-1 text-xs leading-snug text-slate-400 group-hover:text-slate-300">{choice.detail}</div>}
+            </div>
             {choice.effects && <ChoicePreview effects={choice.effects} />}
           </button>
         ))}
@@ -235,14 +239,19 @@ export default function StoryPanel({ node, state, availableChoices, availableDia
             showCursor={!showChoices}
           />
           {state?.phase === "In-China" && node.speaker === "Weekly Planner" && (
-            <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
-              <div className="rounded-lg border border-cyan-400/25 bg-cyan-400/10 px-3 py-2 text-cyan-100">
-                <span className="font-bold">Weekday actions</span>
-                <span className="float-right font-mono">{state.weeklyActions?.weekday ?? 0}/2</span>
+            <div className="mt-4 space-y-2 text-xs">
+              <div className="rounded-lg border border-slate-600/50 bg-slate-950/70 px-3 py-2 text-slate-300">
+                Choose a category above first; the next screen shows specific activities and their stat tradeoffs.
               </div>
-              <div className="rounded-lg border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-amber-100">
-                <span className="font-bold">Weekend action</span>
-                <span className="float-right font-mono">{state.weeklyActions?.weekend ?? 0}/1</span>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-lg border border-cyan-400/25 bg-cyan-400/10 px-3 py-2 text-cyan-100">
+                  <span className="font-bold">Weekday actions</span>
+                  <span className="float-right font-mono">{state.weeklyActions?.weekday ?? 0}/2</span>
+                </div>
+                <div className="rounded-lg border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-amber-100">
+                  <span className="font-bold">Weekend action</span>
+                  <span className="float-right font-mono">{state.weeklyActions?.weekend ?? 0}/1</span>
+                </div>
               </div>
             </div>
           )}

@@ -15,23 +15,21 @@ export const epoch3Events = {
         }
       },
       {
-        text: "Open DiDi and use the airport pickup plan you prepared. [Digital +, Energy +]",
+        text: "Use SimPad > DiDi to request the airport pickup you prepared. [Required phone action]",
         condition: { flags: { has_didi: true } },
-        next: "didi_pickup_lesson",
+        next: "airport_didi_simpad_gate",
         effects: {
           location: "Shanghai",
-          stats: { wealth: -120, energy: 8, digitalProficiency: 3 },
-          flags: { decision_e3_transport: "Prepared DiDi from Pudong", first_didi_opened: true }
+          flags: { decision_e3_transport: "DiDi ride pending in SimPad", first_didi_opened: true, airport_didi_required: true, didi_airport_mode: "prepared" }
         }
       },
       {
-        text: "Set up DiDi at the airport under pressure. [Digital +, Wealth -, Energy -]",
+        text: "Open SimPad > DiDi and set up a ride under pressure. [Required phone action]",
         condition: { flags: { has_didi: false } },
-        next: "didi_airport_setup",
+        next: "airport_didi_simpad_gate",
         effects: {
           location: "Shanghai",
-          stats: { wealth: -150, energy: -12, digitalProficiency: 6 },
-          flags: { has_didi: true, decision_e3_transport: "Airport DiDi setup under pressure", first_didi_opened: true, airport_app_setup_stress: true }
+          flags: { has_didi: true, decision_e3_transport: "Airport DiDi setup pending in SimPad", first_didi_opened: true, airport_app_setup_stress: true, airport_didi_required: true, didi_airport_mode: "pressure" }
         }
       },
       {
@@ -41,6 +39,23 @@ export const epoch3Events = {
           location: "Shanghai",
           stats: { wealth: -8, energy: -15, culture: 5 },
           flags: { decision_e3_transport: "Metro Line 2 with luggage" }
+        }
+      }
+    ]
+  },
+
+  "airport_didi_simpad_gate": {
+    speaker: "SimPad Task",
+    bgImage: '/images/simulator/backgrounds/bg_pudong_arrivals.jpg',
+    location: "Shanghai Pudong International Airport",
+    text: "The pickup decision has moved into your phone.\n\nTask: open SimPad, tap DiDi, and select Airport Transfer Practice. After the ride is confirmed, the story will continue to the pickup-zone lesson.",
+    choices: [
+      {
+        text: "I need a backup: abandon DiDi and join the official taxi queue. [Wealth -, Energy -]",
+        next: "official_taxi_queue",
+        effects: {
+          stats: { wealth: -160, energy: -5, chinese: 3 },
+          flags: { decision_e3_transport: "Official taxi queue after DiDi hesitation", airport_didi_required: false, didi_airport_backup_taxi: true }
         }
       }
     ]
@@ -471,38 +486,38 @@ export const epoch3Events = {
   },
 
   "e3_w17_contact_focus": {
-    speaker: "WeChat",
+    speaker: "SimPad Contacts",
     bgImage: '/images/simulator/backgrounds/bg_registration_office.jpg',
     location: "Minghai Administration Building",
-    text: "Three new names sit in your phone with tiny profile photos: Sophie from the international desk, Xiao Chen from the student volunteer table, and Neighbor Li from your dorm floor. They are not deep relationships yet. They are doors.",
+    text: "Before you choose who to message, SimPad pins three contact cards so the names mean something.\n\nSophie: a senior international student who explains which group chats matter and which panic can wait.\n\nXiao Chen: a local student volunteer who knows shortcuts, cheap food, and how campus actually moves.\n\nNeighbor Li: the student on your dorm floor who understands deliveries, notices, and the unwritten hallway rules.",
     choices: [
       {
-        text: "Ask Sophie which group chats actually matter. [Intl network +, Relationship +]",
+        text: "Message Sophie, the international-student senior, about the group chats that actually matter. [Intl network +, Relationship +]",
         next: "e3_w17_done",
         effects: {
           guanxi: { intlStudents: 6 },
           relationships: { Sophie: { friendship: 5 } },
-          flags: { decision_e3_wechat_intro: "Sophie orientation contact", route_intl: true }
+          flags: { decision_e3_wechat_intro: "Sophie orientation contact", contact_cards_reviewed: true, sophie_role_known: true, route_intl: true }
         }
       },
       {
-        text: "Ask Xiao Chen to pin campus shortcuts and food spots. [Local network +, Digital +]",
+        text: "Message Xiao Chen, the local volunteer, to pin campus shortcuts and food spots. [Local network +, Digital +]",
         next: "e3_w17_done",
         effects: {
           stats: { digitalProficiency: 2, culture: 2 },
           guanxi: { localStudents: 6 },
           relationships: { "Xiao Chen": { friendship: 5 } },
-          flags: { decision_e3_wechat_intro: "Xiao Chen campus shortcuts", route_local: true }
+          flags: { decision_e3_wechat_intro: "Xiao Chen campus shortcuts", contact_cards_reviewed: true, xiao_chen_role_known: true, route_local: true }
         }
       },
       {
-        text: "Ask Neighbor Li how delivery calls and dorm notices usually work. [Culture +, Local network +]",
+        text: "Message Neighbor Li, your dorm-floor neighbor, about delivery calls and notices. [Culture +, Local network +]",
         next: "e3_w17_done",
         effects: {
           stats: { culture: 4, chinese: 2 },
           guanxi: { localStudents: 5 },
           relationships: { "Neighbor Li": { friendship: 5 } },
-          flags: { decision_e3_wechat_intro: "Neighbor Li dorm help", route_local: true }
+          flags: { decision_e3_wechat_intro: "Neighbor Li dorm help", contact_cards_reviewed: true, neighbor_li_role_known: true, route_local: true }
         }
       },
       {
@@ -511,7 +526,7 @@ export const epoch3Events = {
         effects: {
           stats: { digitalProficiency: 3 },
           guanxi: { admin: 7 },
-          flags: { decision_e3_wechat_intro: "Official group structure", route_academic: true }
+          flags: { decision_e3_wechat_intro: "Official group structure", contact_cards_reviewed: true, route_academic: true }
         }
       }
     ]
@@ -635,10 +650,10 @@ export const epoch3Events = {
   "e3_w19_social_circle": {
     speaker: "Campus Evening",
     location: "Minghai Dorm District",
-    text: "Your first social circle does not arrive as a dramatic invitation. It arrives through the contacts you already scanned: Sophie asking who wants dinner, Xiao Chen dropping a shortcut map, Neighbor Li replying to a dorm notice before anyone else understands it.",
+    text: "Your first social circle does not arrive as a dramatic invitation. It arrives through the contact cards you saved during orientation: Sophie the international-student senior, Xiao Chen the local volunteer, and Neighbor Li from your dorm floor.\n\nThis choice is not about guessing names. It is about deciding what kind of support you want first.",
     choices: [
       {
-        text: "Join Sophie's international-student dinner. [Intl network +, Energy +]",
+        text: "Join Sophie, the international-student senior, for a low-pressure dinner. [Intl network +, Energy +]",
         next: "e3_w19_done",
         effects: {
           stats: { energy: 8, culture: 3 },
@@ -648,7 +663,7 @@ export const epoch3Events = {
         }
       },
       {
-        text: "Let Xiao Chen show you campus shortcuts. [Local network +, Relationship +]",
+        text: "Let Xiao Chen, the local volunteer, show you campus shortcuts and cheap food. [Local network +, Relationship +]",
         next: "e3_w19_done",
         effects: {
           stats: { chinese: 4, culture: 5 },
@@ -658,7 +673,7 @@ export const epoch3Events = {
         }
       },
       {
-        text: "Ask Neighbor Li how dorm life really works. [Culture +, Local network +]",
+        text: "Ask Neighbor Li, your dorm-floor neighbor, how dorm life really works. [Culture +, Local network +]",
         condition: { flags: { met_neighbor_li: true } },
         next: "e3_w19_done",
         effects: {

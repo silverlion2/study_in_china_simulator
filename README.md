@@ -36,6 +36,8 @@ The current development build expands Sim Panda into a fuller 2.0-style visual-n
 - Added relationship-driven character chains and reply choices for Professor Lin, Dr. Mei, Sophie, Xiao Chen, Neighbor Li, Uncle Wang, and Manager Zhang.
 - Added Life Check resolution for high-pressure moments, with prep-card bonuses, route weighting, success/strain outcomes, and run-memory afterwords.
 - Added SimPad systems for Calendar, Gallery / Memory Archive, DiDi, Taobao service orders, housing follow-up, WeChat meetups, jobs, souvenirs, character arcs, route projects, and player progress.
+- Tightened onboarding clarity: named characters now receive explicit contact-card introductions before relationship choices, Week 12 housing must be confirmed through SimPad Housing, and airport DiDi arrival can require a SimPad ride action instead of resolving only through story text.
+- Clarified the weekly planner UI with action-point instructions, route-category descriptions, and a more concrete objective so players know what to do before midterm week arrives.
 - Expanded the Memory Archive to 36 CG memories, including admission, documents, academic route scenes, local-life scenes, career milestones, Shanghai startup events, risk endings, housing pressure, phone-layer consequences, and new daily-life character CGs.
 - Added a large visual asset library: campus backgrounds, Shanghai / China travel scenes, character portraits, v2 character art, route CGs, and compressed JPG runtime assets.
 - Added audio infrastructure with `AudioManager`, audio manifests, fallback Web Audio BGM/SFX, MP3 background tracks, scene ambience routing, and choice-impact feedback sounds.

@@ -337,6 +337,11 @@ class EngineState {
 
     this.addTransaction(-ride.cost, ride.label);
     const stats = { ...ride.stats };
+    const airportGateActive = Boolean(this.state.flags.airport_didi_required && rideId === "airport");
+    if (airportGateActive && this.state.flags.didi_airport_mode === "pressure") {
+      stats.energy = (stats.energy || 0) - 12;
+      stats.digitalProficiency = (stats.digitalProficiency || 0) + 3;
+    }
     if (!this.state.items.cityDataPack && !this.state.flags.didi_pickup_zone_lesson) {
       stats.energy = Math.max(0, (stats.energy || 0) - 4);
       this.state.flags.didi_pickup_friction = true;
@@ -346,9 +351,20 @@ class EngineState {
     this.state.flags.used_didi_this_week = true;
     this.state.flags.first_didi_used = true;
     this.state.flags[`didi_${rideId}_used`] = true;
+    if (airportGateActive) {
+      this.state.flags.airport_didi_required = false;
+      this.state.flags.airport_didi_confirmed = true;
+      this.state.flags.didi_pickup_zone_lesson = true;
+      this.state.flags.route_shared_to_minghai_chat = true;
+      this.state.flags.decision_e3_transport = this.state.flags.didi_airport_mode === "pressure"
+        ? "Airport DiDi setup in SimPad"
+        : "Prepared DiDi from Pudong via SimPad";
+      this.state.currentNodeId = "didi_pickup_lesson";
+    }
     this.notify();
     const friction = this.state.flags.didi_pickup_friction_ready ? " The pickup point costs extra focus because your city app setup is still thin." : "";
-    return { ok: true, message: `${ride.message}${friction}` };
+    const storyProgress = airportGateActive ? " Story advanced to the pickup-zone lesson." : "";
+    return { ok: true, message: `${ride.message}${friction}${storyProgress}` };
   }
 
   useTaobaoServiceOrder(orderId) {
@@ -3906,32 +3922,22 @@ const epoch2Events = {
     speaker: "Minghai Housing Portal",
     bgImage: './images/simulator/backgrounds/bg_dorm_room.jpg',
     location: "Home Country",
-    text: "The dorm reservation page opens at 08:00 sharp. The page is simple in the way high-stakes things are simple: room type, deposit, campus, confirm. Privacy, money, sleep, and future friendships are all pretending to be a dropdown menu.",
+    text: "The housing portal opens at 08:00 sharp, but this time it is not a normal story choice.\n\nTask: open SimPad, enter the Housing app, compare the options, and submit one address plan there. The story will continue after the housing choice is confirmed.",
     choices: [
       {
-        text: "Reserve a single dorm room. [Wealth -, Energy +]",
-        next: "e2_w12_roommate_intro",
+        text: "Open SimPad > Housing and choose where you will live. [Required phone action]",
+        next: "e2_w12_housing",
         effects: {
-          stats: { wealth: -1000, energy: 12 },
-          flags: { decision_e2_housing: "Single dorm, higher cost", housing_sorted: true, dorm_single: true }
+          flags: { housing_simpad_required: true, housing_portal_seen: true }
         }
       },
       {
-        text: "Choose a cheaper double room and accept the roommate lottery. [Wealth -, Intl network +]",
+        text: "Ask Minghai to auto-assign campus housing for now. [Fallback, Energy -]",
         next: "e2_w12_roommate_intro",
         effects: {
-          stats: { wealth: -600, culture: 3 },
-          guanxi: { intlStudents: 6 },
-          flags: { decision_e2_housing: "Double dorm, roommate lottery", housing_sorted: true, dorm_double: true }
-        }
-      },
-      {
-        text: "Wait for campus allocation and save cash. [Wealth -, Energy -, Admin network +]",
-        next: "e2_w12_roommate_intro",
-        effects: {
-          stats: { wealth: -300, energy: -8 },
+          stats: { energy: -8 },
           guanxi: { admin: 4 },
-          flags: { decision_e2_housing: "Campus allocation pending", housing_sorted: false, dorm_pending: true }
+          flags: { decision_e2_housing: "Campus allocation pending", housing_sorted: false, dorm_pending: true, housing_simpad_required: false }
         }
       }
     ]
@@ -4319,23 +4325,21 @@ const epoch3Events = {
         }
       },
       {
-        text: "Open DiDi and use the airport pickup plan you prepared. [Digital +, Energy +]",
+        text: "Use SimPad > DiDi to request the airport pickup you prepared. [Required phone action]",
         condition: { flags: { has_didi: true } },
-        next: "didi_pickup_lesson",
+        next: "airport_didi_simpad_gate",
         effects: {
           location: "Shanghai",
-          stats: { wealth: -120, energy: 8, digitalProficiency: 3 },
-          flags: { decision_e3_transport: "Prepared DiDi from Pudong", first_didi_opened: true }
+          flags: { decision_e3_transport: "DiDi ride pending in SimPad", first_didi_opened: true, airport_didi_required: true, didi_airport_mode: "prepared" }
         }
       },
       {
-        text: "Set up DiDi at the airport under pressure. [Digital +, Wealth -, Energy -]",
+        text: "Open SimPad > DiDi and set up a ride under pressure. [Required phone action]",
         condition: { flags: { has_didi: false } },
-        next: "didi_airport_setup",
+        next: "airport_didi_simpad_gate",
         effects: {
           location: "Shanghai",
-          stats: { wealth: -150, energy: -12, digitalProficiency: 6 },
-          flags: { has_didi: true, decision_e3_transport: "Airport DiDi setup under pressure", first_didi_opened: true, airport_app_setup_stress: true }
+          flags: { has_didi: true, decision_e3_transport: "Airport DiDi setup pending in SimPad", first_didi_opened: true, airport_app_setup_stress: true, airport_didi_required: true, didi_airport_mode: "pressure" }
         }
       },
       {
@@ -4345,6 +4349,23 @@ const epoch3Events = {
           location: "Shanghai",
           stats: { wealth: -8, energy: -15, culture: 5 },
           flags: { decision_e3_transport: "Metro Line 2 with luggage" }
+        }
+      }
+    ]
+  },
+
+  "airport_didi_simpad_gate": {
+    speaker: "SimPad Task",
+    bgImage: './images/simulator/backgrounds/bg_pudong_arrivals.jpg',
+    location: "Shanghai Pudong International Airport",
+    text: "The pickup decision has moved into your phone.\n\nTask: open SimPad, tap DiDi, and select Airport Transfer Practice. After the ride is confirmed, the story will continue to the pickup-zone lesson.",
+    choices: [
+      {
+        text: "I need a backup: abandon DiDi and join the official taxi queue. [Wealth -, Energy -]",
+        next: "official_taxi_queue",
+        effects: {
+          stats: { wealth: -160, energy: -5, chinese: 3 },
+          flags: { decision_e3_transport: "Official taxi queue after DiDi hesitation", airport_didi_required: false, didi_airport_backup_taxi: true }
         }
       }
     ]
@@ -4775,38 +4796,38 @@ const epoch3Events = {
   },
 
   "e3_w17_contact_focus": {
-    speaker: "WeChat",
+    speaker: "SimPad Contacts",
     bgImage: './images/simulator/backgrounds/bg_registration_office.jpg',
     location: "Minghai Administration Building",
-    text: "Three new names sit in your phone with tiny profile photos: Sophie from the international desk, Xiao Chen from the student volunteer table, and Neighbor Li from your dorm floor. They are not deep relationships yet. They are doors.",
+    text: "Before you choose who to message, SimPad pins three contact cards so the names mean something.\n\nSophie: a senior international student who explains which group chats matter and which panic can wait.\n\nXiao Chen: a local student volunteer who knows shortcuts, cheap food, and how campus actually moves.\n\nNeighbor Li: the student on your dorm floor who understands deliveries, notices, and the unwritten hallway rules.",
     choices: [
       {
-        text: "Ask Sophie which group chats actually matter. [Intl network +, Relationship +]",
+        text: "Message Sophie, the international-student senior, about the group chats that actually matter. [Intl network +, Relationship +]",
         next: "e3_w17_done",
         effects: {
           guanxi: { intlStudents: 6 },
           relationships: { Sophie: { friendship: 5 } },
-          flags: { decision_e3_wechat_intro: "Sophie orientation contact", route_intl: true }
+          flags: { decision_e3_wechat_intro: "Sophie orientation contact", contact_cards_reviewed: true, sophie_role_known: true, route_intl: true }
         }
       },
       {
-        text: "Ask Xiao Chen to pin campus shortcuts and food spots. [Local network +, Digital +]",
+        text: "Message Xiao Chen, the local volunteer, to pin campus shortcuts and food spots. [Local network +, Digital +]",
         next: "e3_w17_done",
         effects: {
           stats: { digitalProficiency: 2, culture: 2 },
           guanxi: { localStudents: 6 },
           relationships: { "Xiao Chen": { friendship: 5 } },
-          flags: { decision_e3_wechat_intro: "Xiao Chen campus shortcuts", route_local: true }
+          flags: { decision_e3_wechat_intro: "Xiao Chen campus shortcuts", contact_cards_reviewed: true, xiao_chen_role_known: true, route_local: true }
         }
       },
       {
-        text: "Ask Neighbor Li how delivery calls and dorm notices usually work. [Culture +, Local network +]",
+        text: "Message Neighbor Li, your dorm-floor neighbor, about delivery calls and notices. [Culture +, Local network +]",
         next: "e3_w17_done",
         effects: {
           stats: { culture: 4, chinese: 2 },
           guanxi: { localStudents: 5 },
           relationships: { "Neighbor Li": { friendship: 5 } },
-          flags: { decision_e3_wechat_intro: "Neighbor Li dorm help", route_local: true }
+          flags: { decision_e3_wechat_intro: "Neighbor Li dorm help", contact_cards_reviewed: true, neighbor_li_role_known: true, route_local: true }
         }
       },
       {
@@ -4815,7 +4836,7 @@ const epoch3Events = {
         effects: {
           stats: { digitalProficiency: 3 },
           guanxi: { admin: 7 },
-          flags: { decision_e3_wechat_intro: "Official group structure", route_academic: true }
+          flags: { decision_e3_wechat_intro: "Official group structure", contact_cards_reviewed: true, route_academic: true }
         }
       }
     ]
@@ -4939,10 +4960,10 @@ const epoch3Events = {
   "e3_w19_social_circle": {
     speaker: "Campus Evening",
     location: "Minghai Dorm District",
-    text: "Your first social circle does not arrive as a dramatic invitation. It arrives through the contacts you already scanned: Sophie asking who wants dinner, Xiao Chen dropping a shortcut map, Neighbor Li replying to a dorm notice before anyone else understands it.",
+    text: "Your first social circle does not arrive as a dramatic invitation. It arrives through the contact cards you saved during orientation: Sophie the international-student senior, Xiao Chen the local volunteer, and Neighbor Li from your dorm floor.\n\nThis choice is not about guessing names. It is about deciding what kind of support you want first.",
     choices: [
       {
-        text: "Join Sophie's international-student dinner. [Intl network +, Energy +]",
+        text: "Join Sophie, the international-student senior, for a low-pressure dinner. [Intl network +, Energy +]",
         next: "e3_w19_done",
         effects: {
           stats: { energy: 8, culture: 3 },
@@ -4952,7 +4973,7 @@ const epoch3Events = {
         }
       },
       {
-        text: "Let Xiao Chen show you campus shortcuts. [Local network +, Relationship +]",
+        text: "Let Xiao Chen, the local volunteer, show you campus shortcuts and cheap food. [Local network +, Relationship +]",
         next: "e3_w19_done",
         effects: {
           stats: { chinese: 4, culture: 5 },
@@ -4962,7 +4983,7 @@ const epoch3Events = {
         }
       },
       {
-        text: "Ask Neighbor Li how dorm life really works. [Culture +, Local network +]",
+        text: "Ask Neighbor Li, your dorm-floor neighbor, how dorm life really works. [Culture +, Local network +]",
         condition: { flags: { met_neighbor_li: true } },
         next: "e3_w19_done",
         effects: {
@@ -5952,50 +5973,59 @@ const gameNodes = {
   "hub": {
     speaker: "Weekly Planner",
     bgImage: './images/simulator/hub_bg.jpg',
-    text: "It is the start of a new week at Minghai. Your year is no longer one big question; it is becoming a pattern. Which part of your life in China do you build this week?",
+    text: "It is the start of a new week at Minghai.\n\nYou have 2 weekday actions and 1 weekend action. Pick an area, then choose a concrete activity inside it. When all actions are spent, the calendar moves forward automatically.",
     choices: [
       {
         text: "📚 Academic Track",
+        detail: "Study blocks, office hours, research talks, and Professor Lin / Dr. Mei relationship events.",
         condition: { flags: { "arrived_in_china": true } },
         next: "submenu_academic_track"
       },
       {
         text: "🧭 Local Integration",
+        detail: "Chinese practice, canteen routines, dorm rules, local classmates, and Neighbor Li.",
         condition: { flags: { "arrived_in_china": true } },
         next: "submenu_local_integration"
       },
       {
         text: "🌏 International Student Circle",
+        detail: "Sophie, group chats, support nights, peer help, and international-student friendships.",
         condition: { flags: { "arrived_in_china": true } },
         next: "submenu_international_circle"
       },
       {
         text: "💼 Career Bridge",
+        detail: "Internship preparation, alumni, professional contacts, and Manager Zhang.",
         condition: { flags: { "arrived_in_china": true } },
         next: "submenu_career_bridge"
       },
       {
         text: "🏙️ Shanghai Opportunity",
+        detail: "City projects, transport, local tech/payment habits, and Xiao Chen's idea pipeline.",
         condition: { flags: { "arrived_in_china": true } },
         next: "submenu_shanghai_opportunity"
       },
       {
         text: "💬 Character Contacts",
+        detail: "Direct hangouts and conversations with people you have already met.",
         condition: { flags: { "arrived_in_china": true } },
         next: "submenu_character_contacts"
       },
       {
         text: "🧾 Life Admin & Recovery",
+        detail: "Residence permit, money pressure, housing friction, health, and emergency recovery.",
         condition: { flags: { "arrived_in_china": true } },
         next: "submenu_life_admin"
       },
       {
         text: "🕹️ City, Travel & Arcade Extras",
+        detail: "Optional city scenes, weekend travel, and minigame extras.",
         condition: { flags: { "arrived_in_china": true } },
         next: "submenu_extras"
       },
       {
          text: "😴 Rest & Recharge [Energy +]",
+         detail: "Spend the week recovering instead of pushing another route.",
          action: "advance_turn",
          next: "hub",
          effects: { stats: { energy: 25 }, flags: { weekly_focus: "Rest and recovery" } }
@@ -10903,7 +10933,8 @@ function RouteMeter({ label, value }) {
 
 function TabletInterface({ state, onClose, onReplayGame, onPlayGig }) {
   const { stats, guanxi, turn, phase, flags } = state;
-  const [activeTab, setActiveTab] = useState('Story');
+  const initialTab = flags.airport_didi_required ? 'DiDi' : (flags.housing_simpad_required || state.currentNodeId === "e2_w12_housing" ? 'Housing' : 'Story');
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [selectedMemory, setSelectedMemory] = useState(null);
   const [selectedGalleryRoute, setSelectedGalleryRoute] = useState('All');
   const [utilityMessage, setUtilityMessage] = useState("");
@@ -11014,10 +11045,36 @@ function TabletInterface({ state, onClose, onReplayGame, onPlayGig }) {
       gameEngine.addTransaction(-housing.deposit, `Housing deposit: ${housing.title}`);
     }
     gameEngine.updateStats(housing.stats || {});
+    const housingFlags = {
+      campus_dorm: {
+        decision: "Minghai Dorm via SimPad Housing",
+        flags: { dorm_double: true, dorm_single: false, dorm_pending: false }
+      },
+      shared_flat: {
+        decision: "Shared Flat via SimPad Housing",
+        flags: { shared_flat_selected: true, dorm_pending: false, housing_city_commute: true }
+      },
+      studio: {
+        decision: "Small Studio via SimPad Housing",
+        flags: { studio_selected: true, dorm_pending: false, housing_rent_pressure: true }
+      }
+    };
+    const selection = housingFlags[housing.id] || { decision: housing.title, flags: {} };
     gameEngine.setFlag("has_housing", true);
     gameEngine.setFlag("housing_choice", housing.title);
+    gameEngine.setFlag("decision_e2_housing", selection.decision);
+    gameEngine.setFlag("housing_sorted", true);
+    gameEngine.setFlag("housing_simpad_selected", true);
+    gameEngine.setFlag("housing_simpad_required", false);
     gameEngine.setFlag("housing_rent_weekly", housing.weeklyRent);
     gameEngine.setFlag("housing_commute", housing.commute);
+    Object.entries(selection.flags).forEach(([flag, value]) => gameEngine.setFlag(flag, value));
+    if (state.currentNodeId === "e2_w12_housing" || flags.housing_simpad_required) {
+      gameEngine.setCurrentNode("e2_w12_roommate_intro");
+      setUtilityMessage(`${housing.title} selected. Housing is confirmed; returning to the story.`);
+      onClose();
+      return;
+    }
     setUtilityMessage(`${housing.title} selected. Your Shanghai life now has an address.`);
   };
 
@@ -11339,6 +11396,11 @@ function TabletInterface({ state, onClose, onReplayGame, onPlayGig }) {
                                 Housing unlocks after the application turns into real pre-departure logistics.
                             </div>
                         )}
+                        {flags.housing_simpad_required && (
+                            <div className="rounded-xl border border-lime-300/40 bg-lime-400/10 p-4 text-sm text-lime-100">
+                                Required story task: choose one housing option here to continue Week 12.
+                            </div>
+                        )}
 
                         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
                             {getHousingOptions().map((option) => (
@@ -11549,7 +11611,9 @@ function TabletInterface({ state, onClose, onReplayGame, onPlayGig }) {
                         )}
                         {phase === "In-China" && (
                             <div className="rounded-xl border border-yellow-500/30 bg-slate-950/70 p-4 text-sm text-yellow-100">
-                                {flags.first_didi_used ? "First DiDi lesson completed: pickup zone, plate check, route sharing, and payment are now part of your city toolkit." : "You can use DiDi now, but the airport-to-campus first-use lesson will matter most if you chose that arrival route."}
+                                {flags.airport_didi_required
+                                    ? "Required story task: request Airport Transfer Practice to continue from Pudong to the pickup-zone lesson."
+                                    : (flags.first_didi_used ? "First DiDi lesson completed: pickup zone, plate check, route sharing, and payment are now part of your city toolkit." : "You can use DiDi now, but the airport-to-campus first-use lesson will matter most if you chose that arrival route.")}
                             </div>
                         )}
 
@@ -11558,7 +11622,7 @@ function TabletInterface({ state, onClose, onReplayGame, onPlayGig }) {
                             cost={45}
                             energyGain={8}
                             desc="A short ride across campus or to a nearby print shop. Useful when one small task would otherwise eat the day."
-                            disabled={phase !== "In-China" || flags.used_didi_this_week || stats.wealth < 45}
+                            disabled={phase !== "In-China" || flags.airport_didi_required || flags.used_didi_this_week || stats.wealth < 45}
                             onSelect={() => gameEngine.useDidiRide('standard')}
                             onMessage={setUtilityMessage}
                         />
@@ -11567,7 +11631,7 @@ function TabletInterface({ state, onClose, onReplayGame, onPlayGig }) {
                             cost={88}
                             energyGain={14}
                             desc="Skip the worst transfer and arrive with enough focus left to actually talk to people."
-                            disabled={phase !== "In-China" || flags.used_didi_this_week || stats.wealth < 88}
+                            disabled={phase !== "In-China" || flags.airport_didi_required || flags.used_didi_this_week || stats.wealth < 88}
                             onSelect={() => gameEngine.useDidiRide('comfort')}
                             onMessage={setUtilityMessage}
                         />
@@ -11577,7 +11641,11 @@ function TabletInterface({ state, onClose, onReplayGame, onPlayGig }) {
                             energyGain={20}
                             desc="A more expensive rehearsal for handling luggage, pickup points, and app-based transport under pressure."
                             disabled={phase !== "In-China" || flags.used_didi_this_week || stats.wealth < 160}
-                            onSelect={() => gameEngine.useDidiRide('airport')}
+                            onSelect={() => {
+                                const result = gameEngine.useDidiRide('airport');
+                                if (result?.ok && flags.airport_didi_required) onClose();
+                                return result;
+                            }}
                             onMessage={setUtilityMessage}
                         />
 
@@ -11589,21 +11657,21 @@ function TabletInterface({ state, onClose, onReplayGame, onPlayGig }) {
                                     title="Bund Evening Walk"
                                     cost={80}
                                     desc="Cross town for the skyline and a quieter city reflection."
-                                    disabled={phase !== "In-China" || stats.wealth < 80}
+                                    disabled={phase !== "In-China" || flags.airport_didi_required || stats.wealth < 80}
                                     onSelect={() => launchStoryNode('event_sh_bund_walk', 80, { energy: -2, culture: 2 })}
                                 />
                                 <DidiDestinationCard
                                     title="Lujiazui Fintech Talk"
                                     cost={100}
                                     desc="A practical city-opportunity scene for payments, offices, and Shanghai speed."
-                                    disabled={phase !== "In-China" || stats.wealth < 100}
+                                    disabled={phase !== "In-China" || flags.airport_didi_required || stats.wealth < 100}
                                     onSelect={() => launchStoryNode('event_sh_lujiazui_mixer', 100, { energy: -3, digitalProficiency: 2 })}
                                 />
                                 <DidiDestinationCard
                                     title="Fuxing Park Night"
                                     cost={120}
                                     desc="Nightlife as a cultural scene, not just a stat button."
-                                    disabled={phase !== "In-China" || stats.wealth < 120}
+                                    disabled={phase !== "In-China" || flags.airport_didi_required || stats.wealth < 120}
                                     onSelect={() => launchStoryNode('event_sh_ins_clubbing', 120, { energy: -5, culture: 2 })}
                                 />
                             </div>
@@ -13267,8 +13335,8 @@ function QuestTracker({ state }) {
         questTitle = "Prepare Your Phone";
         questDesc = "Set up digital access, WeChat, Alipay, and arrival tools for Shanghai.";
     } else if (state.phase === "Pre-Departure" && !flags.decision_e2_housing) {
-        questTitle = "Choose Housing";
-        questDesc = "Balance privacy, budget, and your first Minghai social connections.";
+        questTitle = "Use SimPad Housing";
+        questDesc = "Open SimPad > Housing, compare the options, and confirm where you will live.";
     } else if (state.phase === "Pre-Departure" && !flags.decision_e2_flight) {
         questTitle = "Book the Flight";
         questDesc = "Choose how much money, time, and energy the route to Shanghai will cost.";
@@ -13282,8 +13350,10 @@ function QuestTracker({ state }) {
         questTitle = "Boarding Call";
         questDesc = "It's time to board the flight to Shanghai.";
     } else if (state.phase === "In-China" && !flags.arrived_in_china) {
-        questTitle = "Arrive at Minghai";
-        questDesc = "Get from Pudong to campus, eat your first meal, and set up the dorm.";
+        questTitle = flags.airport_didi_required ? "Use SimPad DiDi" : "Arrive at Minghai";
+        questDesc = flags.airport_didi_required
+            ? "Open SimPad > DiDi and request Airport Transfer Practice to leave Pudong."
+            : "Get from Pudong to campus, eat your first meal, and set up the dorm.";
     } else if (state.phase === "In-China" && !flags.decision_e3_registration) {
         questTitle = "Complete Registration";
         questDesc = "Get your student card, campus account, and first residence-permit deadlines under control.";
@@ -13297,8 +13367,8 @@ function QuestTracker({ state }) {
         questTitle = "Find Your First Rhythm";
         questDesc = "Choose whether your early Minghai life leans academic, local, international, career, or city-focused.";
     } else if (state.phase === "In-China" && state.turn < 24) {
-        questTitle = "Prepare for Midterms";
-        questDesc = "Use the weekly rhythm to strengthen your weakest part before Week 24.";
+        questTitle = "Plan This Week";
+        questDesc = "Spend 2 weekday actions and 1 weekend action. Pick study, people, city life, or recovery.";
     } else if (state.phase === "In-China" && !flags.decision_e3_internship && state.turn < 32) {
         questTitle = "Choose a Future Direction";
         questDesc = "Turn your China experience toward research, career, local integration, student support, or city opportunity.";
@@ -13478,7 +13548,7 @@ function StoryPanel({ node, state, availableChoices, availableDialogueChoices = 
     <div className="flex-1 flex flex-col justify-end p-4 pb-16 z-10 w-full max-w-5xl mx-auto relative pt-24">
 
       {/* Choice Menu */}
-      <div className={`flex flex-col mb-4 gap-2 items-end transition-all duration-700 ${showChoices ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+      <div className={`flex max-h-[58vh] flex-col mb-4 gap-2 items-end overflow-y-auto pr-1 transition-all duration-700 ${showChoices ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
         {pendingDialogueChoices.length > 0 && pendingDialogueChoices.map((choice, i) => (
           <button
             key={`dialogue-${i}`}
@@ -13490,6 +13560,7 @@ function StoryPanel({ node, state, availableChoices, availableDialogueChoices = 
             <div className="pl-5">
               <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-300">Reply</div>
               <div className="font-medium text-base">{choice.text}</div>
+              {choice.detail && <div className="mt-1 text-xs leading-snug text-cyan-100/70">{choice.detail}</div>}
             </div>
             {choice.effects && <ChoicePreview effects={choice.effects} />}
           </button>
@@ -13502,7 +13573,10 @@ function StoryPanel({ node, state, availableChoices, availableDialogueChoices = 
             className="bg-slate-900/90 border border-slate-700/50 hover:bg-slate-800 hover:border-amber-500 hover:text-amber-400 text-slate-200 px-4 py-3 rounded-xl text-left w-full sm:w-2/3 shadow-xl backdrop-blur-md transition-all group flex flex-col relative"
           >
             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600 font-mono text-[10px] opacity-50 group-hover:opacity-100 group-hover:text-amber-500 transition-all">[{i+1}]</div>
-            <div className="font-medium text-base pl-5">{choice.text}</div>
+            <div className="pl-5">
+              <div className="font-medium text-base">{choice.text}</div>
+              {choice.detail && <div className="mt-1 text-xs leading-snug text-slate-400 group-hover:text-slate-300">{choice.detail}</div>}
+            </div>
             {choice.effects && <ChoicePreview effects={choice.effects} />}
           </button>
         ))}
@@ -13560,14 +13634,19 @@ function StoryPanel({ node, state, availableChoices, availableDialogueChoices = 
             showCursor={!showChoices}
           />
           {state?.phase === "In-China" && node.speaker === "Weekly Planner" && (
-            <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
-              <div className="rounded-lg border border-cyan-400/25 bg-cyan-400/10 px-3 py-2 text-cyan-100">
-                <span className="font-bold">Weekday actions</span>
-                <span className="float-right font-mono">{state.weeklyActions?.weekday ?? 0}/2</span>
+            <div className="mt-4 space-y-2 text-xs">
+              <div className="rounded-lg border border-slate-600/50 bg-slate-950/70 px-3 py-2 text-slate-300">
+                Choose a category above first; the next screen shows specific activities and their stat tradeoffs.
               </div>
-              <div className="rounded-lg border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-amber-100">
-                <span className="font-bold">Weekend action</span>
-                <span className="float-right font-mono">{state.weeklyActions?.weekend ?? 0}/1</span>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-lg border border-cyan-400/25 bg-cyan-400/10 px-3 py-2 text-cyan-100">
+                  <span className="font-bold">Weekday actions</span>
+                  <span className="float-right font-mono">{state.weeklyActions?.weekday ?? 0}/2</span>
+                </div>
+                <div className="rounded-lg border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-amber-100">
+                  <span className="font-bold">Weekend action</span>
+                  <span className="float-right font-mono">{state.weeklyActions?.weekend ?? 0}/1</span>
+                </div>
               </div>
             </div>
           )}

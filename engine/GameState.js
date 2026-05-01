@@ -309,6 +309,11 @@ export class EngineState {
 
     this.addTransaction(-ride.cost, ride.label);
     const stats = { ...ride.stats };
+    const airportGateActive = Boolean(this.state.flags.airport_didi_required && rideId === "airport");
+    if (airportGateActive && this.state.flags.didi_airport_mode === "pressure") {
+      stats.energy = (stats.energy || 0) - 12;
+      stats.digitalProficiency = (stats.digitalProficiency || 0) + 3;
+    }
     if (!this.state.items.cityDataPack && !this.state.flags.didi_pickup_zone_lesson) {
       stats.energy = Math.max(0, (stats.energy || 0) - 4);
       this.state.flags.didi_pickup_friction = true;
@@ -318,9 +323,20 @@ export class EngineState {
     this.state.flags.used_didi_this_week = true;
     this.state.flags.first_didi_used = true;
     this.state.flags[`didi_${rideId}_used`] = true;
+    if (airportGateActive) {
+      this.state.flags.airport_didi_required = false;
+      this.state.flags.airport_didi_confirmed = true;
+      this.state.flags.didi_pickup_zone_lesson = true;
+      this.state.flags.route_shared_to_minghai_chat = true;
+      this.state.flags.decision_e3_transport = this.state.flags.didi_airport_mode === "pressure"
+        ? "Airport DiDi setup in SimPad"
+        : "Prepared DiDi from Pudong via SimPad";
+      this.state.currentNodeId = "didi_pickup_lesson";
+    }
     this.notify();
     const friction = this.state.flags.didi_pickup_friction_ready ? " The pickup point costs extra focus because your city app setup is still thin." : "";
-    return { ok: true, message: `${ride.message}${friction}` };
+    const storyProgress = airportGateActive ? " Story advanced to the pickup-zone lesson." : "";
+    return { ok: true, message: `${ride.message}${friction}${storyProgress}` };
   }
 
   useTaobaoServiceOrder(orderId) {

@@ -6,7 +6,8 @@ import { gameEngine } from '../engine/GameState';
 
 export default function TabletInterface({ state, onClose, onReplayGame, onPlayGig }) {
   const { stats, guanxi, turn, phase, flags } = state;
-  const [activeTab, setActiveTab] = useState('Story');
+  const initialTab = flags.airport_didi_required ? 'DiDi' : (flags.housing_simpad_required || state.currentNodeId === "e2_w12_housing" ? 'Housing' : 'Story');
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [selectedMemory, setSelectedMemory] = useState(null);
   const [selectedGalleryRoute, setSelectedGalleryRoute] = useState('All');
   const [utilityMessage, setUtilityMessage] = useState("");
@@ -117,10 +118,36 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
       gameEngine.addTransaction(-housing.deposit, `Housing deposit: ${housing.title}`);
     }
     gameEngine.updateStats(housing.stats || {});
+    const housingFlags = {
+      campus_dorm: {
+        decision: "Minghai Dorm via SimPad Housing",
+        flags: { dorm_double: true, dorm_single: false, dorm_pending: false }
+      },
+      shared_flat: {
+        decision: "Shared Flat via SimPad Housing",
+        flags: { shared_flat_selected: true, dorm_pending: false, housing_city_commute: true }
+      },
+      studio: {
+        decision: "Small Studio via SimPad Housing",
+        flags: { studio_selected: true, dorm_pending: false, housing_rent_pressure: true }
+      }
+    };
+    const selection = housingFlags[housing.id] || { decision: housing.title, flags: {} };
     gameEngine.setFlag("has_housing", true);
     gameEngine.setFlag("housing_choice", housing.title);
+    gameEngine.setFlag("decision_e2_housing", selection.decision);
+    gameEngine.setFlag("housing_sorted", true);
+    gameEngine.setFlag("housing_simpad_selected", true);
+    gameEngine.setFlag("housing_simpad_required", false);
     gameEngine.setFlag("housing_rent_weekly", housing.weeklyRent);
     gameEngine.setFlag("housing_commute", housing.commute);
+    Object.entries(selection.flags).forEach(([flag, value]) => gameEngine.setFlag(flag, value));
+    if (state.currentNodeId === "e2_w12_housing" || flags.housing_simpad_required) {
+      gameEngine.setCurrentNode("e2_w12_roommate_intro");
+      setUtilityMessage(`${housing.title} selected. Housing is confirmed; returning to the story.`);
+      onClose();
+      return;
+    }
     setUtilityMessage(`${housing.title} selected. Your Shanghai life now has an address.`);
   };
 
@@ -442,6 +469,11 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
                                 Housing unlocks after the application turns into real pre-departure logistics.
                             </div>
                         )}
+                        {flags.housing_simpad_required && (
+                            <div className="rounded-xl border border-lime-300/40 bg-lime-400/10 p-4 text-sm text-lime-100">
+                                Required story task: choose one housing option here to continue Week 12.
+                            </div>
+                        )}
 
                         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
                             {getHousingOptions().map((option) => (
@@ -652,7 +684,9 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
                         )}
                         {phase === "In-China" && (
                             <div className="rounded-xl border border-yellow-500/30 bg-slate-950/70 p-4 text-sm text-yellow-100">
-                                {flags.first_didi_used ? "First DiDi lesson completed: pickup zone, plate check, route sharing, and payment are now part of your city toolkit." : "You can use DiDi now, but the airport-to-campus first-use lesson will matter most if you chose that arrival route."}
+                                {flags.airport_didi_required
+                                    ? "Required story task: request Airport Transfer Practice to continue from Pudong to the pickup-zone lesson."
+                                    : (flags.first_didi_used ? "First DiDi lesson completed: pickup zone, plate check, route sharing, and payment are now part of your city toolkit." : "You can use DiDi now, but the airport-to-campus first-use lesson will matter most if you chose that arrival route.")}
                             </div>
                         )}
 
@@ -661,7 +695,7 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
                             cost={45}
                             energyGain={8}
                             desc="A short ride across campus or to a nearby print shop. Useful when one small task would otherwise eat the day."
-                            disabled={phase !== "In-China" || flags.used_didi_this_week || stats.wealth < 45}
+                            disabled={phase !== "In-China" || flags.airport_didi_required || flags.used_didi_this_week || stats.wealth < 45}
                             onSelect={() => gameEngine.useDidiRide('standard')}
                             onMessage={setUtilityMessage}
                         />
@@ -670,7 +704,7 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
                             cost={88}
                             energyGain={14}
                             desc="Skip the worst transfer and arrive with enough focus left to actually talk to people."
-                            disabled={phase !== "In-China" || flags.used_didi_this_week || stats.wealth < 88}
+                            disabled={phase !== "In-China" || flags.airport_didi_required || flags.used_didi_this_week || stats.wealth < 88}
                             onSelect={() => gameEngine.useDidiRide('comfort')}
                             onMessage={setUtilityMessage}
                         />
@@ -680,7 +714,11 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
                             energyGain={20}
                             desc="A more expensive rehearsal for handling luggage, pickup points, and app-based transport under pressure."
                             disabled={phase !== "In-China" || flags.used_didi_this_week || stats.wealth < 160}
-                            onSelect={() => gameEngine.useDidiRide('airport')}
+                            onSelect={() => {
+                                const result = gameEngine.useDidiRide('airport');
+                                if (result?.ok && flags.airport_didi_required) onClose();
+                                return result;
+                            }}
                             onMessage={setUtilityMessage}
                         />
 
@@ -692,21 +730,21 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
                                     title="Bund Evening Walk"
                                     cost={80}
                                     desc="Cross town for the skyline and a quieter city reflection."
-                                    disabled={phase !== "In-China" || stats.wealth < 80}
+                                    disabled={phase !== "In-China" || flags.airport_didi_required || stats.wealth < 80}
                                     onSelect={() => launchStoryNode('event_sh_bund_walk', 80, { energy: -2, culture: 2 })}
                                 />
                                 <DidiDestinationCard
                                     title="Lujiazui Fintech Talk"
                                     cost={100}
                                     desc="A practical city-opportunity scene for payments, offices, and Shanghai speed."
-                                    disabled={phase !== "In-China" || stats.wealth < 100}
+                                    disabled={phase !== "In-China" || flags.airport_didi_required || stats.wealth < 100}
                                     onSelect={() => launchStoryNode('event_sh_lujiazui_mixer', 100, { energy: -3, digitalProficiency: 2 })}
                                 />
                                 <DidiDestinationCard
                                     title="Fuxing Park Night"
                                     cost={120}
                                     desc="Nightlife as a cultural scene, not just a stat button."
-                                    disabled={phase !== "In-China" || stats.wealth < 120}
+                                    disabled={phase !== "In-China" || flags.airport_didi_required || stats.wealth < 120}
                                     onSelect={() => launchStoryNode('event_sh_ins_clubbing', 120, { energy: -5, culture: 2 })}
                                 />
                             </div>

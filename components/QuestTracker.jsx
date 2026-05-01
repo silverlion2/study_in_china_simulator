@@ -35,8 +35,8 @@ export default function QuestTracker({ state }) {
         questTitle = "Prepare Your Phone";
         questDesc = "Set up digital access, WeChat, Alipay, and arrival tools for Shanghai.";
     } else if (state.phase === "Pre-Departure" && !flags.decision_e2_housing) {
-        questTitle = "Choose Housing";
-        questDesc = "Balance privacy, budget, and your first Minghai social connections.";
+        questTitle = "Use SimPad Housing";
+        questDesc = "Open SimPad > Housing, compare the options, and confirm where you will live.";
     } else if (state.phase === "Pre-Departure" && !flags.decision_e2_flight) {
         questTitle = "Book the Flight";
         questDesc = "Choose how much money, time, and energy the route to Shanghai will cost.";
@@ -50,8 +50,10 @@ export default function QuestTracker({ state }) {
         questTitle = "Boarding Call";
         questDesc = "It's time to board the flight to Shanghai.";
     } else if (state.phase === "In-China" && !flags.arrived_in_china) {
-        questTitle = "Arrive at Minghai";
-        questDesc = "Get from Pudong to campus, eat your first meal, and set up the dorm.";
+        questTitle = flags.airport_didi_required ? "Use SimPad DiDi" : "Arrive at Minghai";
+        questDesc = flags.airport_didi_required
+            ? "Open SimPad > DiDi and request Airport Transfer Practice to leave Pudong."
+            : "Get from Pudong to campus, eat your first meal, and set up the dorm.";
     } else if (state.phase === "In-China" && !flags.decision_e3_registration) {
         questTitle = "Complete Registration";
         questDesc = "Get your student card, campus account, and first residence-permit deadlines under control.";
@@ -65,8 +67,8 @@ export default function QuestTracker({ state }) {
         questTitle = "Find Your First Rhythm";
         questDesc = "Choose whether your early Minghai life leans academic, local, international, career, or city-focused.";
     } else if (state.phase === "In-China" && state.turn < 24) {
-        questTitle = "Prepare for Midterms";
-        questDesc = "Use the weekly rhythm to strengthen your weakest part before Week 24.";
+        questTitle = "Plan This Week";
+        questDesc = "Spend 2 weekday actions and 1 weekend action. Pick study, people, city life, or recovery.";
     } else if (state.phase === "In-China" && !flags.decision_e3_internship && state.turn < 32) {
         questTitle = "Choose a Future Direction";
         questDesc = "Turn your China experience toward research, career, local integration, student support, or city opportunity.";
