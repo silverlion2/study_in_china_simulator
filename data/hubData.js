@@ -33,6 +33,11 @@ export const gameNodes = {
         next: "submenu_shanghai_opportunity"
       },
       {
+        text: "💬 Character Contacts",
+        condition: { flags: { "arrived_in_china": true } },
+        next: "submenu_character_contacts"
+      },
+      {
         text: "🧾 Life Admin & Recovery",
         condition: { flags: { "arrived_in_china": true } },
         next: "submenu_life_admin"
@@ -120,6 +125,11 @@ export const gameNodes = {
         next: "event_academic_dr_mei_project_commitment"
       },
       {
+        text: "Build the academic portfolio index. [Portfolio project]",
+        condition: { flags: { academic_portfolio_indexed: false } },
+        next: "event_project_academic_portfolio_index"
+      },
+      {
         text: "Back to weekly planner",
         next: "hub"
       }
@@ -193,6 +203,11 @@ export const gameNodes = {
         next: "event_local_uncle_wang_regular"
       },
       {
+        text: "Update your neighborhood map. [Route project]",
+        condition: { flags: { neighborhood_map_indexed: false } },
+        next: "event_project_neighborhood_map"
+      },
+      {
         text: "Back to weekly planner",
         next: "hub"
       }
@@ -244,6 +259,11 @@ export const gameNodes = {
         text: "Help Sophie pitch an orientation committee. [Week 25+, Sophie Trust]",
         condition: { turn: { min: 25 }, flags: { sophie_support_circle: true, sophie_orientation_committee: false }, relationships: { Sophie: { friendship: { min: 20 } } } },
         next: "event_intl_sophie_orientation_committee"
+      },
+      {
+        text: "Turn support notes into a guide chapter. [Route project]",
+        condition: { flags: { support_guide_chapter_ready: false } },
+        next: "event_project_support_guide_chapter"
       },
       {
         text: "Back to weekly planner",
@@ -310,6 +330,11 @@ export const gameNodes = {
         next: "event_career_manager_zhang_referral"
       },
       {
+        text: "Assemble the internship dossier. [Route project]",
+        condition: { flags: { internship_dossier_ready: false } },
+        next: "event_project_internship_dossier"
+      },
+      {
         text: "Back to weekly planner",
         next: "hub"
       }
@@ -368,6 +393,11 @@ export const gameNodes = {
         next: "event_city_xiao_chen_demo_day"
       },
       {
+        text: "Clean the prototype telemetry board. [Route project]",
+        condition: { flags: { prototype_telemetry_board: false } },
+        next: "event_project_prototype_telemetry"
+      },
+      {
         text: "Back to weekly planner",
         next: "hub"
       }
@@ -410,6 +440,26 @@ export const gameNodes = {
         text: "Clean up an unapproved work risk before it becomes a case. [Risk repair]",
         condition: { flags: { unapproved_work_risk: true, compliance_cleanup_done: false } },
         next: "event_admin_compliance_cleanup"
+      },
+      {
+        text: "Follow up after forced recovery. [Recovery chain]",
+        condition: { flags: { recovery_week_scar: true, recovery_followup_done: false } },
+        next: "event_recovery_forced_followup"
+      },
+      {
+        text: "Repair the academic recovery scar. [Recovery chain]",
+        condition: { flags: { academic_recovery_check_strained: true, academic_recovery_followup_done: false } },
+        next: "event_recovery_academic_followup"
+      },
+      {
+        text: "Stabilize after the money rescue. [Recovery chain]",
+        condition: { flags: { emergency_funding_used: true, money_recovery_followup_done: false } },
+        next: "event_recovery_money_followup"
+      },
+      {
+        text: "Audit the budget ledger before it bites. [Route project]",
+        condition: { flags: { budget_ledger_audited: false } },
+        next: "event_project_budget_ledger"
       },
       {
         text: "Back to weekly planner",
@@ -465,6 +515,1150 @@ export const gameNodes = {
     ]
   },
 
+  "submenu_character_contacts": {
+    speaker: "Character Contacts",
+    bgImage: '/images/simulator/backgrounds/bg_campus_cafe.jpg',
+    text: "A relationship is not only a number in your SimPad. This week, you can choose someone specific, make time for them, and let the conversation change the shape of your life at Minghai.",
+    choices: [
+      {
+        text: "Ask Professor Lin for a real office-hour conversation. [Talk]",
+        condition: { flags: { contact_professor_lin_talk_1: false }, relationships: { "Professor Lin": { friendship: { min: 4 } } } },
+        next: "event_contact_professor_lin_talk_1"
+      },
+      {
+        text: "Help Professor Lin with a confused class question. [Request]",
+        condition: { flags: { contact_professor_lin_talk_1: true, request_professor_lin_class_question: false }, relationships: { "Professor Lin": { friendship: { min: 8 } } } },
+        next: "event_request_professor_lin_class_question"
+      },
+      {
+        text: "Invite Dr. Mei to unpack the research problem over coffee. [Invite]",
+        condition: { flags: { met_dr_mei: true, contact_dr_mei_talk_1: false } },
+        next: "event_contact_dr_mei_talk_1"
+      },
+      {
+        text: "Answer Dr. Mei's request for careful field notes. [Request]",
+        condition: { flags: { contact_dr_mei_talk_1: true, request_dr_mei_field_notes: false } },
+        next: "event_request_dr_mei_field_notes"
+      },
+      {
+        text: "Meet Sophie in the common room before the group arrives. [Talk]",
+        condition: { flags: { contact_sophie_talk_1: false }, relationships: { Sophie: { friendship: { min: 4 } } } },
+        next: "event_contact_sophie_talk_1"
+      },
+      {
+        text: "Help Sophie calm a new student's arrival spiral. [Request]",
+        condition: { flags: { contact_sophie_talk_1: true, request_sophie_new_student: false }, relationships: { Sophie: { friendship: { min: 8 } } } },
+        next: "event_request_sophie_new_student"
+      },
+      {
+        text: "Walk the campus market with Xiao Chen. [Invite]",
+        condition: { flags: { met_xiao_chen: true, contact_xiao_chen_talk_1: false } },
+        next: "event_contact_xiao_chen_talk_1"
+      },
+      {
+        text: "Test Xiao Chen's onboarding copy before he launches it. [Request]",
+        condition: { flags: { contact_xiao_chen_talk_1: true, request_xiao_chen_onboarding: false } },
+        next: "event_request_xiao_chen_onboarding"
+      },
+      {
+        text: "Ask Neighbor Li to show you the dorm's unwritten map. [Request]",
+        condition: { flags: { met_neighbor_li: true, contact_neighbor_li_talk_1: false } },
+        next: "event_contact_neighbor_li_talk_1"
+      },
+      {
+        text: "Help Neighbor Li mediate a hallway parcel problem. [Request]",
+        condition: { flags: { contact_neighbor_li_talk_1: true, request_neighbor_li_parcel: false } },
+        next: "event_request_neighbor_li_parcel"
+      },
+      {
+        text: "Book a short career chat with Manager Zhang. [Talk]",
+        condition: { flags: { met_manager_zhang: true, contact_manager_zhang_talk_1: false } },
+        next: "event_contact_manager_zhang_talk_1"
+      },
+      {
+        text: "Send Manager Zhang the polished interview answer he requested. [Request]",
+        condition: { flags: { contact_manager_zhang_talk_1: true, request_manager_zhang_answer: false } },
+        next: "event_request_manager_zhang_answer"
+      },
+      {
+        text: "Return to Uncle Wang's stall when it is not too crowded. [Invite]",
+        condition: { flags: { met_uncle_wang: true, contact_uncle_wang_talk_1: false }, stats: { wealth: { min: 35 } } },
+        next: "event_contact_uncle_wang_talk_1"
+      },
+      {
+        text: "Help Uncle Wang translate a student's confusing order. [Request]",
+        condition: { flags: { contact_uncle_wang_talk_1: true, request_uncle_wang_order_help: false }, stats: { wealth: { min: 25 } } },
+        next: "event_request_uncle_wang_order_help"
+      },
+      {
+        text: "Back to weekly planner",
+        next: "hub"
+      }
+    ]
+  },
+
+  // --- CHARACTER CONTACT EVENTS ---
+  "event_contact_professor_lin_talk_1": {
+    speaker: "Professor Lin",
+    bgImage: '/images/simulator/cg/cg_professor_lin_office_hours.jpg',
+    text: "Professor Lin closes your draft and sets his pen beside it, exactly parallel to the desk edge.\n\nProfessor Lin: 'You booked twenty minutes. Good. Twenty honest minutes are better than two hours of performance.'\n\nYou: 'I thought we were talking about the assignment.'\n\nProfessor Lin: 'We are.' He taps the margin where your argument collapses into description. 'But the assignment is not the only thing avoiding clarity.'\n\nYou look at the red comments. None of them are cruel. Somehow that makes them harder to survive.\n\nProfessor Lin: 'Tell me which part of studying here has made you feel least competent. Not the polite answer. The useful one.'",
+    dialogueChoices: [
+      {
+        text: "I keep doing tasks so I do not have to admit I am confused.",
+        reply: "That is honest. Confusion is not the failure. Building a routine that hides it is the failure.",
+        effects: {
+          stats: { academics: 2, energy: -1 },
+          relationships: { "Professor Lin": { friendship: 2 } },
+          flags: { dialogue_professor_lin_admitted_confusion: true, route_academic: true }
+        }
+      },
+      {
+        text: "I understand pieces, but I cannot make them become an argument.",
+        reply: "Good. Then we work on structure, not panic. Panic is rarely a useful bibliography.",
+        effects: {
+          stats: { academics: 3 },
+          relationships: { "Professor Lin": { friendship: 1 } },
+          flags: { dialogue_professor_lin_argument_gap: true, route_academic: true }
+        }
+      },
+      {
+        text: "I am afraid if I say the real answer, you will think I do not belong here.",
+        reply: "Belonging is not proven by pretending. It is proven by staying teachable when pretending would be easier.",
+        effects: {
+          stats: { academics: 1, culture: 2, energy: 2 },
+          relationships: { "Professor Lin": { friendship: 3 } },
+          flags: { dialogue_professor_lin_belonging_fear: true, route_academic: true }
+        }
+      }
+    ],
+    choices: [
+      {
+        text: "Admit you keep confusing busyness with progress.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { academics: 7, culture: 2, energy: -3 },
+          guanxi: { professors: 5 },
+          relationships: { "Professor Lin": { friendship: 7 } },
+          flags: { weekly_focus: "Professor Lin honest office hour", route_academic: true, contact_professor_lin_talk_1: true }
+        }
+      },
+      {
+        text: "Keep the conversation on technique and protect your pride.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { academics: 5, energy: -1 },
+          guanxi: { professors: 2 },
+          relationships: { "Professor Lin": { friendship: 2 } },
+          flags: { weekly_focus: "Professor Lin technique check", route_academic: true, contact_professor_lin_talk_1: true }
+        }
+      }
+    ]
+  },
+
+  "event_contact_dr_mei_talk_1": {
+    speaker: "Dr. Mei",
+    bgImage: '/images/simulator/backgrounds/bg_campus_cafe.jpg',
+    text: "Dr. Mei arrives with coffee, a notebook, and no patience for vague fascination.\n\nDr. Mei: 'You said Shanghai feels complicated.'\n\nYou: 'It does.'\n\nDr. Mei opens the notebook but does not write yet.\n\nDr. Mei: 'Complicated how? If the answer can fit on a postcard, it is probably not research.'\n\nThe cafe machine hisses behind you. A student at the next table laughs into a voice message.\n\nYou: 'I am not sure I know how to say it without sounding naive.'\n\nDr. Mei: 'Good. Naive can be a starting point. Vague cannot.'",
+    dialogueChoices: [
+      {
+        text: "People say everything is convenient, but I keep seeing who has to make it convenient.",
+        reply: "That is an observation. Do not polish it yet. Follow who pays the hidden cost.",
+        effects: {
+          stats: { academics: 2, culture: 2 },
+          relationships: { "Dr. Mei": { friendship: 2 } },
+          flags: { dialogue_dr_mei_hidden_costs: true, route_academic: true }
+        }
+      },
+      {
+        text: "I worry I am turning China into material instead of understanding people.",
+        reply: "Good worry. Keep it. Ethical discomfort can become method if you do not run from it.",
+        effects: {
+          stats: { academics: 1, culture: 3, energy: -1 },
+          relationships: { "Dr. Mei": { friendship: 3 } },
+          flags: { dialogue_dr_mei_ethics_worry: true, route_academic: true }
+        }
+      },
+      {
+        text: "I do not know what is important yet. Everything feels loud.",
+        reply: "Then your first task is not analysis. It is attention. Write down what keeps returning.",
+        effects: {
+          stats: { academics: 2, energy: 1 },
+          relationships: { "Dr. Mei": { friendship: 1 } },
+          flags: { dialogue_dr_mei_attention_first: true, route_academic: true }
+        }
+      }
+    ],
+    choices: [
+      {
+        text: "Name one contradiction you have actually observed.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { academics: 6, culture: 6, energy: -3, wealth: -28 },
+          guanxi: { professors: 4 },
+          relationships: { "Dr. Mei": { friendship: 7 } },
+          flags: { weekly_focus: "Dr. Mei research coffee", route_academic: true, contact_dr_mei_talk_1: true, dr_mei_observation_notebook: true }
+        }
+      },
+      {
+        text: "Ask her how to avoid turning people into examples.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { academics: 4, culture: 8, energy: -4, wealth: -28 },
+          guanxi: { professors: 5 },
+          relationships: { "Dr. Mei": { friendship: 8 } },
+          flags: { weekly_focus: "Dr. Mei ethics coffee", route_academic: true, contact_dr_mei_talk_1: true, dr_mei_ethics_seed: true }
+        }
+      }
+    ]
+  },
+
+  "event_contact_sophie_talk_1": {
+    speaker: "Sophie",
+    bgImage: '/images/simulator/backgrounds/bg_dorm_common_room.jpg',
+    text: "The dorm common room is quiet except for the kettle clicking itself off.\n\nSophie sits cross-legged on the sofa, phone face-down for once.\n\nSophie: 'Before everyone arrives, can I ask you something without doing the group-chat version of caring?'\n\nYou: 'That sounds dangerous.'\n\nSophie: 'It is only medium dangerous.' She tries to smile, then lets it go. 'Are you okay, or are you doing international-student okay?'\n\nYou look at the empty cups on the table, the half-translated campus notice, the city outside the window refusing to become simple.\n\nSophie: 'You do not have to make it inspiring. I am tired of everyone making survival sound like a brochure.'",
+    dialogueChoices: [
+      {
+        text: "International-student okay. Functional in public, weirdly fragile after midnight.",
+        reply: "That is the most accurate definition anyone has given me. Come sit here. No fixing for five minutes.",
+        effects: {
+          stats: { energy: 4 },
+          guanxi: { intlStudents: 1 },
+          relationships: { Sophie: { friendship: 3 } },
+          flags: { dialogue_sophie_midnight_fragile: true, route_intl: true }
+        }
+      },
+      {
+        text: "I am scared if I start talking, I will become the needy one.",
+        reply: "You are allowed to need things before you become an emergency. That is literally the point of friendship.",
+        effects: {
+          stats: { energy: 5, culture: 1 },
+          relationships: { Sophie: { friendship: 4 } },
+          flags: { dialogue_sophie_need_fear: true, route_intl: true }
+        }
+      },
+      {
+        text: "Can we talk while doing something practical? Feelings are easier with tasks.",
+        reply: "Absolutely. We weaponize snacks, spreadsheets, and emotional avoidance for good.",
+        effects: {
+          stats: { energy: 2, digitalProficiency: 2 },
+          guanxi: { intlStudents: 2 },
+          relationships: { Sophie: { friendship: 2 } },
+          flags: { dialogue_sophie_practical_care: true, route_intl: true }
+        }
+      }
+    ],
+    choices: [
+      {
+        text: "Tell her the version you usually edit out.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { energy: 8, culture: 2 },
+          guanxi: { intlStudents: 5 },
+          relationships: { Sophie: { friendship: 8 } },
+          flags: { weekly_focus: "Honest common-room talk with Sophie", route_intl: true, contact_sophie_talk_1: true }
+        }
+      },
+      {
+        text: "Make a joke, then help her set up the support dinner.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { energy: 5, digitalProficiency: 3 },
+          guanxi: { intlStudents: 7 },
+          relationships: { Sophie: { friendship: 5 } },
+          flags: { weekly_focus: "Sophie support dinner setup", route_intl: true, contact_sophie_talk_1: true }
+        }
+      }
+    ]
+  },
+
+  "event_contact_xiao_chen_talk_1": {
+    speaker: "Xiao Chen",
+    bgImage: '/images/simulator/backgrounds/bg_campus_square_club_fair.jpg',
+    text: "Xiao Chen walks the campus market like every complaint is a possible product.\n\nXiao Chen: 'Do not look at the posters. Look at the line.'\n\nYou: 'The payment QR line?'\n\nXiao Chen points with his drink straw. Three students are refreshing the same frozen screen while pretending not to be annoyed.\n\nXiao Chen: 'Exactly. People tell you what they need when something wastes their time.'\n\nYou: 'That sounds like a very Shanghai way to make friends.'\n\nXiao Chen grins.\n\nXiao Chen: 'No, this is a very Shanghai way to find users before calling them users.'",
+    dialogueChoices: [
+      {
+        text: "So your friendship language is user research?",
+        reply: "Only for people I respect. For everyone else I pretend to make normal small talk.",
+        effects: {
+          stats: { digitalProficiency: 2, energy: 1 },
+          relationships: { "Xiao Chen": { friendship: 3 } },
+          flags: { dialogue_xiao_chen_research_joke: true, route_city: true }
+        }
+      },
+      {
+        text: "Before we build anything, can we ask people what actually hurts?",
+        reply: "Yes. Pain before product. You may be annoying in a useful way.",
+        effects: {
+          stats: { digitalProficiency: 3, culture: 1 },
+          relationships: { "Xiao Chen": { friendship: 3 } },
+          flags: { dialogue_xiao_chen_pain_before_product: true, route_city: true }
+        }
+      },
+      {
+        text: "I can help with international students, but not if this becomes exploitative.",
+        reply: "Fair. If the idea only works when users are confused, the idea is bad.",
+        effects: {
+          stats: { digitalProficiency: 2, culture: 2, energy: -1 },
+          relationships: { "Xiao Chen": { friendship: 2 } },
+          flags: { dialogue_xiao_chen_user_dignity: true, route_city: true }
+        }
+      }
+    ],
+    choices: [
+      {
+        text: "Interview three students before proposing a solution.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { digitalProficiency: 7, culture: 4, energy: -4 },
+          guanxi: { localStudents: 3 },
+          relationships: { "Xiao Chen": { friendship: 7 } },
+          flags: { weekly_focus: "Campus market walk with Xiao Chen", route_city: true, contact_xiao_chen_talk_1: true, xiao_chen_user_interviews: true }
+        }
+      },
+      {
+        text: "Pitch a quick idea and let him challenge it hard.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { digitalProficiency: 8, wealth: 80, energy: -6 },
+          relationships: { "Xiao Chen": { friendship: 4 } },
+          flags: { weekly_focus: "Xiao Chen fast prototype debate", route_city: true, contact_xiao_chen_talk_1: true, xiao_chen_fast_pitch_seed: true }
+        }
+      }
+    ]
+  },
+
+  "event_contact_neighbor_li_talk_1": {
+    speaker: "Neighbor Li",
+    bgImage: '/images/simulator/backgrounds/bg_dorm_common_room.jpg',
+    text: "Neighbor Li flips over a delivery receipt and starts drawing the dorm like it is a small city.\n\nNeighbor Li: 'This floor borrows tools. That floor borrows everything and returns nothing. Do not ask in the big group chat before checking the pinned message.'\n\nYou: 'There is a pinned message?'\n\nNeighbor Li looks at you with sincere concern.\n\nNeighbor Li: 'There are always pinned messages.'\n\nYou lean closer as Li marks the laundry room, the parcel shelf, and the auntie who notices whether people greet her before needing help.\n\nNeighbor Li: 'These are not official rules. Official rules are on the wall. These are the rules that keep you from becoming a screenshot in the group chat.'",
+    dialogueChoices: [
+      {
+        text: "Please teach me the unofficial rules before I become a screenshot.",
+        reply: "Good. Fear of screenshots is the beginning of dorm wisdom.",
+        effects: {
+          stats: { culture: 3, chinese: 1 },
+          guanxi: { localStudents: 1 },
+          relationships: { "Neighbor Li": { friendship: 3 } },
+          flags: { dialogue_neighbor_li_unofficial_rules: true, route_local: true }
+        }
+      },
+      {
+        text: "I want to help, but I do not want to be the loud foreigner in every problem.",
+        reply: "Then learn when to translate and when to stand slightly behind someone else. Both are skills.",
+        effects: {
+          stats: { culture: 3, energy: -1 },
+          relationships: { "Neighbor Li": { friendship: 3 } },
+          flags: { dialogue_neighbor_li_not_loud: true, route_local: true }
+        }
+      },
+      {
+        text: "Can I ask what people are too polite to say directly?",
+        reply: "Yes. But first you learn to hear it when they do not say it.",
+        effects: {
+          stats: { chinese: 2, culture: 2 },
+          guanxi: { localStudents: 1 },
+          relationships: { "Neighbor Li": { friendship: 2 } },
+          flags: { dialogue_neighbor_li_indirect_signals: true, route_local: true }
+        }
+      }
+    ],
+    choices: [
+      {
+        text: "Ask about the rules people do not say out loud.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { culture: 7, chinese: 4, energy: -2 },
+          guanxi: { localStudents: 6 },
+          relationships: { "Neighbor Li": { friendship: 7 } },
+          flags: { weekly_focus: "Neighbor Li dorm map", route_local: true, contact_neighbor_li_talk_1: true, neighbor_li_dorm_map: true }
+        }
+      },
+      {
+        text: "Offer to help with the next hallway errand.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { culture: 5, chinese: 5, energy: -4 },
+          guanxi: { localStudents: 7 },
+          relationships: { "Neighbor Li": { friendship: 6 } },
+          flags: { weekly_focus: "Neighbor Li hallway errand promise", route_local: true, contact_neighbor_li_talk_1: true, neighbor_li_errand_promise: true }
+        }
+      }
+    ]
+  },
+
+  "event_contact_manager_zhang_talk_1": {
+    speaker: "Manager Zhang",
+    bgImage: '/images/simulator/backgrounds/bg_career_office.jpg',
+    text: "Manager Zhang checks the time before you sit down, then turns his phone face-down.\n\nManager Zhang: 'We have fifteen minutes.'\n\nYou sit straighter than you meant to.\n\nManager Zhang: 'Relax. A career chat is not a confession booth. It is also not a performance stage.'\n\nYou: 'Then what should I bring?'\n\nManager Zhang: 'One real question.' He folds his hands on the desk. 'Not \"How do I succeed in China?\" That is a slogan pretending to be a question. Bring something real. We can work with real.'",
+    dialogueChoices: [
+      {
+        text: "What would make someone trust me before my Chinese is perfect?",
+        reply: "Preparation. Specificity. And knowing which promises you are legally allowed to make.",
+        effects: {
+          stats: { digitalProficiency: 2, culture: 2 },
+          guanxi: { admin: 1 },
+          relationships: { "Manager Zhang": { friendship: 3 } },
+          flags: { dialogue_manager_zhang_trust_before_fluency: true, route_career: true }
+        }
+      },
+      {
+        text: "How do I avoid sounding like every other international applicant?",
+        reply: "Stop selling adjectives. Bring evidence. Evidence has an accent people respect.",
+        effects: {
+          stats: { digitalProficiency: 3, energy: -1 },
+          relationships: { "Manager Zhang": { friendship: 2 } },
+          flags: { dialogue_manager_zhang_evidence_over_adjectives: true, route_career: true }
+        }
+      },
+      {
+        text: "I need to understand the legal boundary before I chase experience.",
+        reply: "Good. Ambition without compliance is expensive confidence.",
+        effects: {
+          stats: { culture: 2, digitalProficiency: 1 },
+          guanxi: { admin: 2 },
+          relationships: { "Manager Zhang": { friendship: 3 } },
+          flags: { dialogue_manager_zhang_legal_boundary: true, route_career: true }
+        }
+      }
+    ],
+    choices: [
+      {
+        text: "Ask how to become useful before asking for an opportunity.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { digitalProficiency: 6, culture: 6, energy: -3 },
+          guanxi: { admin: 5 },
+          relationships: { "Manager Zhang": { friendship: 7 } },
+          flags: { weekly_focus: "Manager Zhang usefulness chat", route_career: true, contact_manager_zhang_talk_1: true, manager_zhang_usefulness_frame: true }
+        }
+      },
+      {
+        text: "Ask directly what makes international students fail interviews.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { digitalProficiency: 8, culture: 3, energy: -4 },
+          guanxi: { admin: 4 },
+          relationships: { "Manager Zhang": { friendship: 6 } },
+          flags: { weekly_focus: "Manager Zhang interview failure chat", route_career: true, contact_manager_zhang_talk_1: true, manager_zhang_interview_risks: true }
+        }
+      }
+    ]
+  },
+
+  "event_contact_uncle_wang_talk_1": {
+    speaker: "Uncle Wang",
+    bgImage: '/images/simulator/backgrounds/bg_uncle_wang_bbq.jpg',
+    text: "You arrive before the dinner rush, when the grill is warming up and the plastic stools are still stacked.\n\nUncle Wang looks at you, then kicks one stool loose with his foot.\n\nUncle Wang: 'Good timing.'\n\nYou: 'Because there is no line?'\n\nUncle Wang: 'Because when it gets busy, nobody tells the truth. Too much smoke.'\n\nHe turns a row of skewers, not looking at you directly.\n\nUncle Wang: 'Students come here hungry, lonely, excited, broke, heartbroken. They all order like they are only hungry.'\n\nYou sit down.\n\nUncle Wang: 'So. New Minghai student. Which one are you tonight?'",
+    dialogueChoices: [
+      {
+        text: "Hungry, obviously. But also lonelier than I expected.",
+        reply: "Then eat slowly. Lonely people order too fast, like the food is going to answer everything.",
+        effects: {
+          stats: { energy: 3, culture: 2, wealth: -10 },
+          relationships: { "Uncle Wang": { friendship: 4 } },
+          flags: { dialogue_uncle_wang_lonely_hungry: true, route_local: true }
+        }
+      },
+      {
+        text: "Excited. But I keep pretending I understand more than I do.",
+        reply: "Good. Tonight you practice saying bu dong. Not understanding is not a disease.",
+        effects: {
+          stats: { chinese: 3, culture: 1, wealth: -10 },
+          relationships: { "Uncle Wang": { friendship: 3 } },
+          flags: { dialogue_uncle_wang_practice_budong: true, route_local: true }
+        }
+      },
+      {
+        text: "Broke enough to check the price twice.",
+        reply: "Then I teach you what fills the stomach without emptying the wallet. This is also education.",
+        effects: {
+          stats: { culture: 2, energy: 2, wealth: 20 },
+          relationships: { "Uncle Wang": { friendship: 2 } },
+          flags: { dialogue_uncle_wang_budget_lesson: true, route_local: true, route_survival: true }
+        }
+      }
+    ],
+    choices: [
+      {
+        text: "Ask what students misunderstand about the neighborhood.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { culture: 8, chinese: 5, energy: 3, wealth: -35 },
+          guanxi: { localStudents: 4 },
+          relationships: { "Uncle Wang": { friendship: 8 } },
+          flags: { weekly_focus: "Uncle Wang quiet-stall talk", route_local: true, contact_uncle_wang_talk_1: true, uncle_wang_neighborhood_lesson: true }
+        }
+      },
+      {
+        text: "Practice ordering for the next student who freezes.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { chinese: 8, culture: 4, energy: 2, wealth: -35 },
+          guanxi: { localStudents: 3 },
+          relationships: { "Uncle Wang": { friendship: 6 } },
+          flags: { weekly_focus: "Uncle Wang ordering practice", route_local: true, contact_uncle_wang_talk_1: true, uncle_wang_ordering_practice: true }
+        }
+      }
+    ]
+  },
+
+  "event_request_professor_lin_class_question": {
+    speaker: "Professor Lin",
+    bgImage: '/images/simulator/cg/cg_professor_lin_plain_explanation.png',
+    text: "Professor Lin forwards you a classmate's confused question with the name removed.\n\nProfessor Lin: 'Explain the concept in plain language.'\n\nYou read the question twice. The embarrassing part is that you understand the confusion better than the answer.\n\nYou: 'Is this for them, or for me?'\n\nProfessor Lin: 'Both, if we are lucky.'\n\nA second message arrives before you can overthink the first.\n\nProfessor Lin: 'If you cannot explain it without decoration, you may not understand it yet.'",
+    dialogueChoices: [
+      {
+        text: "I think I understand the confusion because I still share part of it.",
+        reply: "Good. That means you can explain without condescension. Start there.",
+        effects: {
+          stats: { academics: 3, energy: -1 },
+          relationships: { "Professor Lin": { friendship: 3 } },
+          flags: { dialogue_lin_shared_confusion: true, route_academic: true }
+        }
+      },
+      {
+        text: "Can I send a rough version first, then revise after your correction?",
+        reply: "Yes. Iteration is not weakness. Pretending the first version is final is weakness.",
+        effects: {
+          stats: { academics: 2, digitalProficiency: 1 },
+          guanxi: { professors: 1 },
+          relationships: { "Professor Lin": { friendship: 2 } },
+          flags: { dialogue_lin_iteration_request: true, route_academic: true }
+        }
+      },
+      {
+        text: "I want to answer clearly, but I am afraid of exposing how much I do not know.",
+        reply: "Then expose it in draft form, where ignorance can still be repaired.",
+        effects: {
+          stats: { academics: 2, energy: 1 },
+          relationships: { "Professor Lin": { friendship: 2 } },
+          flags: { dialogue_lin_expose_gap: true, route_academic: true }
+        }
+      }
+    ],
+    choices: [
+      {
+        text: "Write the explanation slowly enough to expose your own gaps.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { academics: 8, energy: -4 },
+          guanxi: { professors: 4, localStudents: 2 },
+          relationships: { "Professor Lin": { friendship: 6 } },
+          flags: { weekly_focus: "Professor Lin class-question request", route_academic: true, request_professor_lin_class_question: true },
+          lifeCheck: {
+            id: "lin_plain_explanation",
+            label: "Plain-Language Explanation",
+            route: "Academic",
+            tags: ["academic", "explanation"],
+            stats: { academics: 0.32, chinese: 0.12, culture: 0.12 },
+            guanxi: { professors: 0.25 },
+            routes: { academic: 1.2 },
+            character: "Professor Lin",
+            relationshipWeight: 0.25,
+            dc: 13,
+            success: {
+              message: "The explanation works because you stop decorating the gap and start naming it.",
+              stats: { academics: 2 },
+              flags: { lin_explanation_check_passed: true }
+            },
+            failure: {
+              message: "The answer helps the classmate, but Professor Lin can still hear where clarity turns into performance.",
+              stats: { energy: -2 },
+              flags: { lin_explanation_check_strained: true }
+            }
+          }
+        }
+      },
+      {
+        text: "Send a concise answer and ask him what still sounds vague.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { academics: 6, digitalProficiency: 2, energy: -3 },
+          guanxi: { professors: 5 },
+          relationships: { "Professor Lin": { friendship: 5 } },
+          flags: { weekly_focus: "Professor Lin concise explanation", route_academic: true, request_professor_lin_class_question: true },
+          lifeCheck: {
+            id: "lin_concise_answer",
+            label: "Concise Academic Answer",
+            route: "Academic",
+            tags: ["academic", "explanation"],
+            stats: { academics: 0.3, digitalProficiency: 0.18, culture: 0.08 },
+            guanxi: { professors: 0.25 },
+            routes: { academic: 1.2 },
+            character: "Professor Lin",
+            relationshipWeight: 0.25,
+            dc: 13,
+            success: {
+              message: "The concise version survives because it is plain, not thin.",
+              stats: { digitalProficiency: 1, academics: 1 },
+              flags: { lin_concise_check_passed: true }
+            },
+            failure: {
+              message: "The answer is shorter, but not yet cleaner. Professor Lin marks the sentence that hides the work.",
+              stats: { energy: -2 },
+              flags: { lin_concise_check_strained: true }
+            }
+          }
+        }
+      }
+    ]
+  },
+
+  "event_request_dr_mei_field_notes": {
+    speaker: "Dr. Mei",
+    bgImage: '/images/simulator/cg/cg_dr_mei_field_notes.png',
+    text: "Dr. Mei sends three messy observation notes from a campus interview. The file name is plain. The notes are not.\n\nDr. Mei: 'Tell me what is missing.'\n\nYou scroll through half-sentences, bracketed pauses, and one line that only says: student laughed, unclear why.\n\nYou: 'Do you want me to clean this into a memo?'\n\nDr. Mei: 'Not yet.'\n\nAnother message appears.\n\nDr. Mei: 'Do not beautify them. Look for what the notes failed to notice.'",
+    dialogueChoices: [
+      {
+        text: "The notes record answers, but not who felt safe giving them.",
+        reply: "Exactly. Data has weather. Most people forget to write down the weather.",
+        effects: {
+          stats: { academics: 2, culture: 3 },
+          relationships: { "Dr. Mei": { friendship: 3 } },
+          flags: { dialogue_dr_mei_data_weather: true, route_academic: true }
+        }
+      },
+      {
+        text: "I want to mark uncertainty instead of pretending the transcript is clean.",
+        reply: "Good. Uncertainty is not dirt. It is evidence that the scene was real.",
+        effects: {
+          stats: { academics: 3, energy: -1 },
+          guanxi: { professors: 1 },
+          relationships: { "Dr. Mei": { friendship: 2 } },
+          flags: { dialogue_dr_mei_mark_uncertainty: true, route_academic: true }
+        }
+      },
+      {
+        text: "I can organize them, but I do not want structure to erase the awkward parts.",
+        reply: "Then build a structure with room for awkwardness. That is harder, and more honest.",
+        effects: {
+          stats: { academics: 2, digitalProficiency: 1, culture: 1 },
+          relationships: { "Dr. Mei": { friendship: 2 } },
+          flags: { dialogue_dr_mei_awkward_structure: true, route_academic: true }
+        }
+      }
+    ],
+    choices: [
+      {
+        text: "Mark the blind spots instead of smoothing the story.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { academics: 7, culture: 6, energy: -5 },
+          guanxi: { professors: 4 },
+          relationships: { "Dr. Mei": { friendship: 6 } },
+          flags: { weekly_focus: "Dr. Mei field-note request", route_academic: true, request_dr_mei_field_notes: true, dr_mei_field_note_care: true },
+          lifeCheck: {
+            id: "mei_field_note_blind_spots",
+            label: "Field-Note Blind Spots",
+            route: "Academic",
+            tags: ["academic", "research"],
+            stats: { academics: 0.28, culture: 0.25, digitalProficiency: 0.08 },
+            guanxi: { professors: 0.25 },
+            routes: { academic: 1.2 },
+            character: "Dr. Mei",
+            relationshipWeight: 0.25,
+            dc: 13,
+            success: {
+              message: "You notice the silence around the answers, not only the answers themselves.",
+              stats: { academics: 1, culture: 2 },
+              flags: { mei_blind_spot_check_passed: true }
+            },
+            failure: {
+              message: "You find useful patterns, but Dr. Mei has to remind you where the notes became too neat.",
+              stats: { energy: -2 },
+              flags: { mei_blind_spot_check_strained: true }
+            }
+          }
+        }
+      },
+      {
+        text: "Organize the notes into a cleaner research memo.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { academics: 8, digitalProficiency: 3, energy: -4 },
+          guanxi: { professors: 3 },
+          relationships: { "Dr. Mei": { friendship: 4 } },
+          flags: { weekly_focus: "Dr. Mei research memo", route_academic: true, request_dr_mei_field_notes: true },
+          lifeCheck: {
+            id: "mei_research_memo",
+            label: "Responsible Research Memo",
+            route: "Academic",
+            tags: ["academic", "research"],
+            stats: { academics: 0.3, digitalProficiency: 0.18, culture: 0.12 },
+            guanxi: { professors: 0.2 },
+            routes: { academic: 1.1 },
+            character: "Dr. Mei",
+            relationshipWeight: 0.22,
+            dc: 13,
+            success: {
+              message: "The memo gains structure without erasing the awkward evidence.",
+              stats: { academics: 2 },
+              flags: { mei_memo_check_passed: true }
+            },
+            failure: {
+              message: "The memo is cleaner than the notes, maybe too clean. Dr. Mei writes one word in the margin: context.",
+              stats: { energy: -2 },
+              flags: { mei_memo_check_strained: true }
+            }
+          }
+        }
+      }
+    ]
+  },
+
+  "event_request_sophie_new_student": {
+    speaker: "Sophie",
+    bgImage: '/images/simulator/cg/cg_sophie_arrival_rescue.png',
+    text: "Sophie catches you outside the dorm elevators with one earbud in and her expression already halfway between worried and organized.\n\nSophie: 'Emergency, but not official emergency.'\n\nShe plays a voice note. A new student has landed, lost the pickup point, and started apologizing to everyone in three languages.\n\nNew Student: 'I am sorry, I think I am at the wrong exit. The driver called but I did not understand. I am really sorry.'\n\nSophie lowers the volume.\n\nSophie: 'You remember this feeling, right? The part where every sign looks like it is judging you?'\n\nYou nod before you mean to.\n\nSophie: 'Can you take this one with me? I can handle the logistics, but they need to hear from someone who survived yesterday, not someone who sounds like an orientation PDF.'",
+    dialogueChoices: [
+      {
+        text: "I remember the shame more than the logistics. Let's start by lowering that.",
+        reply: "Yes. Step one: make them stop apologizing to the whole airport.",
+        effects: {
+          stats: { energy: 2, culture: 1 },
+          guanxi: { intlStudents: 2 },
+          relationships: { Sophie: { friendship: 3 } },
+          flags: { dialogue_sophie_reduce_arrival_shame: true, route_intl: true }
+        }
+      },
+      {
+        text: "I can send the practical steps while you stay on voice with them.",
+        reply: "Perfect. Logistics plus a human voice. That should be a required arrival package.",
+        effects: {
+          stats: { digitalProficiency: 2, energy: -1 },
+          guanxi: { intlStudents: 2 },
+          relationships: { Sophie: { friendship: 2 } },
+          flags: { dialogue_sophie_logistics_voice: true, route_intl: true }
+        }
+      },
+      {
+        text: "Let's write down what works. Future students should not need heroic guessing.",
+        reply: "That sentence is going in the guide. Maybe with fewer dramatic adjectives.",
+        effects: {
+          stats: { digitalProficiency: 2, culture: 1 },
+          relationships: { Sophie: { friendship: 3 } },
+          flags: { dialogue_sophie_guide_seed: true, route_intl: true }
+        }
+      }
+    ],
+    choices: [
+      {
+        text: "Send calm steps first, comfort second, jokes last.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { digitalProficiency: 5, energy: -2 },
+          guanxi: { intlStudents: 8 },
+          relationships: { Sophie: { friendship: 6 } },
+          flags: { weekly_focus: "Sophie new-student request", route_intl: true, request_sophie_new_student: true, sophie_arrival_helper: true }
+        }
+      },
+      {
+        text: "Join Sophie on a quick rescue call.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { energy: -4, culture: 3 },
+          guanxi: { intlStudents: 10 },
+          relationships: { Sophie: { friendship: 7 } },
+          flags: { weekly_focus: "Sophie arrival rescue call", route_intl: true, request_sophie_new_student: true }
+        }
+      }
+    ]
+  },
+
+  "event_request_xiao_chen_onboarding": {
+    speaker: "Xiao Chen",
+    bgImage: '/images/simulator/cg/cg_xiao_chen_onboarding_test.png',
+    text: "Xiao Chen drops a draft onboarding screen into chat at 12:08 AM.\n\nXiao Chen: 'Too many words?'\n\nYou open the image. The screen looks like a small textbook wearing a QR code.\n\nYou: 'Do you want honesty or encouragement?'\n\nXiao Chen: 'Honesty first. Encouragement after launch.'\n\nYou zoom in. There are instructions, warnings, examples, two arrows, and a sentence that starts with \"Simply\" before becoming very unsimple.\n\nXiao Chen: 'Users will read it, right?'\n\nYou do not answer fast enough.\n\nXiao Chen: 'That bad?'",
+    dialogueChoices: [
+      {
+        text: "If a stressed student opens this, they will close it before step two.",
+        reply: "Painful. Useful. So step one must survive panic.",
+        effects: {
+          stats: { digitalProficiency: 3, culture: 1 },
+          relationships: { "Xiao Chen": { friendship: 3 } },
+          flags: { dialogue_xiao_chen_panic_test: true, route_city: true }
+        }
+      },
+      {
+        text: "Let's remove every sentence that exists to make us feel clever.",
+        reply: "Cruel to my sentences, kind to users. Fine. Delete mode.",
+        effects: {
+          stats: { digitalProficiency: 3, energy: -1 },
+          relationships: { "Xiao Chen": { friendship: 2 } },
+          flags: { dialogue_xiao_chen_delete_mode: true, route_city: true }
+        }
+      },
+      {
+        text: "We should watch two people use it without explaining anything.",
+        reply: "Silent test. Brutal. Excellent. I will try not to rescue my own design.",
+        effects: {
+          stats: { digitalProficiency: 2, culture: 2, energy: -1 },
+          guanxi: { localStudents: 1 },
+          relationships: { "Xiao Chen": { friendship: 3 } },
+          flags: { dialogue_xiao_chen_silent_test: true, route_city: true }
+        }
+      }
+    ],
+    choices: [
+      {
+        text: "Cut the copy until the first task is impossible to miss.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { digitalProficiency: 8, culture: 3, energy: -4 },
+          relationships: { "Xiao Chen": { friendship: 6 } },
+          flags: { weekly_focus: "Xiao Chen onboarding request", route_city: true, request_xiao_chen_onboarding: true, xiao_chen_onboarding_clear: true }
+        }
+      },
+      {
+        text: "Ask two students to use it while both of you stay silent.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { digitalProficiency: 6, culture: 5, energy: -5 },
+          guanxi: { localStudents: 3 },
+          relationships: { "Xiao Chen": { friendship: 7 } },
+          flags: { weekly_focus: "Xiao Chen silent usability test", route_city: true, request_xiao_chen_onboarding: true }
+        }
+      }
+    ]
+  },
+
+  "event_request_neighbor_li_parcel": {
+    speaker: "Neighbor Li",
+    bgImage: '/images/simulator/cg/cg_neighbor_li_parcel_crisis.png',
+    text: "Neighbor Li waves you into the hallway, where three students, two parcels, and one annoyed delivery driver have formed a small diplomatic crisis.\n\nDelivery Driver: 'This number is not here. I called already.'\n\nStudent: 'But the app says delivered.'\n\nNeighbor Li looks at you like this is a practical exam nobody warned you about.\n\nNeighbor Li: 'You know enough now.'\n\nYou: 'That is a generous interpretation.'\n\nNeighbor Li lowers their voice.\n\nNeighbor Li: 'Help me make this normal again. Not perfect. Normal is enough.'",
+    dialogueChoices: [
+      {
+        text: "Tell me which part needs translating and which part needs saving face.",
+        reply: "Good. You are learning that those are not the same job.",
+        effects: {
+          stats: { chinese: 2, culture: 2 },
+          guanxi: { localStudents: 1 },
+          relationships: { "Neighbor Li": { friendship: 3 } },
+          flags: { dialogue_neighbor_li_translate_face: true, route_local: true }
+        }
+      },
+      {
+        text: "I can help, but stop me if I start making it about myself.",
+        reply: "I will. Very quickly. Do not worry.",
+        effects: {
+          stats: { culture: 2, energy: 1 },
+          relationships: { "Neighbor Li": { friendship: 2 } },
+          flags: { dialogue_neighbor_li_stop_me: true, route_local: true }
+        }
+      },
+      {
+        text: "Let's solve the delivery first and explain the app screenshot after.",
+        reply: "Practical order. Good. People listen better after soup is no longer getting cold.",
+        effects: {
+          stats: { digitalProficiency: 1, chinese: 2 },
+          guanxi: { localStudents: 2 },
+          relationships: { "Neighbor Li": { friendship: 2 } },
+          flags: { dialogue_neighbor_li_practical_order: true, route_local: true }
+        }
+      }
+    ],
+    choices: [
+      {
+        text: "Translate the practical parts and let Li handle the face-saving.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { chinese: 6, culture: 7, energy: -4 },
+          guanxi: { localStudents: 7 },
+          relationships: { "Neighbor Li": { friendship: 6 } },
+          flags: { weekly_focus: "Neighbor Li parcel request", route_local: true, request_neighbor_li_parcel: true, neighbor_li_parcel_mediator: true },
+          lifeCheck: {
+            id: "neighbor_parcel_mediation",
+            label: "Parcel Mediation",
+            route: "Local",
+            tags: ["local", "delivery", "language"],
+            stats: { chinese: 0.28, culture: 0.28, digitalProficiency: 0.12 },
+            guanxi: { localStudents: 0.25 },
+            routes: { local: 1.2 },
+            character: "Neighbor Li",
+            relationshipWeight: 0.25,
+            dc: 13,
+            success: {
+              message: "You solve the package problem without turning anyone into the loser of the hallway.",
+              stats: { culture: 2 },
+              flags: { neighbor_parcel_check_passed: true }
+            },
+            failure: {
+              message: "The package is found, but the hallway gets louder before it gets calmer.",
+              stats: { energy: -2 },
+              flags: { neighbor_parcel_check_strained: true }
+            }
+          }
+        }
+      },
+      {
+        text: "Step forward and try to resolve the whole thing yourself.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { chinese: 8, culture: 3, energy: -6 },
+          guanxi: { localStudents: 4 },
+          relationships: { "Neighbor Li": { friendship: 4 } },
+          flags: { weekly_focus: "Neighbor Li parcel overreach", route_local: true, request_neighbor_li_parcel: true },
+          lifeCheck: {
+            id: "neighbor_parcel_overreach",
+            label: "Parcel Overreach",
+            route: "Local",
+            tags: ["local", "delivery", "language"],
+            stats: { chinese: 0.32, culture: 0.18, digitalProficiency: 0.1 },
+            guanxi: { localStudents: 0.2 },
+            routes: { local: 1 },
+            character: "Neighbor Li",
+            relationshipWeight: 0.2,
+            dc: 14,
+            success: {
+              message: "Taking the lead works only because you keep watching Li for the parts you cannot read yet.",
+              stats: { chinese: 1, culture: 1 },
+              flags: { neighbor_overreach_check_passed: true }
+            },
+            failure: {
+              message: "You fix the logistics and bruise the atmosphere. Li has to repair what the app could not show you.",
+              stats: { energy: -3 },
+              relationships: { "Neighbor Li": { friendship: -1 } },
+              flags: { neighbor_overreach_check_strained: true }
+            }
+          }
+        }
+      }
+    ]
+  },
+
+  "event_request_manager_zhang_answer": {
+    speaker: "Manager Zhang",
+    bgImage: '/images/simulator/cg/cg_manager_zhang_mock_interview.png',
+    text: "Manager Zhang replies to your practice interview answer with one line.\n\nManager Zhang: 'Better. Still too soft.'\n\nYou stare at the message until it becomes less useful and more personal.\n\nYou: 'Soft how?'\n\nManager Zhang: 'You are asking them to imagine you are capable. Make them see evidence.'\n\nA minute later, he sends a voice message.\n\nManager Zhang: 'In interviews, adjectives are cheap. Proof is expensive. Spend proof.'",
+    dialogueChoices: [
+      {
+        text: "So I should replace confidence with proof?",
+        reply: "Not replace. Anchor. Confidence without proof floats away under pressure.",
+        effects: {
+          stats: { digitalProficiency: 2, academics: 1 },
+          relationships: { "Manager Zhang": { friendship: 3 } },
+          flags: { dialogue_manager_zhang_anchor_confidence: true, route_career: true }
+        }
+      },
+      {
+        text: "Can I say the China part plainly without making it sound exotic?",
+        reply: "That is exactly the assignment. Legible, not decorative.",
+        effects: {
+          stats: { culture: 2, digitalProficiency: 1 },
+          guanxi: { admin: 1 },
+          relationships: { "Manager Zhang": { friendship: 2 } },
+          flags: { dialogue_manager_zhang_legible_china: true, route_career: true }
+        }
+      },
+      {
+        text: "I need to learn where directness becomes arrogance.",
+        reply: "Evidence keeps directness disciplined. Arrogance asks people to believe without receipts.",
+        effects: {
+          stats: { culture: 2, energy: -1 },
+          relationships: { "Manager Zhang": { friendship: 3 } },
+          flags: { dialogue_manager_zhang_directness_boundary: true, route_career: true }
+        }
+      }
+    ],
+    choices: [
+      {
+        text: "Rewrite the answer around evidence and numbers.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { digitalProficiency: 8, academics: 3, energy: -4 },
+          guanxi: { admin: 5 },
+          relationships: { "Manager Zhang": { friendship: 6 } },
+          flags: { weekly_focus: "Manager Zhang interview-answer request", route_career: true, request_manager_zhang_answer: true, manager_zhang_evidence_answer: true },
+          lifeCheck: {
+            id: "manager_evidence_answer",
+            label: "Evidence-Based Interview Answer",
+            route: "Career",
+            tags: ["career", "interview"],
+            stats: { digitalProficiency: 0.3, academics: 0.18, culture: 0.12 },
+            guanxi: { admin: 0.25 },
+            routes: { career: 1.2 },
+            character: "Manager Zhang",
+            relationshipWeight: 0.25,
+            dc: 13,
+            success: {
+              message: "The answer stops asking for belief and starts showing receipts.",
+              stats: { digitalProficiency: 2 },
+              flags: { manager_evidence_check_passed: true }
+            },
+            failure: {
+              message: "The answer improves, but Zhang can still hear the places where you hope adjectives will do the work.",
+              stats: { energy: -2 },
+              flags: { manager_evidence_check_strained: true }
+            }
+          }
+        }
+      },
+      {
+        text: "Ask him where confidence becomes exaggeration.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { culture: 6, digitalProficiency: 5, energy: -3 },
+          guanxi: { admin: 4 },
+          relationships: { "Manager Zhang": { friendship: 7 } },
+          flags: { weekly_focus: "Manager Zhang confidence boundary", route_career: true, request_manager_zhang_answer: true },
+          lifeCheck: {
+            id: "manager_confidence_boundary",
+            label: "Confidence Boundary",
+            route: "Career",
+            tags: ["career", "interview"],
+            stats: { culture: 0.28, digitalProficiency: 0.22, academics: 0.1 },
+            guanxi: { admin: 0.2 },
+            routes: { career: 1.1 },
+            character: "Manager Zhang",
+            relationshipWeight: 0.25,
+            dc: 13,
+            success: {
+              message: "You find the line where directness becomes useful instead of loud.",
+              stats: { culture: 1, digitalProficiency: 1 },
+              flags: { manager_boundary_check_passed: true }
+            },
+            failure: {
+              message: "You understand the warning, but your answer still leans on tone more than evidence.",
+              stats: { energy: -2 },
+              flags: { manager_boundary_check_strained: true }
+            }
+          }
+        }
+      }
+    ]
+  },
+
+  "event_request_uncle_wang_order_help": {
+    speaker: "Uncle Wang",
+    bgImage: '/images/simulator/cg/cg_uncle_wang_order_bridge.png',
+    text: "A new international student freezes at the stall while the line grows behind them.\n\nNew Student: 'Sorry, sorry, I just... this one? No spicy? Maybe little spicy?'\n\nUncle Wang catches your eye and tilts his chin toward the menu.\n\nUncle Wang: 'Your classmate?'\n\nYou: 'Not exactly.'\n\nUncle Wang smiles without stopping his hands.\n\nUncle Wang: 'All Minghai students are \"not exactly\" until they need dinner.'\n\nThe student looks one apology away from fleeing.\n\nUncle Wang lowers his voice.\n\nUncle Wang: 'Help, but do not make them feel small.'",
+    dialogueChoices: [
+      {
+        text: "I will give them the words, not take the moment away.",
+        reply: "Good. Helping someone speak is better than speaking over them.",
+        effects: {
+          stats: { chinese: 2, culture: 2 },
+          guanxi: { intlStudents: 1 },
+          relationships: { "Uncle Wang": { friendship: 3 } },
+          flags: { dialogue_uncle_wang_words_not_takeover: true, route_local: true }
+        }
+      },
+      {
+        text: "Can you slow the line down for ten seconds while I help?",
+        reply: "For you, twelve seconds. Do not waste my generosity.",
+        effects: {
+          stats: { energy: 1, chinese: 1 },
+          relationships: { "Uncle Wang": { friendship: 2 } },
+          flags: { dialogue_uncle_wang_twelve_seconds: true, route_local: true }
+        }
+      },
+      {
+        text: "I remember this exact panic. I can make the menu less hostile.",
+        reply: "Good. Then use the memory kindly. Panic should become a bridge, not a performance.",
+        effects: {
+          stats: { culture: 2, energy: 2 },
+          guanxi: { intlStudents: 1, localStudents: 1 },
+          relationships: { "Uncle Wang": { friendship: 3 } },
+          flags: { dialogue_uncle_wang_panic_bridge: true, route_local: true }
+        }
+      }
+    ],
+    choices: [
+      {
+        text: "Help translate without making the student feel rescued.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { chinese: 7, culture: 6, energy: 2, wealth: -25 },
+          guanxi: { localStudents: 5, intlStudents: 2 },
+          relationships: { "Uncle Wang": { friendship: 6 } },
+          flags: { weekly_focus: "Uncle Wang order-help request", route_local: true, request_uncle_wang_order_help: true, uncle_wang_order_bridge: true },
+          lifeCheck: {
+            id: "uncle_wang_order_bridge",
+            label: "Order Bridge",
+            route: "Local",
+            tags: ["local", "language", "social"],
+            stats: { chinese: 0.3, culture: 0.25, energy: 0.04 },
+            guanxi: { localStudents: 0.2, intlStudents: 0.2 },
+            routes: { local: 1.2 },
+            character: "Uncle Wang",
+            relationshipWeight: 0.22,
+            dc: 13,
+            success: {
+              message: "You give the student the words without taking the dignity of saying them.",
+              stats: { culture: 2, energy: 1 },
+              flags: { wang_order_check_passed: true }
+            },
+            failure: {
+              message: "The order gets made, but you can feel how easily helping becomes performing.",
+              stats: { energy: -2 },
+              flags: { wang_order_check_strained: true }
+            }
+          }
+        }
+      },
+      {
+        text: "Teach the student the sentence and let them say it.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { chinese: 5, culture: 8, energy: 3, wealth: -25 },
+          guanxi: { localStudents: 4, intlStudents: 3 },
+          relationships: { "Uncle Wang": { friendship: 7 } },
+          flags: { weekly_focus: "Uncle Wang taught order sentence", route_local: true, request_uncle_wang_order_help: true },
+          lifeCheck: {
+            id: "uncle_wang_teach_sentence",
+            label: "Teach the Order Sentence",
+            route: "Local",
+            tags: ["local", "language", "social"],
+            stats: { culture: 0.3, chinese: 0.24, energy: 0.04 },
+            guanxi: { localStudents: 0.18, intlStudents: 0.22 },
+            routes: { local: 1.1, intl: 0.6 },
+            character: "Uncle Wang",
+            relationshipWeight: 0.22,
+            dc: 13,
+            success: {
+              message: "The student says the sentence themselves. Uncle Wang smiles like that was the whole point.",
+              stats: { culture: 2 },
+              flags: { wang_sentence_check_passed: true }
+            },
+            failure: {
+              message: "You teach the sentence, but the line pressure makes the moment smaller than you wanted.",
+              stats: { energy: -2 },
+              flags: { wang_sentence_check_strained: true }
+            }
+          }
+        }
+      }
+    ]
+  },
+
   // --- ROUTE EVENTS: ACADEMIC TRACK ---
   "event_academic_library_grind": {
     speaker: "Minghai Library",
@@ -485,7 +1679,37 @@ export const gameNodes = {
 
   "event_academic_prof_lin": {
     speaker: "Professor Lin",
-    text: "Professor Lin does not solve the assignment for you. He does something more useful and more annoying: he asks the exact question your draft has been avoiding.",
+    text: "Professor Lin reads the assignment prompt, then your answer, then the prompt again.\n\nProfessor Lin: 'You answered a different question.'\n\nYou: 'A worse question?'\n\nProfessor Lin: 'A safer question.'\n\nHe turns the paper toward you and taps the sentence you liked most.\n\nProfessor Lin: 'This sentence sounds confident because it avoids the problem. Confidence is not analysis.'",
+    dialogueChoices: [
+      {
+        text: "I chose the safer question because I knew how to sound smart there.",
+        reply: "Good. Now we have found the performance. Put it down and answer the real prompt.",
+        effects: {
+          stats: { academics: 3, energy: -1 },
+          relationships: { "Professor Lin": { friendship: 3 } },
+          flags: { dialogue_lin_safety_performance: true, route_academic: true }
+        }
+      },
+      {
+        text: "Can you show me where confidence turns into avoidance?",
+        reply: "Here. Your strongest sentence is also your escape route. That is why it felt strong.",
+        effects: {
+          stats: { academics: 3 },
+          guanxi: { professors: 1 },
+          relationships: { "Professor Lin": { friendship: 2 } },
+          flags: { dialogue_lin_confidence_avoidance: true, route_academic: true }
+        }
+      },
+      {
+        text: "I want to defend it, but I think you are right.",
+        reply: "Wanting to defend it is normal. Choosing to revise is the academic habit.",
+        effects: {
+          stats: { academics: 2, energy: 1 },
+          relationships: { "Professor Lin": { friendship: 2 } },
+          flags: { dialogue_lin_defense_to_revision: true, route_academic: true }
+        }
+      }
+    ],
     choices: [
       {
         text: "Revise the work instead of defending it.",
@@ -503,7 +1727,37 @@ export const gameNodes = {
 
   "event_academic_dr_mei_talk": {
     speaker: "Dr. Mei",
-    text: "Dr. Mei's talk begins with theory and ends with a Shanghai case study that makes the theory feel suddenly dangerous. Afterward, you wait by the lectern while other students ask polished questions. When your turn comes, she does not smile much, but she listens like your question may actually matter.",
+    text: "Dr. Mei's talk begins with theory and ends with a Shanghai case study that makes the theory feel suddenly dangerous.\n\nAfterward, you wait by the lectern while other students ask polished questions.\n\nDr. Mei: 'You have been waiting. Ask.'\n\nYou: 'I am not sure the question is polished.'\n\nDr. Mei: 'Good. Polished questions often arrive already dead.'\n\nShe does not smile much, but she listens like your question may actually matter.",
+    dialogueChoices: [
+      {
+        text: "The case made the theory feel less neutral than I expected.",
+        reply: "Good. Neutral language often hides a very interested machine.",
+        effects: {
+          stats: { academics: 2, culture: 2 },
+          relationships: { "Dr. Mei": { friendship: 3 } },
+          flags: { dialogue_dr_mei_theory_not_neutral: true, route_academic: true }
+        }
+      },
+      {
+        text: "I think my question is still half observation, half discomfort.",
+        reply: "That is a respectable beginning. Discomfort means the observation has not gone numb.",
+        effects: {
+          stats: { academics: 2, energy: 1 },
+          relationships: { "Dr. Mei": { friendship: 2 } },
+          flags: { dialogue_dr_mei_observation_discomfort: true, route_academic: true }
+        }
+      },
+      {
+        text: "How do you know when a local example is more than a convenient case?",
+        reply: "When it resists being used neatly. Pay attention to the resistance.",
+        effects: {
+          stats: { academics: 3, culture: 1, energy: -1 },
+          guanxi: { professors: 1 },
+          relationships: { "Dr. Mei": { friendship: 2 } },
+          flags: { dialogue_dr_mei_case_resistance: true, route_academic: true }
+        }
+      }
+    ],
     choices: [
       {
         text: "Ask one specific question and save her contact channel.",
@@ -520,7 +1774,37 @@ export const gameNodes = {
 
   "event_academic_dr_mei_followup": {
     speaker: "Dr. Mei",
-    text: "Your follow-up message is shorter than your nervous draft. Dr. Mei replies with a reading list, one warning about vague claims, and a line that feels like an invitation: 'If this still bothers you after reading, come discuss it.'",
+    text: "Your follow-up message is shorter than your nervous draft.\n\nDr. Mei replies the next morning.\n\nDr. Mei: 'Three readings attached. Start with the second one. The first will make more sense after you stop trying to sound impressive.'\n\nYou read that sentence twice.\n\nA final line follows.\n\nDr. Mei: 'If this still bothers you after reading, come discuss it.'\n\nIt feels less like homework than a door left open.",
+    dialogueChoices: [
+      {
+        text: "The second reading makes the first one less intimidating, but more troubling.",
+        reply: "Then it is doing its job. Useful reading should rearrange the question, not decorate it.",
+        effects: {
+          stats: { academics: 3, culture: 1 },
+          relationships: { "Dr. Mei": { friendship: 2 } },
+          flags: { dialogue_dr_mei_reading_rearranged: true, route_academic: true }
+        }
+      },
+      {
+        text: "I am trying to stop sounding impressive and start sounding precise.",
+        reply: "Precision is already more impressive than most attempts to be impressive.",
+        effects: {
+          stats: { academics: 2, energy: 1 },
+          guanxi: { professors: 1 },
+          relationships: { "Dr. Mei": { friendship: 2 } },
+          flags: { dialogue_dr_mei_precision_over_impressive: true, route_academic: true }
+        }
+      },
+      {
+        text: "It still bothers me. I think that means I should keep going.",
+        reply: "Yes. But learn the difference between a question that bothers you and one that flatters you.",
+        effects: {
+          stats: { academics: 2, culture: 2, energy: -1 },
+          relationships: { "Dr. Mei": { friendship: 3 } },
+          flags: { dialogue_dr_mei_bothers_keep_going: true, route_academic: true }
+        }
+      }
+    ],
     choices: [
       {
         text: "Read enough to deserve the next conversation.",
@@ -572,7 +1856,37 @@ export const gameNodes = {
 
   "event_academic_lin_method": {
     speaker: "Professor Lin",
-    text: "Professor Lin looks over your notes and circles the same weakness three times: you collect information faster than you turn it into an argument. 'This is common,' he says. 'Now make it less common in your work.'",
+    text: "Professor Lin looks over your notes and circles the same weakness three times.\n\nProfessor Lin: 'You collect information faster than you turn it into an argument.'\n\nYou: 'Is that bad?'\n\nProfessor Lin: 'It is common.'\n\nHe slides the notebook back.\n\nProfessor Lin: 'Now make it less common in your work.'",
+    dialogueChoices: [
+      {
+        text: "I keep mistaking more notes for more thinking.",
+        reply: "A common student disease. Fortunately, treatable with outlines and humility.",
+        effects: {
+          stats: { academics: 3, energy: -1 },
+          relationships: { "Professor Lin": { friendship: 3 } },
+          flags: { dialogue_lin_notes_vs_thinking: true, route_academic: true }
+        }
+      },
+      {
+        text: "Can we build a method I can repeat when I panic?",
+        reply: "Yes. A method is most useful when your confidence is absent.",
+        effects: {
+          stats: { academics: 3, digitalProficiency: 1 },
+          guanxi: { professors: 1 },
+          relationships: { "Professor Lin": { friendship: 2 } },
+          flags: { dialogue_lin_panic_method: true, route_academic: true }
+        }
+      },
+      {
+        text: "I want my work to survive without me explaining what I meant.",
+        reply: "Good. That is what an argument is: a thought that can stand when you leave the room.",
+        effects: {
+          stats: { academics: 2, culture: 1 },
+          relationships: { "Professor Lin": { friendship: 2 } },
+          flags: { dialogue_lin_argument_stands: true, route_academic: true }
+        }
+      }
+    ],
     choices: [
       {
         text: "Build the revision method into your weekly routine.",
@@ -590,7 +1904,37 @@ export const gameNodes = {
 
   "event_academic_dr_mei_project": {
     speaker: "Dr. Mei",
-    text: "Dr. Mei does not hand you a topic. She hands you a problem: a messy Shanghai case where theory explains half the picture and lived reality explains the rest. 'If you can stay with the contradiction,' she says, 'there may be a project here.'",
+    text: "Dr. Mei does not hand you a topic. She hands you a problem: a messy Shanghai case where theory explains half the picture and lived reality explains the rest.\n\nYou: 'So what is the research question?'\n\nDr. Mei: 'That is not something I give you like a campus map.'\n\nShe points at two contradictory notes.\n\nDr. Mei: 'If you can stay with the contradiction instead of cleaning it too quickly, there may be a project here.'",
+    dialogueChoices: [
+      {
+        text: "The contradiction is uncomfortable because both sides seem partly true.",
+        reply: "Good. Do not rush to choose a winner. The project may live in the tension.",
+        effects: {
+          stats: { academics: 3, culture: 2 },
+          relationships: { "Dr. Mei": { friendship: 3 } },
+          flags: { dialogue_dr_mei_tension_project: true, route_academic: true }
+        }
+      },
+      {
+        text: "I need to stop treating the research question like something hidden on a map.",
+        reply: "Exactly. You are not finding buried treasure. You are making a responsible lens.",
+        effects: {
+          stats: { academics: 3, energy: -1 },
+          guanxi: { professors: 1 },
+          relationships: { "Dr. Mei": { friendship: 2 } },
+          flags: { dialogue_dr_mei_responsible_lens: true, route_academic: true }
+        }
+      },
+      {
+        text: "Can I write three possible questions and show you what each one ignores?",
+        reply: "That is the first proposal today that sounds like research.",
+        effects: {
+          stats: { academics: 2, digitalProficiency: 1, culture: 1 },
+          relationships: { "Dr. Mei": { friendship: 3 } },
+          flags: { dialogue_dr_mei_three_questions: true, route_academic: true }
+        }
+      }
+    ],
     choices: [
       {
         text: "Turn the contradiction into a research question.",
@@ -608,7 +1952,37 @@ export const gameNodes = {
 
   "event_academic_lin_feedback_tension": {
     speaker: "Professor Lin",
-    text: "Professor Lin returns your draft with comments that are useful, precise, and personally devastating. The first sentence says your argument is not wrong. The second sentence says it is not yet an argument.",
+    text: "Professor Lin returns your draft with comments that are useful, precise, and personally devastating.\n\nProfessor Lin: 'Your argument is not wrong.'\n\nYou start to breathe.\n\nProfessor Lin: 'It is also not yet an argument.'\n\nYou stop breathing again.\n\nProfessor Lin folds his hands.\n\nProfessor Lin: 'The question is whether you want praise for effort, or a draft that can survive contact with another mind.'",
+    dialogueChoices: [
+      {
+        text: "I wanted reassurance. I think I need the draft to get better more.",
+        reply: "That is a painful sentence. It is also the correct one.",
+        effects: {
+          stats: { academics: 3, energy: -2 },
+          relationships: { "Professor Lin": { friendship: 3 } },
+          flags: { dialogue_lin_reassurance_vs_better: true, route_academic: true }
+        }
+      },
+      {
+        text: "When you say it is not yet an argument, what is the missing spine?",
+        reply: "Excellent. Stop defending the skin and look for the spine.",
+        effects: {
+          stats: { academics: 3 },
+          guanxi: { professors: 1 },
+          relationships: { "Professor Lin": { friendship: 2 } },
+          flags: { dialogue_lin_missing_spine: true, route_academic: true }
+        }
+      },
+      {
+        text: "I need a minute not to take this personally, but I do want to learn.",
+        reply: "Take the minute. Then come back to the work. Scholarship begins there.",
+        effects: {
+          stats: { academics: 2, energy: 2 },
+          relationships: { "Professor Lin": { friendship: 2 } },
+          flags: { dialogue_lin_minute_then_work: true, route_academic: true }
+        }
+      }
+    ],
     choices: [
       {
         text: "Ask what he is trying to teach, not whether he is disappointed.",
@@ -637,7 +2011,37 @@ export const gameNodes = {
 
   "event_academic_dr_mei_ethics_tension": {
     speaker: "Dr. Mei",
-    text: "Dr. Mei listens to your project idea, then asks who becomes invisible when you turn people into data points. The room stays polite. The question does not.",
+    text: "Dr. Mei listens to your project idea without interrupting. That almost makes it worse.\n\nDr. Mei: 'You have a clean structure.'\n\nYou: 'That sounds good.'\n\nDr. Mei: 'Sometimes clean structures hide dirty assumptions.'\n\nShe taps the paragraph where you describe interview subjects as cases.\n\nDr. Mei: 'Who becomes invisible when you turn people into data points?'",
+    dialogueChoices: [
+      {
+        text: "I made the structure clean because the reality made me nervous.",
+        reply: "Then the nervousness belongs in the method, not under the rug.",
+        effects: {
+          stats: { academics: 2, culture: 3, energy: -1 },
+          relationships: { "Dr. Mei": { friendship: 3 } },
+          flags: { dialogue_dr_mei_nervous_structure: true, route_academic: true }
+        }
+      },
+      {
+        text: "I need to ask who benefits from this explanation.",
+        reply: "Yes. And who disappears so that the explanation can look elegant.",
+        effects: {
+          stats: { academics: 3, culture: 2 },
+          guanxi: { professors: 1 },
+          relationships: { "Dr. Mei": { friendship: 3 } },
+          flags: { dialogue_dr_mei_who_benefits: true, route_academic: true }
+        }
+      },
+      {
+        text: "Can I keep the scope narrow without making people smaller?",
+        reply: "That is the central tension. Narrow is not the enemy. Careless is.",
+        effects: {
+          stats: { academics: 3, digitalProficiency: 1 },
+          relationships: { "Dr. Mei": { friendship: 2 } },
+          flags: { dialogue_dr_mei_narrow_not_small: true, route_academic: true }
+        }
+      }
+    ],
     choices: [
       {
         text: "Rewrite the question around people, not just data.",
@@ -665,7 +2069,37 @@ export const gameNodes = {
 
   "event_academic_dr_mei_conference_abstract": {
     speaker: "Dr. Mei",
-    text: "Dr. Mei sends you a draft abstract with one sentence highlighted: 'This part sounds like it was written for a committee, not a reader.' The conference deadline is close enough to make every word feel expensive.",
+    text: "Dr. Mei sends you a draft abstract with one sentence highlighted.\n\nDr. Mei: 'This part sounds like it was written for a committee, not a reader.'\n\nYou: 'Is that not what abstracts are for?'\n\nDr. Mei: 'Committees are made of readers having a bad day.'\n\nThe conference deadline is close enough to make every word feel expensive.\n\nDr. Mei: 'Help me make the argument travel.'",
+    dialogueChoices: [
+      {
+        text: "The highlighted sentence is trying to sound important instead of clear.",
+        reply: "Good diagnosis. Now perform surgery without killing the argument.",
+        effects: {
+          stats: { academics: 3, energy: -1 },
+          relationships: { "Dr. Mei": { friendship: 3 } },
+          flags: { dialogue_dr_mei_abstract_surgery: true, route_academic: true }
+        }
+      },
+      {
+        text: "Can we make the first sentence carry the actual tension?",
+        reply: "Yes. The reader should meet the problem before the furniture.",
+        effects: {
+          stats: { academics: 3, digitalProficiency: 1 },
+          guanxi: { professors: 1 },
+          relationships: { "Dr. Mei": { friendship: 2 } },
+          flags: { dialogue_dr_mei_first_sentence_tension: true, route_academic: true }
+        }
+      },
+      {
+        text: "I can cut the committee language, but I am afraid of making it too plain.",
+        reply: "Plain is not simple-minded. Plain is generous when the idea is difficult.",
+        effects: {
+          stats: { academics: 2, culture: 1, energy: 1 },
+          relationships: { "Dr. Mei": { friendship: 2 } },
+          flags: { dialogue_dr_mei_plain_generous: true, route_academic: true }
+        }
+      }
+    ],
     choices: [
       {
         text: "Tighten the argument and help make the abstract travel.",
@@ -684,7 +2118,37 @@ export const gameNodes = {
   "event_academic_lin_recommendation": {
     speaker: "Professor Lin",
     bgImage: '/images/simulator/cg/cg_professor_lin_office_hours.jpg',
-    text: "Professor Lin does not promise anything quickly. He asks for your best draft, your weakest transcript line, and the reason you want the next step. A recommendation, he explains, is not a favor. It is his name attached to your habits.",
+    text: "Professor Lin does not promise anything quickly.\n\nProfessor Lin: 'Bring me your best draft, your weakest transcript line, and the reason you want the next step.'\n\nYou: 'That sounds like an interview.'\n\nProfessor Lin: 'No. It is a responsibility check.'\n\nHe takes off his glasses and sets them beside your file.\n\nProfessor Lin: 'A recommendation is not a favor. It is my name attached to your habits.'",
+    dialogueChoices: [
+      {
+        text: "Then I should show you the habit, not just the ambition.",
+        reply: "Correct. Ambition is cheap until it has a calendar.",
+        effects: {
+          stats: { academics: 3, energy: -1 },
+          relationships: { "Professor Lin": { friendship: 3 } },
+          flags: { dialogue_lin_habit_not_ambition: true, route_academic: true }
+        }
+      },
+      {
+        text: "My weakest line is real. I do not want to hide it behind a story.",
+        reply: "Good. A transcript can survive weakness. It cannot survive dishonesty.",
+        effects: {
+          stats: { academics: 2, culture: 1 },
+          guanxi: { professors: 1 },
+          relationships: { "Professor Lin": { friendship: 3 } },
+          flags: { dialogue_lin_transcript_honesty: true, route_academic: true }
+        }
+      },
+      {
+        text: "If you write it, I want it to be because the work earned it.",
+        reply: "Then bring the work. We will see whether it knows how to stand.",
+        effects: {
+          stats: { academics: 3, energy: -2 },
+          relationships: { "Professor Lin": { friendship: 2 } },
+          flags: { dialogue_lin_earned_recommendation: true, route_academic: true }
+        }
+      }
+    ],
     choices: [
       {
         text: "Show him the work behind the ambition.",
@@ -703,7 +2167,37 @@ export const gameNodes = {
   "event_academic_dr_mei_project_commitment": {
     speaker: "Dr. Mei",
     bgImage: '/images/simulator/cg/cg_dr_mei_project_meeting.jpg',
-    text: "Dr. Mei opens a folder of interview notes, messy charts, and unanswered questions. 'If you join this,' she says, 'you will not just collect material about China. You will have to decide what you are responsible for understanding.'",
+    text: "Dr. Mei opens a folder of interview notes, messy charts, and unanswered questions.\n\nDr. Mei: 'If you join this, you will not just collect material about China.'\n\nYou: 'What else would I be doing?'\n\nDr. Mei turns the laptop so you can see the raw notes.\n\nDr. Mei: 'Deciding what you are responsible for understanding.'\n\nThe room goes quiet around that sentence.",
+    dialogueChoices: [
+      {
+        text: "I am ready to be responsible for more than an interesting topic.",
+        reply: "Then you are ready to begin. Not finish. Begin.",
+        effects: {
+          stats: { academics: 3, culture: 2, energy: -2 },
+          relationships: { "Dr. Mei": { friendship: 3 } },
+          flags: { dialogue_dr_mei_responsible_begin: true, route_academic: true }
+        }
+      },
+      {
+        text: "I want the project to change how I see, not just what I can list.",
+        reply: "That is a better ambition than publication. It may even lead to one.",
+        effects: {
+          stats: { academics: 2, culture: 3 },
+          guanxi: { professors: 1 },
+          relationships: { "Dr. Mei": { friendship: 3 } },
+          flags: { dialogue_dr_mei_change_how_i_see: true, route_academic: true }
+        }
+      },
+      {
+        text: "Tell me where students usually fail this kind of work.",
+        reply: "They extract stories and call it understanding. Do not do that.",
+        effects: {
+          stats: { academics: 3, digitalProficiency: 1, energy: -1 },
+          relationships: { "Dr. Mei": { friendship: 2 } },
+          flags: { dialogue_dr_mei_extracting_stories_warning: true, route_academic: true }
+        }
+      }
+    ],
     choices: [
       {
         text: "Commit to the project and accept the harder question.",
@@ -740,7 +2234,7 @@ export const gameNodes = {
 
   "event_local_neighbor_li": {
     speaker: "Neighbor Li",
-    text: "Neighbor Li explains which washing machines steal socks, which canteen window stays open late, and why the dorm auntie respects people who greet her before needing help.",
+    text: "Neighbor Li leans against the washing machine like a person who has seen freshmen repeat history.\n\nNeighbor Li: 'This machine steals socks. That one sounds broken but works. The third one works but only if you believe in it.'\n\nYou: 'Is this official information?'\n\nNeighbor Li: 'No. Useful information.'\n\nLi points toward the stairwell.\n\nNeighbor Li: 'Also, greet the dorm auntie before you need help. People remember order.'",
     choices: [
       {
         text: "Write down the unwritten rules.",
@@ -812,7 +2306,7 @@ export const gameNodes = {
 
   "event_local_neighbor_li_trust": {
     speaker: "Neighbor Li",
-    text: "A dorm misunderstanding starts with a washing machine queue and somehow becomes a small negotiation about space, noise, and saving face. Neighbor Li lets you try first, then quietly helps when your Chinese runs out of bridge.",
+    text: "A dorm misunderstanding starts with a washing machine queue and somehow becomes a small negotiation about space, noise, and saving face.\n\nNeighbor Li: 'You try first.'\n\nYou: 'My Chinese may betray everyone involved.'\n\nNeighbor Li: 'Then I rescue everyone involved.'\n\nYou step forward. Halfway through the apology, your sentence collapses.\n\nNeighbor Li quietly adds the missing bridge, not taking over, just making sure everyone can cross.",
     choices: [
       {
         text: "Apologize clearly and keep everyone's dignity intact.",
@@ -830,7 +2324,7 @@ export const gameNodes = {
 
   "event_local_uncle_wang_story": {
     speaker: "Uncle Wang",
-    text: "Uncle Wang wipes down the street table, refills your tea without asking, and tells you how the neighborhood changed before the metro station opened. It is not a lecture. It is a city giving you context.",
+    text: "Uncle Wang wipes down the street table and refills your tea without asking.\n\nUncle Wang: 'Before the metro station, this road was quieter. Students still got lost, though. That part never changes.'\n\nYou: 'Was the neighborhood better then?'\n\nUncle Wang laughs once.\n\nUncle Wang: 'Young people always ask if the past was better. Old people always lie about it.'\n\nHe points down the street with his towel.\n\nUncle Wang: 'The city changes. People still need somewhere to sit.'",
     choices: [
       {
         text: "Listen more than you speak.",
@@ -849,7 +2343,7 @@ export const gameNodes = {
   "event_local_uncle_wang_first": {
     speaker: "Uncle Wang",
     bgImage: '/images/simulator/backgrounds/bg_uncle_wang_bbq.jpg',
-    text: "The skewer stall near the dorm is not on any official campus map. You find it by following smoke, laughter, and a queue of students pretending they are not hungry. Uncle Wang calls you 'new Minghai student' before you introduce yourself, then points at the safest spice level like he has seen this exact face before.",
+    text: "The skewer stall near the dorm is not on any official campus map. You find it by following smoke, laughter, and a queue of students pretending they are not hungry.\n\nUncle Wang: 'New Minghai student.'\n\nYou: 'Is it that obvious?'\n\nUncle Wang points at the menu.\n\nUncle Wang: 'You looked at the spice levels like they were visa categories.'\n\nHe taps the safest option.\n\nUncle Wang: 'Start here. Ambition can wait until your stomach signs the contract.'",
     choices: [
       {
         text: "Order carefully, save the stall location, and learn his name. [Culture +, Chinese +]",
@@ -867,7 +2361,7 @@ export const gameNodes = {
 
   "event_local_neighbor_li_boundary": {
     speaker: "Neighbor Li",
-    text: "Neighbor Li knocks once, then tells you the dorm group chat is annoyed about noise, shoes, and a message you thought was harmless. The problem is small. The embarrassment is not.",
+    text: "Neighbor Li knocks once, then enters only after you answer.\n\nNeighbor Li: 'Small problem. Do not make a big face.'\n\nYou: 'That sounds like a big problem.'\n\nLi shows you the dorm group chat: noise, shoes, and a message you thought was harmless.\n\nNeighbor Li: 'Nobody is angry enough to fight. Everyone is annoyed enough to remember.'\n\nThe problem is small. The embarrassment is not.",
     choices: [
       {
         text: "Own the misunderstanding and ask how to repair it.",
@@ -895,7 +2389,7 @@ export const gameNodes = {
 
   "event_local_uncle_wang_question": {
     speaker: "Uncle Wang",
-    text: "Uncle Wang asks why you really came to China. Not the application answer. Not the scholarship answer. The street is loud enough to save you from being too sincere, but he waits anyway.",
+    text: "Uncle Wang turns the skewers, then asks the question without looking at you.\n\nUncle Wang: 'Why did you really come to China?'\n\nYou start with the application answer and hear how thin it sounds before you finish.\n\nUncle Wang: 'Not that one.'\n\nA scooter passes. The street is loud enough to save you from sincerity, but he waits anyway.\n\nUncle Wang: 'People always have the official reason and the real reason. Both can be true.'",
     choices: [
       {
         text: "Answer honestly, even if the answer sounds unfinished.",
@@ -951,7 +2445,7 @@ export const gameNodes = {
   "event_local_neighbor_li_festival": {
     speaker: "Neighbor Li",
     bgImage: '/images/simulator/cg/cg_neighbor_li_festival_prep.jpg',
-    text: "Neighbor Li invites you into neighborhood festival prep, which turns out to mean carrying boxes, misunderstanding three aunties at once, and being trusted with tasks before you feel ready. Nobody announces belonging. They just hand you tape.",
+    text: "Neighbor Li finds you near the dorm gate holding three rolls of tape.\n\nNeighbor Li: 'Good. You have hands.'\n\nYou: 'Is that the qualification?'\n\nNeighbor Li: 'For festival prep? Very high qualification.'\n\nTwo aunties start giving instructions at the same time. Li sees your face and grins.\n\nNeighbor Li: 'Do not worry. Nobody understands all aunties at first.'\n\nNobody announces belonging. They just hand you tape.",
     choices: [
       {
         text: "Do the unglamorous tasks without disappearing.",
@@ -970,7 +2464,7 @@ export const gameNodes = {
   "event_local_uncle_wang_regular": {
     speaker: "Uncle Wang",
     bgImage: '/images/simulator/cg/cg_uncle_wang_regular_table.jpg',
-    text: "At Uncle Wang's table, you no longer feel like a guest performing politeness. You know who sits where, which stories are repeated, and when silence means comfort instead of awkwardness.",
+    text: "Uncle Wang puts tea on the table before you order.\n\nYou: 'I did not ask yet.'\n\nUncle Wang: 'Regulars do not need to ask for tea.'\n\nThe word lands softly: regular.\n\nA student shifts their bag to make room. Someone continues a story from last week as if you were there for the beginning.\n\nUncle Wang: 'Sit. You are late for the same conversation again.'",
     choices: [
       {
         text: "Let the routine become a real part of the week.",
@@ -990,7 +2484,38 @@ export const gameNodes = {
   "event_intl_sophie_checkin": {
     speaker: "Sophie",
     bgImage: '/images/simulator/backgrounds/bg_campus_cafe.jpg',
-    text: "Sophie books a cheap noodle place and calls it a check-in dinner, which is a polite way to say everyone looks tired. By the second bowl, people are laughing about the things that almost broke them this week.",
+    text: "Sophie books a cheap noodle place and calls it a check-in dinner.\n\nSophie: 'Nobody is allowed to say \"I am fine\" unless they can prove it with evidence.'\n\nYou: 'What counts as evidence?'\n\nSophie lifts her bowl.\n\nSophie: 'Eating dinner before midnight. Extremely advanced behavior.'\n\nBy the second bowl, people are laughing about the things that almost broke them this week.",
+    dialogueChoices: [
+      {
+        text: "My evidence is weak, but I did leave my room.",
+        reply: "The court accepts this as preliminary evidence. More noodles may strengthen your case.",
+        effects: {
+          stats: { energy: 3 },
+          guanxi: { intlStudents: 1 },
+          relationships: { Sophie: { friendship: 3 } },
+          flags: { dialogue_sophie_left_room_evidence: true, route_intl: true }
+        }
+      },
+      {
+        text: "I am not fine, but I am less alone than yesterday.",
+        reply: "That is annoyingly beautiful and I hate that I understand it exactly.",
+        effects: {
+          stats: { energy: 4, culture: 1 },
+          relationships: { Sophie: { friendship: 4 } },
+          flags: { dialogue_sophie_less_alone: true, route_intl: true }
+        }
+      },
+      {
+        text: "Can we make this a habit before everyone hits crisis mode?",
+        reply: "Yes. Preventative noodles. Extremely serious infrastructure.",
+        effects: {
+          stats: { digitalProficiency: 1, energy: 2 },
+          guanxi: { intlStudents: 2 },
+          relationships: { Sophie: { friendship: 2 } },
+          flags: { dialogue_sophie_preventative_noodles: true, route_intl: true }
+        }
+      }
+    ],
     choices: [
       {
         text: "Tell the truth and listen back.",
@@ -1082,7 +2607,38 @@ export const gameNodes = {
   "event_intl_sophie_support_circle": {
     speaker: "Sophie",
     bgImage: '/images/simulator/cg/cg_sophie_support_circle.jpg',
-    text: "Sophie admits the support dinners cannot just be emergency rooms. 'What if we made something people could join before they fall apart?' she asks. The question changes the group from reaction to care.",
+    text: "Sophie stays after dinner, stacking empty bowls too neatly.\n\nSophie: 'These dinners are becoming emergency rooms.'\n\nYou: 'That is not nothing.'\n\nSophie: 'No. But what if people could join before they fall apart?'\n\nShe opens a blank document and labels it Support Circle.\n\nSophie: 'I do not want us to become experts at crisis only.'",
+    dialogueChoices: [
+      {
+        text: "Let's design it around ordinary weeks, not only disasters.",
+        reply: "Yes. I want help that arrives before the dramatic music.",
+        effects: {
+          stats: { digitalProficiency: 2, energy: -1 },
+          guanxi: { intlStudents: 2 },
+          relationships: { Sophie: { friendship: 3 } },
+          flags: { dialogue_sophie_ordinary_weeks: true, route_intl: true }
+        }
+      },
+      {
+        text: "People may come for forms and stay because someone remembers their name.",
+        reply: "That is going on the first slide. Maybe the second. It is too sincere for the first.",
+        effects: {
+          stats: { culture: 2, energy: 1 },
+          relationships: { Sophie: { friendship: 3 } },
+          flags: { dialogue_sophie_names_matter: true, route_intl: true }
+        }
+      },
+      {
+        text: "We need boundaries too. We cannot become everyone's emergency contact.",
+        reply: "Thank you. Hope with boundaries. That sounds less pretty and more survivable.",
+        effects: {
+          stats: { digitalProficiency: 2, culture: 1 },
+          guanxi: { admin: 1 },
+          relationships: { Sophie: { friendship: 2 } },
+          flags: { dialogue_sophie_support_boundaries: true, route_intl: true }
+        }
+      }
+    ],
     choices: [
       {
         text: "Design a monthly support circle with practical themes.",
@@ -1101,7 +2657,38 @@ export const gameNodes = {
   "event_intl_sophie_bubble_tension": {
     speaker: "Sophie",
     bgImage: '/images/simulator/backgrounds/bg_dorm_common_room.jpg',
-    text: "Sophie says the group chat is starting to feel like a country nobody else can enter. It is safe, yes. It is also getting smaller. The question is whether comfort is helping you live here or helping you avoid here.",
+    text: "Sophie scrolls through the group chat without laughing at the jokes.\n\nSophie: 'Do you ever feel like this chat is becoming a country nobody else can enter?'\n\nYou: 'It is safe.'\n\nSophie: 'I know.' She locks the phone. 'That is what makes it complicated.'\n\nThe common room hums around you.\n\nSophie: 'I cannot tell if comfort is helping us live here or helping us avoid here.'",
+    dialogueChoices: [
+      {
+        text: "I need the bubble sometimes. I just do not want to live there full time.",
+        reply: "That may be the most honest version. Shelter, not permanent address.",
+        effects: {
+          stats: { energy: 2, culture: 2 },
+          relationships: { Sophie: { friendship: 3 } },
+          flags: { dialogue_sophie_shelter_not_address: true, route_intl: true }
+        }
+      },
+      {
+        text: "Maybe the bridge should start small enough that nobody feels thrown out.",
+        reply: "A tiny bridge. Manageable. Less heroic. More likely to happen.",
+        effects: {
+          stats: { digitalProficiency: 2, culture: 2, energy: -1 },
+          guanxi: { localStudents: 1 },
+          relationships: { Sophie: { friendship: 3 } },
+          flags: { dialogue_sophie_tiny_bridge: true, route_intl: true }
+        }
+      },
+      {
+        text: "Some people are not ready to integrate. Safety can be a stage too.",
+        reply: "True. I forget that because I am impatient with my own fear.",
+        effects: {
+          stats: { energy: 3 },
+          guanxi: { intlStudents: 1 },
+          relationships: { Sophie: { friendship: 2 } },
+          flags: { dialogue_sophie_safety_stage: true, route_intl: true }
+        }
+      }
+    ],
     choices: [
       {
         text: "Build one bridge activity with local students.",
@@ -1131,7 +2718,36 @@ export const gameNodes = {
   "event_intl_sophie_language_exchange": {
     speaker: "Sophie",
     bgImage: '/images/simulator/backgrounds/bg_campus_cafe.jpg',
-    text: "Sophie brings flashcards, voice notes, and the terrible confidence of someone who thinks tones are a team sport. Half the night becomes language practice. The other half becomes admitting which parts of China still make both of you feel twelve years old.",
+    text: "Sophie brings flashcards, voice notes, and the terrible confidence of someone who thinks tones are a team sport.\n\nSophie: 'If I suffer, you suffer. That is friendship.'\n\nYou: 'I thought friendship involved kindness.'\n\nSophie plays a tone drill at full volume.\n\nSophie: 'Growth is kindness with worse audio quality.'\n\nHalf the night becomes language practice. The other half becomes admitting which parts of China still make both of you feel twelve years old.",
+    dialogueChoices: [
+      {
+        text: "If this is friendship, friendship has terrible audio quality.",
+        reply: "Correct. But your third tone improved, so the suffering is scientifically valid.",
+        effects: {
+          stats: { chinese: 2, energy: 1 },
+          relationships: { Sophie: { friendship: 2 } },
+          flags: { dialogue_sophie_audio_quality: true, route_intl: true }
+        }
+      },
+      {
+        text: "I feel less ashamed making mistakes with you here.",
+        reply: "Same. Which is rude, because I planned to be effortlessly impressive abroad.",
+        effects: {
+          stats: { chinese: 2, energy: 3 },
+          relationships: { Sophie: { friendship: 4 } },
+          flags: { dialogue_sophie_less_ashamed: true, route_intl: true }
+        }
+      },
+      {
+        text: "The city feels less impossible when we practice it together.",
+        reply: "That sounds dangerously close to affection. Or pedagogy. Possibly both.",
+        effects: {
+          stats: { chinese: 1, culture: 1, energy: 2 },
+          relationships: { Sophie: { friendship: 2, romance: 2 } },
+          flags: { dialogue_sophie_city_together: true, route_intl: true }
+        }
+      }
+    ],
     choices: [
       {
         text: "Keep it study-focused and trade useful phrases.",
@@ -1160,7 +2776,39 @@ export const gameNodes = {
 
   "event_intl_sophie_orientation_committee": {
     speaker: "Sophie",
-    text: "Sophie arrives with a messy slide deck, three admin email threads, and a terrifyingly hopeful plan: make next semester's orientation less like a document dump and more like a map people can actually use.",
+    text: "Sophie arrives with a messy slide deck, three admin email threads, and the look of someone who has chosen hope irresponsibly.\n\nSophie: 'I pitched the orientation idea.'\n\nYou: 'To who?'\n\nSophie: 'Several people who can say no professionally.'\n\nShe turns the laptop toward you.\n\nSophie: 'Next semester should not feel like being attacked by PDFs. Help me make it a map.'",
+    dialogueChoices: [
+      {
+        text: "Let's make the first week feel navigable, not inspirational.",
+        reply: "Yes. Fewer slogans, more actual doors, counters, apps, and human names.",
+        effects: {
+          stats: { digitalProficiency: 3, culture: 1 },
+          guanxi: { admin: 1 },
+          relationships: { Sophie: { friendship: 3 } },
+          flags: { dialogue_sophie_navigable_orientation: true, route_intl: true }
+        }
+      },
+      {
+        text: "We should include the mistakes we made, not hide them.",
+        reply: "Agreed. The guide should sound like someone survived, not like someone marketed survival.",
+        effects: {
+          stats: { culture: 2, energy: 1 },
+          guanxi: { intlStudents: 1 },
+          relationships: { Sophie: { friendship: 3 } },
+          flags: { dialogue_sophie_include_mistakes: true, route_intl: true }
+        }
+      },
+      {
+        text: "If admin says no, we can still make the student version real.",
+        reply: "Good. Hope with backup channels. You have learned my entire personality.",
+        effects: {
+          stats: { digitalProficiency: 2, energy: -1 },
+          guanxi: { intlStudents: 2 },
+          relationships: { Sophie: { friendship: 2 } },
+          flags: { dialogue_sophie_backup_channels: true, route_intl: true }
+        }
+      }
+    ],
     choices: [
       {
         text: "Help turn the support circle into orientation infrastructure.",
@@ -1212,7 +2860,7 @@ export const gameNodes = {
 
   "event_career_manager_panel": {
     speaker: "Manager Zhang",
-    text: "Manager Zhang's panel is polished, corporate, and unexpectedly blunt. 'Cross-cultural ability is not a slogan,' he says. 'It is whether people still trust you when the meeting gets confusing.' After the applause, students form a careful line around him, each holding a resume like a small shield.",
+    text: "Manager Zhang's panel is polished, corporate, and unexpectedly blunt.\n\nManager Zhang: 'Cross-cultural ability is not a slogan.'\n\nThe room quiets in the way rooms do when someone stops flattering them.\n\nManager Zhang: 'It is whether people still trust you when the meeting gets confusing.'\n\nAfter the applause, students form a careful line around him, each holding a resume like a small shield.\n\nManager Zhang looks at yours, then at you.\n\nManager Zhang: 'Ask one question. Not five.'",
     choices: [
       {
         text: "Introduce yourself and ask for permission to follow up.",
@@ -1230,7 +2878,7 @@ export const gameNodes = {
 
   "event_career_manager_followup": {
     speaker: "Manager Zhang",
-    text: "You send a concise follow-up: who you are, what you heard, and one practical question about legal internships. Manager Zhang replies the next morning with two links, one correction, and a sentence that feels both encouraging and strict: 'Specificity is respect for other people's time.'",
+    text: "You send a concise follow-up: who you are, what you heard, and one practical question about legal internships.\n\nManager Zhang replies the next morning.\n\nManager Zhang: 'Good structure. Your second sentence is too broad.'\n\nTwo links follow. Then one correction.\n\nManager Zhang: 'Specificity is respect for other people's time.'\n\nIt feels both encouraging and strict, which seems to be his entire communication style.",
     choices: [
       {
         text: "Turn the reply into a concrete career checklist.",
@@ -1282,7 +2930,7 @@ export const gameNodes = {
 
   "event_career_manager_zhang_trust": {
     speaker: "Manager Zhang",
-    text: "Manager Zhang reads your resume, pauses, and says the kind thing in the least comfortable way: 'You are trying to look impressive instead of useful.' Then he shows you how to make your China experience legible to an employer.",
+    text: "Manager Zhang reads your resume, pauses, and says the kind thing in the least comfortable way.\n\nManager Zhang: 'You are trying to look impressive instead of useful.'\n\nYou: 'That is... direct.'\n\nManager Zhang: 'Direct saves time. Time saves opportunities.'\n\nHe marks three bullet points.\n\nManager Zhang: 'Make your China experience legible. Not exotic. Legible.'",
     choices: [
       {
         text: "Rewrite for usefulness, not decoration.",
@@ -1300,7 +2948,7 @@ export const gameNodes = {
 
   "event_career_manager_zhang_boundaries": {
     speaker: "Manager Zhang",
-    text: "Manager Zhang hears you mention a shortcut and goes quiet in the way professionals do when they are deciding whether to correct you. 'In China,' he says, 'relationships matter. So do boundaries. Confusing the two is how people get hurt.'",
+    text: "Manager Zhang hears you mention a shortcut and goes quiet in the way professionals do when they are deciding whether to correct you.\n\nManager Zhang: 'Say that again, but slower.'\n\nYou repeat it and hear the problem halfway through.\n\nManager Zhang: 'In China, relationships matter. So do boundaries.'\n\nHe closes your file.\n\nManager Zhang: 'Confusing the two is how people get hurt. Sometimes legally.'",
     choices: [
       {
         text: "Ask for the legal version of the path.",
@@ -1348,7 +2996,7 @@ export const gameNodes = {
   "event_career_manager_zhang_alumni_dinner": {
     speaker: "Manager Zhang",
     bgImage: '/images/simulator/backgrounds/bg_alumni_dinner.jpg',
-    text: "The alumni dinner is not a party. It is a room full of people speaking in introductions, titles, pauses, and tiny tests of whether you understand the room before trying to impress it.",
+    text: "The alumni dinner is not a party. It is a room full of people speaking in introductions, titles, pauses, and tiny tests.\n\nManager Zhang: 'Do not chase every business card.'\n\nYou: 'What should I chase?'\n\nManager Zhang: 'One useful conversation.'\n\nAcross the table, an alumna asks what you are studying and why Shanghai matters to it.\n\nManager Zhang gives you one small nod: now.",
     choices: [
       {
         text: "Ask one precise question and remember three names.",
@@ -1367,7 +3015,7 @@ export const gameNodes = {
   "event_career_manager_zhang_referral": {
     speaker: "Manager Zhang",
     bgImage: '/images/simulator/cg/cg_manager_zhang_office_badge.jpg',
-    text: "Manager Zhang finally names a concrete opening, then spends more time explaining boundaries than opportunity. 'A referral is not a magic door,' he says. 'It is a responsibility to arrive prepared and legal.'",
+    text: "Manager Zhang finally names a concrete opening, then spends more time explaining boundaries than opportunity.\n\nManager Zhang: 'A referral is not a magic door.'\n\nYou: 'Then what is it?'\n\nManager Zhang slides the application checklist across the desk.\n\nManager Zhang: 'A responsibility to arrive prepared and legal.'\n\nHe waits until you look up.\n\nManager Zhang: 'If I open this door, do not walk through it casually.'",
     choices: [
       {
         text: "Prepare the referral package the careful way.",
@@ -1386,7 +3034,37 @@ export const gameNodes = {
   // --- ROUTE EVENTS: SHANGHAI OPPORTUNITY ---
   "event_city_xiao_chen_survey": {
     speaker: "Xiao Chen",
-    text: "Xiao Chen does not begin with a pitch. He begins with a question: what do students actually need badly enough to pay for? You spend the afternoon turning complaints into categories.",
+    text: "Xiao Chen does not begin with a pitch. He begins with a question.\n\nXiao Chen: 'What do students need badly enough to pay for?'\n\nYou: 'Food? Sleep? A printer that works?'\n\nXiao Chen points at you like you have discovered economics.\n\nXiao Chen: 'Good. Complaints are unpaid market research.'\n\nYou spend the afternoon turning annoyance into categories.",
+    dialogueChoices: [
+      {
+        text: "Complaints are data, but people are not just data sources.",
+        reply: "Good warning. Annoying warning. Useful warning. We write it on top of the sheet.",
+        effects: {
+          stats: { digitalProficiency: 2, culture: 2 },
+          relationships: { "Xiao Chen": { friendship: 3 } },
+          flags: { dialogue_xiao_chen_people_not_data: true, route_city: true }
+        }
+      },
+      {
+        text: "Let's ask what they already tried before we assume the solution.",
+        reply: "Yes. Failed workarounds are the map. The product is just the bridge.",
+        effects: {
+          stats: { digitalProficiency: 3, energy: -1 },
+          guanxi: { localStudents: 1 },
+          relationships: { "Xiao Chen": { friendship: 2 } },
+          flags: { dialogue_xiao_chen_failed_workarounds: true, route_city: true }
+        }
+      },
+      {
+        text: "If printer access is a business idea, this campus is in worse shape than I thought.",
+        reply: "Excellent. Humor plus market validation. Investors love half of that.",
+        effects: {
+          stats: { digitalProficiency: 2, energy: 1 },
+          relationships: { "Xiao Chen": { friendship: 2 } },
+          flags: { dialogue_xiao_chen_printer_market: true, route_city: true }
+        }
+      }
+    ],
     choices: [
       {
         text: "Turn the complaints into a small survey.",
@@ -1469,7 +3147,37 @@ export const gameNodes = {
 
   "event_city_xiao_chen_prototype": {
     speaker: "Xiao Chen",
-    text: "Xiao Chen wants to scale immediately. You push back with numbers from the tiny test. For once, the exciting thing is not the idea itself, but the fact that both of you are learning how to argue about it honestly.",
+    text: "Xiao Chen opens the spreadsheet and immediately scrolls to the biggest number.\n\nXiao Chen: 'We should scale.'\n\nYou: 'We had eight users.'\n\nXiao Chen: 'Eight real users.'\n\nYou point at the complaint column.\n\nYou: 'And three real problems.'\n\nFor once, the exciting thing is not the idea itself, but the fact that both of you are learning how to argue honestly.",
+    dialogueChoices: [
+      {
+        text: "Eight users is a signal, not permission to pretend we are huge.",
+        reply: "Painfully fair. We celebrate the signal and do not build a castle on it.",
+        effects: {
+          stats: { digitalProficiency: 3, energy: -1 },
+          relationships: { "Xiao Chen": { friendship: 3 } },
+          flags: { dialogue_xiao_chen_signal_not_scale: true, route_city: true }
+        }
+      },
+      {
+        text: "The complaints are more valuable than the good numbers.",
+        reply: "That sentence hurts my ego and helps the product. Continue.",
+        effects: {
+          stats: { digitalProficiency: 3, culture: 1 },
+          relationships: { "Xiao Chen": { friendship: 2 } },
+          flags: { dialogue_xiao_chen_complaints_value: true, route_city: true }
+        }
+      },
+      {
+        text: "Let's choose one problem and make it boringly reliable.",
+        reply: "Boringly reliable is a terrible slogan and an excellent strategy.",
+        effects: {
+          stats: { digitalProficiency: 2, culture: 2 },
+          guanxi: { localStudents: 1 },
+          relationships: { "Xiao Chen": { friendship: 3 } },
+          flags: { dialogue_xiao_chen_boring_reliable: true, route_city: true }
+        }
+      }
+    ],
     choices: [
       {
         text: "Choose a smaller, cleaner next test.",
@@ -1486,7 +3194,36 @@ export const gameNodes = {
 
   "event_city_xiao_chen_speed_tension": {
     speaker: "Xiao Chen",
-    text: "Xiao Chen wants to launch before the prototype is stable. You want one more week of testing. The argument is not really about software. It is about whether Shanghai rewards speed so much that responsibility starts to look naive.",
+    text: "Xiao Chen wants to launch before the prototype is stable.\n\nXiao Chen: 'If we wait until perfect, someone faster wins.'\n\nYou: 'If we launch broken, nobody trusts us twice.'\n\nHe exhales and looks toward the incubator windows, where Shanghai is busy being persuasive.\n\nXiao Chen: 'This city rewards speed.'\n\nYou: 'Maybe. But users remember damage.'\n\nThe argument is not really about software anymore.",
+    dialogueChoices: [
+      {
+        text: "Speed is only an advantage if it does not make users regret trusting us.",
+        reply: "You are making the correct argument in the least exciting way possible.",
+        effects: {
+          stats: { digitalProficiency: 2, culture: 2 },
+          relationships: { "Xiao Chen": { friendship: 3 } },
+          flags: { dialogue_xiao_chen_speed_trust: true, route_city: true }
+        }
+      },
+      {
+        text: "I feel the pressure too. I just do not want panic to become strategy.",
+        reply: "Fine. Panic is not strategy. It is just strategy with bad lighting.",
+        effects: {
+          stats: { digitalProficiency: 2, energy: 1 },
+          relationships: { "Xiao Chen": { friendship: 2 } },
+          flags: { dialogue_xiao_chen_panic_not_strategy: true, route_city: true }
+        }
+      },
+      {
+        text: "If we launch fast, we need a repair plan before the first complaint.",
+        reply: "That is a compromise I can respect. Fast with a fire extinguisher.",
+        effects: {
+          stats: { digitalProficiency: 3, energy: -1 },
+          relationships: { "Xiao Chen": { friendship: 2 } },
+          flags: { dialogue_xiao_chen_repair_plan_first: true, route_city: true }
+        }
+      }
+    ],
     choices: [
       {
         text: "Slow the plan until the service is actually reliable.",
@@ -1513,7 +3250,37 @@ export const gameNodes = {
 
   "event_city_reliability_repair": {
     speaker: "Xiao Chen",
-    text: "The fastest version of the project left tiny cracks everywhere: wrong pickup times, confused payment notes, a QR code nobody trusted after midnight. Repairing it is boring. That is the point. Useful things last because someone does the boring repair.",
+    text: "The fastest version of the project left tiny cracks everywhere: wrong pickup times, confused payment notes, a QR code nobody trusted after midnight.\n\nXiao Chen: 'Repair is so boring.'\n\nYou: 'That may be why people skip it.'\n\nHe looks at the support messages and stops joking.\n\nXiao Chen: 'And why users leave.'\n\nRepairing it is boring. That is the point.",
+    dialogueChoices: [
+      {
+        text: "Every repair message is a chance to prove we are still here.",
+        reply: "That is annoyingly noble. Also probably true.",
+        effects: {
+          stats: { digitalProficiency: 2, culture: 2, energy: -1 },
+          relationships: { "Xiao Chen": { friendship: 3 } },
+          flags: { dialogue_xiao_chen_repair_presence: true, route_city: true }
+        }
+      },
+      {
+        text: "Let's write the apology like humans, not like a broken app notice.",
+        reply: "Good. No 'inconvenience caused.' We caused it. We fix it.",
+        effects: {
+          stats: { digitalProficiency: 2, culture: 1 },
+          relationships: { "Xiao Chen": { friendship: 2 } },
+          flags: { dialogue_xiao_chen_human_apology: true, route_city: true }
+        }
+      },
+      {
+        text: "The boring work is where trust either returns or leaves permanently.",
+        reply: "Fine. Put that in the product memo. Underline boring.",
+        effects: {
+          stats: { digitalProficiency: 3, energy: -1 },
+          guanxi: { localStudents: 1 },
+          relationships: { "Xiao Chen": { friendship: 3 } },
+          flags: { dialogue_xiao_chen_boring_trust: true, route_city: true }
+        }
+      }
+    ],
     choices: [
       {
         text: "Spend the week fixing trust before chasing growth.",
@@ -1530,7 +3297,38 @@ export const gameNodes = {
 
   "event_city_xiao_chen_global_angle": {
     speaker: "Xiao Chen",
-    text: "Xiao Chen asks what international students would actually pay for, not what investors would like to hear. You spend the afternoon turning homesick complaints, payment friction, and campus confusion into a launch memo.",
+    text: "Xiao Chen opens a blank memo titled International Users.\n\nXiao Chen: 'What would international students actually pay for? Not what investors want to hear.'\n\nYou: 'Payment help. Dorm basics. Translation that does not make them feel stupid.'\n\nHe types fast.\n\nXiao Chen: 'Good. Pain points with dignity.'\n\nYou spend the afternoon turning homesick complaints, payment friction, and campus confusion into a launch memo.",
+    dialogueChoices: [
+      {
+        text: "The product should reduce embarrassment, not monetize confusion.",
+        reply: "Yes. If the user feels stupid, we failed before checkout.",
+        effects: {
+          stats: { digitalProficiency: 2, culture: 2 },
+          guanxi: { intlStudents: 1 },
+          relationships: { "Xiao Chen": { friendship: 3 } },
+          flags: { dialogue_xiao_chen_not_monetize_confusion: true, route_city: true }
+        }
+      },
+      {
+        text: "International users need defaults that assume they are tired.",
+        reply: "Good. Design for tired. Tired is the real onboarding state.",
+        effects: {
+          stats: { digitalProficiency: 3, energy: -1 },
+          relationships: { "Xiao Chen": { friendship: 2 } },
+          flags: { dialogue_xiao_chen_design_for_tired: true, route_city: true }
+        }
+      },
+      {
+        text: "Let's include language support without making it feel like a remedial label.",
+        reply: "Dignity layer. I like that. Sounds expensive. Probably necessary.",
+        effects: {
+          stats: { digitalProficiency: 2, culture: 2 },
+          guanxi: { intlStudents: 1 },
+          relationships: { "Xiao Chen": { friendship: 2 } },
+          flags: { dialogue_xiao_chen_dignity_layer: true, route_city: true }
+        }
+      }
+    ],
     choices: [
       {
         text: "Write the international-user memo with real constraints.",
@@ -1549,7 +3347,36 @@ export const gameNodes = {
   "event_city_xiao_chen_demo_day": {
     speaker: "Xiao Chen",
     bgImage: '/images/simulator/cg/cg_xiao_chen_demo_day.jpg',
-    text: "Demo day is less glamorous than the posters promised: half the room is distracted, the Wi-Fi argues with everyone, and the best question comes from someone who almost skipped your booth. Xiao Chen grins anyway. Real feedback is better than fantasy applause.",
+    text: "Demo day is less glamorous than the posters promised: half the room is distracted, the Wi-Fi argues with everyone, and the best question comes from someone who almost skipped your booth.\n\nXiao Chen: 'That was not terrible.'\n\nYou: 'That is your celebration sentence?'\n\nXiao Chen grins.\n\nXiao Chen: 'Real feedback is better than fantasy applause.'\n\nThen he looks at the sign-up sheet.\n\nXiao Chen: 'Also, three people left emails. That part can be celebration.'",
+    dialogueChoices: [
+      {
+        text: "Three real emails beat a room full of polite nods.",
+        reply: "Correct. I will still accept polite nods if they come with emails.",
+        effects: {
+          stats: { digitalProficiency: 3, energy: 1 },
+          relationships: { "Xiao Chen": { friendship: 3 } },
+          flags: { dialogue_xiao_chen_three_real_emails: true, route_city: true }
+        }
+      },
+      {
+        text: "The best question exposed what the product still cannot explain.",
+        reply: "Painful. Excellent. That question is tomorrow's roadmap.",
+        effects: {
+          stats: { digitalProficiency: 3, culture: 1, energy: -1 },
+          relationships: { "Xiao Chen": { friendship: 2 } },
+          flags: { dialogue_xiao_chen_question_roadmap: true, route_city: true }
+        }
+      },
+      {
+        text: "Let's celebrate for five minutes, then write down what broke.",
+        reply: "Five minutes is cruel. Seven. Then the bug list.",
+        effects: {
+          stats: { energy: 3, digitalProficiency: 2 },
+          relationships: { "Xiao Chen": { friendship: 3 } },
+          flags: { dialogue_xiao_chen_seven_minute_celebration: true, route_city: true }
+        }
+      }
+    ],
     choices: [
       {
         text: "Use the feedback to choose the next small market test.",
@@ -1617,6 +3444,7 @@ export const gameNodes = {
 
   "event_admin_housing_followup": {
     speaker: "Shanghai Address",
+    bgImage: '/images/simulator/cg/cg_housing_shared_flat_first_night.png',
     text: "The address you chose stops being a line on a form and starts becoming a routine: commute time, kitchen rules, elevator waits, water bills, quiet hours, and whether you can actually rest after class. Housing is not background. It is the shape of every week.",
     choices: [
       {
@@ -1642,6 +3470,7 @@ export const gameNodes = {
 
   "event_admin_housing_repair": {
     speaker: "Housing Repair",
+    bgImage: '/images/simulator/cg/cg_studio_rent_pressure.png',
     text: "The small frictions did not stay small. One bad commute becomes three late arrivals. One unresolved roommate issue becomes a week of sleeping badly. You finally treat housing like a system, not a mood.",
     choices: [
       {
@@ -1912,7 +3741,7 @@ export const gameNodes = {
   },
   "event_research_assistant": {
     speaker: "Professor Lin",
-    text: "Professor Lin needs help formatting references, checking English phrasing, and organizing notes from a bilingual source pack. It is approved, unglamorous, and actually useful.",
+    text: "Professor Lin slides a bilingual source pack across the desk.\n\nProfessor Lin: 'This is approved research support. Formatting references, checking English phrasing, organizing notes. Not glamorous.'\n\nYou: 'That sounds like the opposite of glamorous.'\n\nProfessor Lin: 'Good. Glamour causes sloppy footnotes.'\n\nThe work is small, legal, and strangely useful: the kind of academic trust that arrives as a task list.",
     choices: [
       {
         text: "Do the careful support work.",
@@ -2066,7 +3895,7 @@ export const gameNodes = {
   },
   "event_xiao_chen": {
     speaker: "Xiao Chen",
-    text: "You meet Xiao Chen at a campus-adjacent cafe where he is mapping student problems onto a messy spreadsheet. He talks fast, but the useful part is not startup glamour. It is how quickly he notices friction other people accept as normal.",
+    text: "Xiao Chen waves you over before your coffee number is called.\n\nXiao Chen: 'Tell me three things international students complain about but never report officially.'\n\nYou: 'That is your opening question?'\n\nXiao Chen: 'Small problems are honest. Big visions lie.'\n\nHe talks fast, but the useful part is not startup glamour. It is how quickly he notices friction other people accept as normal.",
     choices: [
       {
         text: "Turn one campus complaint into a testable idea.",
@@ -2077,7 +3906,7 @@ export const gameNodes = {
   },
   "event_xiao_chen_business": {
     speaker: "Xiao Chen",
-    text: "Because you have been useful and honest, Xiao Chen asks whether you can help test the idea with international students. It is not a co-founder fantasy. It is a small experiment with real users and very little sleep.",
+    text: "Xiao Chen sends you a prototype link, then immediately sends three corrections to his own message.\n\nXiao Chen: 'You know the international-student side better than I do. Help me test this with real users? Tiny pilot. No co-founder fantasy.'\n\nYou: 'Define tiny.'\n\nXiao Chen: 'Tiny enough to survive. Big enough to prove I am not imagining the problem.'\n\nIt is a small experiment with real users, real friction, and very little sleep.",
     choices: [
       {
         text: "Agree to a tiny, measurable pilot.",
@@ -2088,7 +3917,7 @@ export const gameNodes = {
   },
   "event_sophie": {
     speaker: "Sophie",
-    text: "Sophie invites you to a quiet corner table after another long week. You swap practical stories: payment failures, homesickness, and the weird relief of being understood without explaining every detail first.",
+    text: "Sophie claims the quiet corner table before the common room fills up.\n\nSophie: 'Status check. Are you okay, or are you doing the thing where you say okay because explaining would take too long?'\n\nYou: 'The second one, probably.'\n\nSophie: 'Good. Then we skip the performance.'\n\nYou trade payment failures, homesickness, and the weird relief of being understood without explaining every detail first.",
     choices: [
       {
         text: "Trade coping notes and promise to check in again.",
@@ -2099,7 +3928,7 @@ export const gameNodes = {
   },
   "event_sophie_date": {
     speaker: "Sophie",
-    text: "You and Sophie choose a simple riverside walk instead of making the evening perform for anyone else. If there is affection here, it grows out of shared context, not fireworks.",
+    text: "Sophie stops by the railing and watches the river traffic cut light across the water.\n\nSophie: 'I like that this does not have to be dramatic.'\n\nYou: 'A very bold review of a date.'\n\nSophie: 'Maybe that is the point. Here, everything is already intense. I like when something can just be honest.'\n\nIf there is affection here, it grows out of shared context, not fireworks.",
     choices: [
       {
         text: "Let the moment stay gentle and honest.",
@@ -2110,7 +3939,7 @@ export const gameNodes = {
   },
   "event_uncle_wang": {
     speaker: "Uncle Wang",
-    text: "You sit on tiny plastic stools at 2 AM eating spicy skewers. Uncle Wang jokes with you about your improving Chinese and gives you extra lamb.",
+    text: "Uncle Wang points at the tiny plastic stool like he is assigning you an important position.\n\nUncle Wang: 'Sit. Your Chinese is better when you are eating.'\n\nYou: 'That may be because my mouth is full and I make fewer mistakes.'\n\nUncle Wang: 'Exactly. Very advanced strategy.'\n\nHe adds extra lamb to your plate and keeps the jokes coming until the street feels less anonymous.",
     choices: [
       {
         text: "Enjoy the authentic street culture.",
@@ -2121,7 +3950,7 @@ export const gameNodes = {
   },
   "event_uncle_wang_baijiu": {
     speaker: "Uncle Wang",
-    text: "Uncle Wang jokes about baijiu and then, seeing your face, pours tea instead. The real ritual is not drinking. It is being included without being pushed past your limits.",
+    text: "Uncle Wang lifts the baijiu bottle with theatrical seriousness, then sees your face and bursts out laughing.\n\nUncle Wang: 'Relax. I am not trying to destroy the foreign student tonight.'\n\nYou: 'I appreciate being preserved.'\n\nUncle Wang pours tea instead. 'Belonging is not a test,' he says. 'Drink this. Eat more.'\n\nThe real ritual is being included without being pushed past your limits.",
     choices: [
       {
         text: "Accept the tea, the joke, and the belonging.",
@@ -2132,7 +3961,7 @@ export const gameNodes = {
   },
   "event_dr_mei": {
     speaker: "Dr. Mei",
-    text: "You attend one of Dr. Mei's guest lectures. Her insights into Chinese market dynamics are incredibly theoretical but fascinating.",
+    text: "After the lecture, Dr. Mei erases one diagram and leaves the messier one on the board.\n\nDr. Mei: 'The clean model is for exams. The messy model is for reality.'\n\nYou: 'So which one should I ask about?'\n\nDr. Mei: 'Ask about the contradiction. That is usually where the research begins.'\n\nYour question lands well enough that she pauses, then answers as if you are worth the extra time.",
     choices: [
       {
         text: "Ask a smart question.",
@@ -2143,7 +3972,7 @@ export const gameNodes = {
   },
   "event_dr_mei_lab": {
     speaker: "Dr. Mei",
-    text: "Because of your consistent engagement, Dr. Mei lets you help clean notes and prepare a small research appendix. It is not instant co-authorship. It is trust measured in careful tasks.",
+    text: "Dr. Mei opens a shared folder full of notes that look calm only from a distance.\n\nDr. Mei: 'I need someone careful. Clean the interview notes, flag unclear translations, prepare a small appendix.'\n\nYou: 'No dramatic research breakthrough?'\n\nDr. Mei: 'The breakthrough is learning not to invent one.'\n\nIt is not instant co-authorship. It is trust measured in careful tasks.",
     choices: [
       {
         text: "Take furious notes and format citations.",
@@ -2154,7 +3983,7 @@ export const gameNodes = {
   },
   "event_manager_zhang": {
     speaker: "Manager Zhang",
-    text: "You attend a generic corporate recruiting panel led by Manager Zhang. He hands out hundreds of business cards and shakes many hands.",
+    text: "Manager Zhang finishes the panel with the calm of someone who has answered the same internship question four hundred times.\n\nManager Zhang: 'Most students ask how to look impressive. Fewer ask how to be useful legally and consistently.'\n\nYou: 'Then I should ask the second one.'\n\nManager Zhang: 'Good. Start with your Chinese introduction. Short, clear, no inflated adjectives.'\n\nThe handshake is brief, but he remembers your name.",
     choices: [
       {
         text: "Briefly introduce yourself in Chinese.",
@@ -2165,7 +3994,7 @@ export const gameNodes = {
   },
   "event_manager_zhang_dinner": {
     speaker: "Manager Zhang",
-    text: "As a trusted contact, Manager Zhang invites you to a small alumni dinner. He asks direct questions about your career plans, then explains which parts sound real and which parts sound like application language.",
+    text: "At the alumni dinner, Manager Zhang listens without smiling too early.\n\nManager Zhang: 'Tell me your plan without application language.'\n\nYou: 'That removes about half my vocabulary.'\n\nManager Zhang: 'Excellent. Now we can start.'\n\nHe asks direct questions, marks which parts sound real, and explains what a legal internship path would actually require.",
     choices: [
       {
         text: "Answer carefully and ask what a legal path would require.",
@@ -2382,6 +4211,291 @@ export const gameNodes = {
       }
     ]
   },
+
+  // --- ROUTE PROJECT ACTIONS ---
+  "event_project_academic_portfolio_index": {
+    speaker: "Library Desk",
+    bgImage: '/images/simulator/backgrounds/bg_library_night.jpg',
+    location: "Minghai Library",
+    text: "You stop treating your academic work like scattered survival evidence. Drafts, professor comments, field notes, class questions, and one uncomfortable failure all go into the same folder. A portfolio is not a scrapbook. It is a pattern you can defend.",
+    choices: [
+      {
+        text: "Index the strongest proof and the weakest gap. [Portfolio +]",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { academics: 9, digitalProficiency: 4, energy: -5 },
+          guanxi: { professors: 3 },
+          flags: { academic_portfolio_indexed: true, route_academic: true, weekly_focus: "Academic portfolio index" },
+          lifeCheck: {
+            id: "academic_portfolio_index",
+            label: "Academic Portfolio Index",
+            route: "Academic",
+            tags: ["academic", "research"],
+            stats: { academics: 0.28, digitalProficiency: 0.18 },
+            guanxi: { professors: 0.25 },
+            routes: { academic: 1.2 },
+            dc: 13,
+            success: { message: "The portfolio starts to show a student with a method, not only a student with effort.", stats: { academics: 2 }, flags: { academic_portfolio_check_passed: true } },
+            failure: { message: "The folder is organized, but the argument between the pieces is still faint.", stats: { energy: -2 }, flags: { academic_portfolio_check_strained: true } }
+          }
+        }
+      }
+    ]
+  },
+
+  "event_project_internship_dossier": {
+    speaker: "Career Office",
+    bgImage: '/images/simulator/backgrounds/bg_career_office.jpg',
+    location: "Minghai Career Office",
+    text: "You assemble the internship dossier: resume, proof of enrollment, legal-work notes, a sharper interview answer, and a list of people you can ask without pretending the relationship is bigger than it is. The folder is boring in exactly the way career doors prefer.",
+    choices: [
+      {
+        text: "Build the dossier around evidence, not vibes. [Career +]",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { digitalProficiency: 8, academics: 3, energy: -4 },
+          guanxi: { admin: 4 },
+          flags: { internship_dossier_ready: true, route_career: true, weekly_focus: "Internship dossier assembled" },
+          lifeCheck: {
+            id: "internship_dossier",
+            label: "Internship Dossier",
+            route: "Career",
+            tags: ["career", "interview", "admin"],
+            stats: { digitalProficiency: 0.28, academics: 0.14, culture: 0.1 },
+            guanxi: { admin: 0.28 },
+            routes: { career: 1.2 },
+            dc: 13,
+            success: { message: "The dossier makes your ambition legible before anyone has to guess.", stats: { digitalProficiency: 2 }, flags: { internship_dossier_check_passed: true } },
+            failure: { message: "The documents are there, but the story still needs sharper evidence.", stats: { energy: -2 }, flags: { internship_dossier_check_strained: true } }
+          }
+        }
+      }
+    ]
+  },
+
+  "event_project_neighborhood_map": {
+    speaker: "Dorm Courtyard",
+    bgImage: '/images/simulator/backgrounds/bg_neighborhood_festival.jpg',
+    location: "Minghai Dorm District",
+    text: "Your map of the neighborhood stops being geographical. It becomes social: which gate closes early, which auntie notices greetings, which parcel shelf is chaos after rain, which stall owner will slow the line for a nervous student.",
+    choices: [
+      {
+        text: "Write down the rules nobody posts. [Local +]",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { culture: 8, chinese: 5, energy: -3 },
+          guanxi: { localStudents: 5 },
+          flags: { neighborhood_map_indexed: true, route_local: true, weekly_focus: "Neighborhood map updated" },
+          lifeCheck: {
+            id: "neighborhood_map",
+            label: "Neighborhood Map",
+            route: "Local",
+            tags: ["local", "language", "housing"],
+            stats: { culture: 0.3, chinese: 0.18, digitalProficiency: 0.08 },
+            guanxi: { localStudents: 0.28 },
+            routes: { local: 1.2 },
+            dc: 13,
+            success: { message: "The map captures the city as people, not pins.", stats: { culture: 2 }, flags: { neighborhood_map_check_passed: true } },
+            failure: { message: "You capture locations faster than relationships. The map is useful, but still thin.", stats: { energy: -2 }, flags: { neighborhood_map_check_strained: true } }
+          }
+        }
+      }
+    ]
+  },
+
+  "event_project_support_guide_chapter": {
+    speaker: "International Common Room",
+    bgImage: '/images/simulator/backgrounds/bg_international_common_room.jpg',
+    location: "International Student Common Room",
+    text: "The support guide gets a new chapter: arrival panic, phone setup, whom to message before the office closes, and how to ask for help without turning confusion into shame. Sophie reads the draft and only deletes two jokes.",
+    choices: [
+      {
+        text: "Write the chapter like someone scared will read it. [Guide +]",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { digitalProficiency: 5, culture: 4, energy: -3 },
+          guanxi: { intlStudents: 6 },
+          relationships: { Sophie: { friendship: 3 } },
+          flags: { support_guide_chapter_ready: true, route_intl: true, weekly_focus: "Support guide chapter" },
+          lifeCheck: {
+            id: "support_guide_chapter",
+            label: "Support Guide Chapter",
+            route: "International",
+            tags: ["intl", "social", "arrival"],
+            stats: { digitalProficiency: 0.22, culture: 0.18, energy: 0.04 },
+            guanxi: { intlStudents: 0.3 },
+            routes: { intl: 1.2 },
+            character: "Sophie",
+            relationshipWeight: 0.18,
+            dc: 13,
+            success: { message: "The chapter sounds like help from a person, not instructions from a wall.", stats: { energy: 2 }, flags: { support_guide_check_passed: true } },
+            failure: { message: "The guide is useful, but Sophie marks where practical advice still turns into anxious overexplaining.", stats: { energy: -2 }, flags: { support_guide_check_strained: true } }
+          }
+        }
+      }
+    ]
+  },
+
+  "event_project_prototype_telemetry": {
+    speaker: "Incubator Room",
+    bgImage: '/images/simulator/backgrounds/bg_incubator_room.jpg',
+    location: "Minghai Incubator",
+    text: "Xiao Chen wants to look at growth. You insist on looking at confusion: where users stop, which payment notes get ignored, which pickup instruction creates the same screenshot three times. The telemetry board is less glamorous than a pitch deck and far more honest.",
+    choices: [
+      {
+        text: "Track friction before chasing growth. [Prototype +]",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { digitalProficiency: 10, culture: 3, energy: -5 },
+          relationships: { "Xiao Chen": { friendship: 3 } },
+          flags: { prototype_telemetry_board: true, route_city: true, weekly_focus: "Prototype telemetry board" },
+          lifeCheck: {
+            id: "prototype_telemetry_board",
+            label: "Prototype Telemetry Board",
+            route: "Shanghai",
+            tags: ["digital", "career", "local"],
+            stats: { digitalProficiency: 0.34, culture: 0.14 },
+            guanxi: { localStudents: 0.18 },
+            routes: { city: 1.2 },
+            character: "Xiao Chen",
+            relationshipWeight: 0.18,
+            dc: 13,
+            success: { message: "The board turns messy user pain into product decisions.", stats: { digitalProficiency: 2 }, flags: { prototype_telemetry_check_passed: true } },
+            failure: { message: "The data is visible, but the lesson is still fighting the urge to launch faster.", stats: { energy: -2 }, flags: { prototype_telemetry_check_strained: true } }
+          }
+        }
+      }
+    ]
+  },
+
+  "event_project_budget_ledger": {
+    speaker: "Dorm Desk",
+    bgImage: '/images/simulator/cg/cg_money_crisis.jpg',
+    location: "Dorm Room",
+    text: "You open the budget ledger and stop pretending small costs are small. Rent, meals, metro, print fees, emergency buffer, gifts, apps, and the one mystery payment that turns out to be laundry. The year becomes less romantic and more survivable.",
+    choices: [
+      {
+        text: "Audit the numbers before they become a crisis. [Survival +]",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { wealth: 180, digitalProficiency: 5, energy: -2 },
+          flags: { budget_ledger_audited: true, route_survival: true, weekly_focus: "Budget ledger audit" },
+          lifeCheck: {
+            id: "budget_ledger_audit",
+            label: "Budget Ledger Audit",
+            route: "Survival",
+            tags: ["survival", "admin"],
+            stats: { digitalProficiency: 0.28, energy: 0.06 },
+            routes: { survival: 1.4 },
+            dc: 11,
+            success: { message: "The ledger finds a future crisis while it is still just a number.", stats: { wealth: 120 }, flags: { budget_ledger_check_passed: true } },
+            failure: { message: "The ledger is honest, which is useful and slightly rude.", stats: { energy: -2 }, flags: { budget_ledger_check_strained: true } }
+          }
+        }
+      }
+    ]
+  },
+
+  "event_recovery_forced_followup": {
+    speaker: "Campus Clinic",
+    bgImage: '/images/simulator/backgrounds/bg_campus_clinic.jpg',
+    location: "Minghai Campus",
+    text: "The week after forced recovery is quieter, which makes it dangerous. You feel better enough to overpromise. The clinic nurse gives you the look of someone who has watched students mistake one good morning for a full repair.",
+    choices: [
+      {
+        text: "Set a smaller week and message people before they guess. [Recovery +]",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { energy: 18, academics: 3, digitalProficiency: 2 },
+          guanxi: { professors: 2, intlStudents: 2 },
+          flags: { recovery_followup_done: true, recovery_week_scar: false, recovery_week_repaired: true, weekly_focus: "Post-recovery follow-up" },
+          lifeCheck: {
+            id: "forced_recovery_followup",
+            label: "Post-Recovery Follow-up",
+            route: "Survival",
+            tags: ["survival", "social", "academic"],
+            stats: { energy: 0.16, digitalProficiency: 0.16, culture: 0.1 },
+            guanxi: { professors: 0.16, intlStudents: 0.16 },
+            routes: { survival: 1.2 },
+            dc: 12,
+            success: { message: "You do not bounce back dramatically. You rebuild predictably, which is better.", stats: { energy: 4 }, flags: { recovery_followup_check_passed: true } },
+            failure: { message: "You reduce the damage, but recovery still feels like a debt with interest.", stats: { energy: -2 }, flags: { recovery_followup_check_strained: true } }
+          }
+        }
+      }
+    ]
+  },
+
+  "event_recovery_academic_followup": {
+    speaker: "Academic Advisor",
+    bgImage: '/images/simulator/backgrounds/bg_library_night.jpg',
+    location: "Minghai Advising Office",
+    text: "A recovery plan is only real if it survives the second week. The advisor asks for attendance receipts, revised notes, and one professor check-in. It is not inspiring. It is exactly what repair looks like when nobody is filming.",
+    choices: [
+      {
+        text: "Bring proof that the plan became habits. [Academic recovery +]",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { academics: 12, energy: -4 },
+          guanxi: { professors: 4 },
+          relationships: { "Professor Lin": { friendship: 3 } },
+          flags: { academic_recovery_followup_done: true, academic_recovery_check_strained: false, academic_recovery_repaired: true, route_academic: true, weekly_focus: "Academic recovery follow-up" },
+          lifeCheck: {
+            id: "academic_recovery_followup",
+            label: "Academic Recovery Follow-up",
+            route: "Academic",
+            tags: ["academic", "recovery"],
+            stats: { academics: 0.3, digitalProficiency: 0.1, energy: 0.05 },
+            guanxi: { professors: 0.25 },
+            routes: { academic: 1.2 },
+            character: "Professor Lin",
+            relationshipWeight: 0.2,
+            dc: 13,
+            success: { message: "The advisor sees habits where there used to be panic.", stats: { academics: 3 }, flags: { academic_followup_check_passed: true } },
+            failure: { message: "The plan is better, but fragile. It will need one more quiet week of discipline.", stats: { energy: -2 }, flags: { academic_followup_check_strained: true } }
+          }
+        }
+      }
+    ]
+  },
+
+  "event_recovery_money_followup": {
+    speaker: "Dorm Desk",
+    bgImage: '/images/simulator/cg/cg_money_crisis.jpg',
+    location: "Dorm Room",
+    text: "The rescue money solved the emergency. It did not solve the pattern. You open the ledger again, this time with the humility of someone who knows exactly how quickly a small number becomes a locked gate.",
+    choices: [
+      {
+        text: "Build a two-week buffer and cut one recurring leak. [Money recovery +]",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { wealth: 260, digitalProficiency: 4, energy: -2 },
+          flags: { money_recovery_followup_done: true, money_recovery_buffer: true, route_survival: true, weekly_focus: "Money recovery follow-up" },
+          lifeCheck: {
+            id: "money_recovery_followup",
+            label: "Money Recovery Follow-up",
+            route: "Survival",
+            tags: ["survival", "admin"],
+            stats: { digitalProficiency: 0.3, energy: 0.04 },
+            routes: { survival: 1.4 },
+            dc: 11,
+            success: { message: "The buffer is not glamorous, but it gives next week more choices.", stats: { wealth: 160 }, flags: { money_followup_check_passed: true } },
+            failure: { message: "You find the leak, but the margin still feels uncomfortably alive.", stats: { energy: -2 }, flags: { money_followup_check_strained: true } }
+          }
+        }
+      }
+    ]
+  },
+
   "random_sick": {
     speaker: "Body",
     bgImage: '/images/simulator/backgrounds/bg_campus_clinic.jpg',

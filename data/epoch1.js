@@ -3,27 +3,15 @@ export const epoch1Events = {
     speaker: "Departure Eve",
     bgImage: '/images/simulator/backgrounds/bg_departure_eve_room.jpg',
     location: "Home Country",
-    text: "The suitcase is open on the floor, half-packed and already accusing you of forgetting something. Your passport lies beside the admission letter from Minghai University, Shanghai. Tomorrow morning, you fly to China. Tonight, every object in your room seems to remember a different version of how you got here.",
+    text: "The suitcase is open on the floor, half-packed and already accusing you of forgetting something. Your passport lies beside the admission letter from Minghai University, Shanghai. Tomorrow morning, you fly to China. First objective: finish the four things that make this night real.",
     choices: [
       {
-        text: "Check the admission folder first.",
-        next: "pro_admission_folder"
-      },
-      {
-        text: "Read the unread messages on your phone.",
-        next: "pro_phone_messages"
-      },
-      {
-        text: "Start with the suitcase. Practical problems first.",
+        text: "Objective 1/4: Pack the suitcase. [Energy +]",
         next: "pro_suitcase",
         effects: {
           stats: { energy: 5 },
-          flags: { coping_practical_hint: true }
+          flags: { coping_practical_hint: true, opening_task_pack_suitcase: true }
         }
-      },
-      {
-        text: "Review how the simulator works before the memories take over.",
-        next: "tutorial_stats"
       }
     ]
   },
@@ -65,11 +53,15 @@ export const epoch1Events = {
     speaker: "Admission Letter",
     bgImage: '/images/simulator/cg/cg_admission_email.jpg',
     location: "Home Country",
-    text: "The paper still feels unreal: Minghai University, Undergraduate Admission, School of... You pause at the major line. It looks so official now, as if the choice was always inevitable. But months ago, it was just one tab among thirty, opened at 2:00 AM while you wondered whether China was a plan, a gamble, or an escape route.",
+    text: "The email still feels unreal: Minghai University, Undergraduate Admission, School of... You pause at the major line. It looks so official now, as if the choice was always inevitable. But tonight it is also a checklist item: confirm the offer, confirm the documents, confirm this is not a dream you forgot to wake from.",
     choices: [
       {
-        text: "Remember why you applied to China.",
-        next: "week1_motive"
+        text: "Objective 2/4: Check the admission email and folder. [Digital +]",
+        next: "pro_phone_messages",
+        effects: {
+          stats: { digitalProficiency: 2 },
+          flags: { opening_task_check_admission: true }
+        }
       }
     ]
   },
@@ -78,22 +70,14 @@ export const epoch1Events = {
     speaker: "Phone",
     bgImage: '/images/simulator/backgrounds/bg_departure_eve_room.jpg',
     location: "Home Country",
-    text: "Three messages wait on the lock screen. One from family, checking whether you packed medicine. One from a friend, asking if you are actually doing this. One from the Minghai international student group, already arguing about SIM cards, bedding, and whether the canteen accepts foreign cards.",
+    text: "Three messages wait on the lock screen. One from family, checking whether you packed medicine. One from a friend, asking if you are actually doing this. One from the Minghai international student group, already arguing about SIM cards, bedding, and whether the canteen accepts foreign cards. The family message stays at the top because it knows you best.",
     choices: [
       {
-        text: "Reply to family first.",
+        text: "Objective 3/4: Reply to family honestly. [Energy -]",
         next: "pro_family_reply",
         effects: {
           stats: { energy: -5 },
-          flags: { family_thread_opened: true }
-        }
-      },
-      {
-        text: "Open the student group chat.",
-        next: "pro_group_chat",
-        effects: {
-          guanxi: { intlStudents: 3 },
-          flags: { intl_group_seen: true }
+          flags: { family_thread_opened: true, opening_task_reply_family: true }
         }
       }
     ]
@@ -105,8 +89,12 @@ export const epoch1Events = {
     text: "You type that everything is under control, then delete it because the suitcase behind you is openly disproving the statement. You settle for: I am packing now. I will call before I sleep. The typing bubble appears, disappears, then appears again.",
     choices: [
       {
-        text: "Put the phone down and face the suitcase.",
-        next: "pro_suitcase"
+        text: "Open the student group chat before choosing why China still feels worth it.",
+        next: "pro_group_chat",
+        effects: {
+          guanxi: { intlStudents: 3 },
+          flags: { intl_group_seen: true }
+        }
       }
     ]
   },
@@ -117,8 +105,8 @@ export const epoch1Events = {
     text: "The group chat is pure pre-departure chaos: screenshots of payment apps, warnings about hard mattresses, someone asking if rice cookers are allowed, and a senior student calmly saying, 'Bring patience. Everything else you can buy in Shanghai.'",
     choices: [
       {
-        text: "Save the useful messages and return to packing.",
-        next: "pro_suitcase",
+        text: "Save the useful messages and face the real question.",
+        next: "week1_motive",
         effects: {
           stats: { digitalProficiency: 2 }
         }
@@ -134,7 +122,7 @@ export const epoch1Events = {
     choices: [
       {
         text: "Put the documents on top. Trust paper more than luck.",
-        next: "pro_flight_confirm",
+        next: "pro_admission_folder",
         effects: {
           stats: { digitalProficiency: 2 },
           flags: { document_careful: true }
@@ -142,7 +130,7 @@ export const epoch1Events = {
       },
       {
         text: "Pack comfort items first. Future-you can panic later.",
-        next: "pro_flight_confirm",
+        next: "pro_admission_folder",
         effects: {
           stats: { energy: 5 },
           flags: { comfort_packer: true }
@@ -167,14 +155,14 @@ export const epoch1Events = {
   "week1_motive": {
     speaker: "Memory",
     location: "Home Country",
-    text: "Months earlier, China was not yet a plane ticket. It was a search result, a scholarship page, a campus video, a conversation you did not know how to finish. Everyone asked what you wanted from it. The harder question was what you were willing to let it change.",
+    text: "Objective 4/4: choose your China reason. Months earlier, China was not yet a plane ticket. It was a search result, a scholarship page, a campus video, a conversation you did not know how to finish. Everyone asked what you wanted from it. The harder question was what you were willing to let it change.",
     choices: [
       {
         text: "A degree that can change the next ten years. [Academics +]",
         next: "w1_origin",
         effects: {
           stats: { academics: 10 },
-          flags: { motive_degree: true, academic_seed: true, decision_e1_start: "Degree and future" }
+          flags: { motive_degree: true, academic_seed: true, decision_e1_start: "Degree and future", opening_task_choose_reason: true }
         }
       },
       {
@@ -182,7 +170,7 @@ export const epoch1Events = {
         next: "w1_origin",
         effects: {
           stats: { culture: 10, chinese: 5 },
-          flags: { motive_curiosity: true, local_seed: true, decision_e1_start: "Curiosity about China" }
+          flags: { motive_curiosity: true, local_seed: true, decision_e1_start: "Curiosity about China", opening_task_choose_reason: true }
         }
       },
       {
@@ -190,7 +178,7 @@ export const epoch1Events = {
         next: "w1_origin",
         effects: {
           stats: { wealth: 1000, energy: -5 },
-          flags: { motive_scholarship: true, academic_seed: true, decision_e1_start: "Scholarship opportunity" }
+          flags: { motive_scholarship: true, academic_seed: true, background_scholarship_student: true, decision_e1_start: "Scholarship opportunity", opening_task_choose_reason: true }
         }
       },
       {
@@ -198,7 +186,7 @@ export const epoch1Events = {
         next: "w1_origin",
         effects: {
           stats: { energy: 10, culture: 5 },
-          flags: { motive_restart: true, intl_seed: true, decision_e1_start: "A clean start" }
+          flags: { motive_restart: true, intl_seed: true, decision_e1_start: "A clean start", opening_task_choose_reason: true }
         }
       }
     ]
@@ -272,15 +260,15 @@ export const epoch1Events = {
     choices: [
       {
         text: "Beginner: ni hao, xiexie, and the terror of tones. [Chinese -]",
-        next: "w1_coping_style",
+        next: "w1_background_pressure",
         effects: {
           stats: { chinese: -5, energy: 5 },
-          flags: { chinese_beginner: true, decision_e1_hsk: "Beginner Chinese" }
+          flags: { chinese_beginner: true, background_total_beginner: true, decision_e1_hsk: "Beginner Chinese" }
         }
       },
       {
         text: "Classroom Chinese: your textbook self is braver than your real mouth. [Chinese +, Academics +]",
-        next: "w1_coping_style",
+        next: "w1_background_pressure",
         effects: {
           stats: { chinese: 10, academics: 5 },
           flags: { chinese_classroom: true, decision_e1_hsk: "Classroom Chinese" }
@@ -288,10 +276,60 @@ export const epoch1Events = {
       },
       {
         text: "Heritage or self-taught Chinese: you follow more than people expect. [Chinese +, Culture +]",
-        next: "w1_coping_style",
+        next: "w1_background_pressure",
         effects: {
           stats: { chinese: 20, culture: 5, energy: -5 },
-          flags: { chinese_strong: true, decision_e1_hsk: "Strong Chinese foundation" }
+          flags: { chinese_strong: true, background_heritage_learner: true, decision_e1_hsk: "Strong Chinese foundation" }
+        }
+      }
+    ]
+  },
+
+  "w1_background_pressure": {
+    speaker: "Background",
+    location: "Home Country",
+    text: "The form never asks the question directly, but the simulator does: what pressure follows you onto the plane? This does not lock your destiny. It changes the tone of money, help, pride, and risk.",
+    choices: [
+      {
+        text: "Scholarship student: opportunity feels precious because it was hard-won. [Academics +, Wealth +]",
+        next: "w1_coping_style",
+        effects: {
+          stats: { academics: 5, wealth: 800 },
+          flags: { background_scholarship_student: true, background_label: "Scholarship student" }
+        }
+      },
+      {
+        text: "Family-funded student: support is real, but expectations travel with it. [Wealth +, Energy -]",
+        next: "w1_coping_style",
+        effects: {
+          stats: { wealth: 2500, energy: -3 },
+          flags: { background_family_funded: true, background_label: "Family-funded student" }
+        }
+      },
+      {
+        text: "Working-class budget route: every RMB already has a job. [Digital +, Wealth -]",
+        next: "w1_coping_style",
+        effects: {
+          stats: { digitalProficiency: 5, wealth: -1200 },
+          flags: { background_working_budget: true, background_label: "Working-class budget route" }
+        }
+      },
+      {
+        text: "Heritage learner: some doors sound familiar, but belonging is not automatic. [Chinese +, Culture +]",
+        condition: { flags: { chinese_strong: true } },
+        next: "w1_coping_style",
+        effects: {
+          stats: { chinese: 5, culture: 5 },
+          flags: { background_heritage_learner: true, background_label: "Heritage learner" }
+        }
+      },
+      {
+        text: "Total beginner: everything will have to become learnable. [Energy +]",
+        condition: { flags: { chinese_beginner: true } },
+        next: "w1_coping_style",
+        effects: {
+          stats: { energy: 5 },
+          flags: { background_total_beginner: true, background_label: "Total beginner" }
         }
       }
     ]

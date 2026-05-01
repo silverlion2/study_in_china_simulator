@@ -24,30 +24,35 @@ You can download the compiled Windows `.exe` installer directly from the GitHub 
 
 **Sim Panda** is an immersive lifestyle simulator that puts you in the shoes of an international student navigating the exciting, challenging, and culturally rich process of studying abroad in China.
 
-Using a precise turn-based weekly schedule, players balance `Academics`, `Chinese`, `Culture`, `Digital Proficiency`, `Energy`, relationships, and `RMB Finances` across the full study-abroad arc: applying to Minghai University, preparing documents and digital tools, arriving in Shanghai, building routes, and reaching one of several endings.
+Using a precise 32-week turn-based schedule, players balance `Academics`, `Chinese`, `Culture`, `Digital Proficiency`, `Energy`, relationships, and `RMB Finances` across the full study-abroad arc: applying to Minghai University, preparing documents and digital tools, arriving in Shanghai, building routes, recovering from crises, and reaching one of several endings.
 
 ## 🆕 Latest Update
 
-The current development build expands Sim Panda from a compact prototype into a fuller visual-novel life simulator:
+The current development build expands Sim Panda into a fuller 2.0-style visual-novel life simulator:
 
 - Added a complete title screen with `New Game`, `Load Game`, `CG Gallery`, and sound controls.
-- Expanded the story into Application, Pre-Departure, and In-China phases with richer route events and ending logic.
-- Added SimPad systems for Calendar, Gallery / Memory Archive, DiDi, Taobao service orders, housing follow-up, WeChat meetups, jobs, souvenirs, and player progress.
-- Added 23 CG memories, including admission, documents, academic route scenes, local-life scenes, career milestones, Shanghai startup events, risk endings, and new daily-life character CGs.
+- Expanded the story into Application, Pre-Departure, and In-China phases with a concrete opening task chain, weekly action economy, route commitments, delayed consequences, and crisis recovery branches.
+- Added visible route projects for Academic Portfolio, Internship Dossier, Neighborhood Map, Support Circle Guide, Shanghai Prototype, and Budget Ledger.
+- Added relationship-driven character chains and reply choices for Professor Lin, Dr. Mei, Sophie, Xiao Chen, Neighbor Li, Uncle Wang, and Manager Zhang.
+- Added Life Check resolution for high-pressure moments, with prep-card bonuses, route weighting, success/strain outcomes, and run-memory afterwords.
+- Added SimPad systems for Calendar, Gallery / Memory Archive, DiDi, Taobao service orders, housing follow-up, WeChat meetups, jobs, souvenirs, character arcs, route projects, and player progress.
+- Expanded the Memory Archive to 36 CG memories, including admission, documents, academic route scenes, local-life scenes, career milestones, Shanghai startup events, risk endings, housing pressure, phone-layer consequences, and new daily-life character CGs.
 - Added a large visual asset library: campus backgrounds, Shanghai / China travel scenes, character portraits, v2 character art, route CGs, and compressed JPG runtime assets.
-- Added audio infrastructure with `AudioManager`, audio manifests, fallback Web Audio BGM/SFX, and a first batch of MP3 background tracks.
-- Added design, narrative, asset, audio, QA, and handoff documentation for continuing development.
+- Added audio infrastructure with `AudioManager`, audio manifests, fallback Web Audio BGM/SFX, MP3 background tracks, scene ambience routing, and choice-impact feedback sounds.
+- Added automated full-route QA covering seven route profiles, six route project actions, three crisis recovery chains, and the weekly action economy.
+- Added design, narrative, asset, audio, QA, character-bible, and handoff documentation for continuing development.
+- Removed repeated Node ESM module-type warnings by scoping `data/` and `engine/` as ES modules while keeping the Electron entrypoint CommonJS-safe.
 - Updated the build pipeline so the standalone `index.html` stays playable offline while supporting optional PandaOffer website export.
 
 ## ✨ Features
 
-- **Dynamic Turn-Based Scheduling:** Manage 36 weeks of actions across distinct Epochs (Application, Pre-Departure, In-China).
+- **Dynamic Turn-Based Scheduling:** Manage 32 weeks of actions across distinct Epochs (Application, Pre-Departure, In-China).
 - **RPG Stat System:** Track academics, language growth, culture, digital readiness, energy, money, guanxi, and character relationships.
-- **Narrative Story Engine:** Multiple routes and endings shaped by weekly choices, route commitments, risk events, and relationship trust.
+- **Narrative Story Engine:** Multiple routes and endings shaped by weekly choices, route commitments, risk events, Life Checks, delayed consequences, and relationship trust.
 - **Authentic Study-Abroad Flow:** Application essays, JW202 / X1 visa prep, WeChat and Alipay setup, housing, airport arrival, registration, first classes, internships, and local-life adaptation.
-- **SimPad Tablet Interface:** In-game hub for milestones, stats, Calendar, CG memories, DiDi shortcuts, Taobao service orders, jobs, WeChat contacts, souvenirs, and route progress.
-- **Visual Novel Presentation:** 23 unlockable CG memories, character portraits, campus backgrounds, route scenes, and a title-screen gallery.
-- **Audio Layer:** Scene-aware BGM/SFX manager with Web Audio fallback and optional MP3 asset manifest.
+- **SimPad Tablet Interface:** In-game hub for milestones, stats, Calendar, CG memories, DiDi shortcuts, Taobao service orders, jobs, WeChat contacts, souvenirs, character arcs, route projects, and route progress.
+- **Visual Novel Presentation:** 36 unlockable CG memories, character portraits, campus backgrounds, route scenes, and a title-screen gallery.
+- **Audio Layer:** Scene-aware BGM/SFX manager with Web Audio fallback, optional MP3 asset manifest, ambience switching, stingers, and choice-impact feedback.
 
 ## 🛠️ Local Development
 
@@ -66,6 +71,19 @@ npm start
 ```
 *Note: If you only want to play in your browser, just double click `index.html`!*
 
+### Validation
+
+```bash
+# Rebuild the standalone offline HTML
+node build.js
+
+# Validate story pointers, dialogue choices, and Life Check wiring
+node validate_story.mjs
+
+# Run automated full-route QA
+npm run qa:routes
+```
+
 ## 🏗️ System Architecture
 
 The project is structured to be highly pure, eschewing complicated bundle tooling (like Webpack) in favor of a raw React string-injected `build.js` pipeline. 
@@ -73,6 +91,7 @@ The project is structured to be highly pure, eschewing complicated bundle toolin
 - `data/`: Contains the JSON node tree logic for event handling.
 - `engine/`: The core `GameState.js` and `EventSystem.js` maintaining state without Redux.
 - `components/`: Modular React components tracking specific UI functions (like the `TabletInterface`).
+- `tools/`: QA and production helper scripts, including full-route route feasibility checks.
 - `images/` and `assets/`: Runtime visual and audio assets used by the standalone build.
 - `docs/`: Visual asset plans, prompt records, contact sheets, and production notes.
 

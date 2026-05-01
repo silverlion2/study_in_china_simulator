@@ -359,9 +359,16 @@ export class AudioManager {
       didiRequest: [[620, 0.06, "triangle", 0.03], [760, 0.1, "sine", 0.025, 0.12]],
       didiArrived: [[760, 0.08, "triangle", 0.03], [1020, 0.14, "sine", 0.026, 0.1]],
       wechatMessage: [[980, 0.04, "triangle", 0.022], [1320, 0.06, "sine", 0.018, 0.05]],
+      wechatAddContact: [[880, 0.05, "triangle", 0.025], [1174.66, 0.08, "sine", 0.02, 0.05], [1567.98, 0.1, "sine", 0.016, 0.11]],
       moneyGain: [[660, 0.05, "triangle", 0.033], [990, 0.09, "sine", 0.025, 0.06]],
       moneySpend: [[520, 0.05, "triangle", 0.025], [330, 0.09, "sine", 0.02, 0.05]],
-      relationshipUp: [[587.33, 0.08, "triangle", 0.028], [783.99, 0.14, "sine", 0.025, 0.1]]
+      statUp: [[587.33, 0.055, "triangle", 0.026], [739.99, 0.09, "sine", 0.022, 0.055]],
+      statDown: [[392, 0.06, "triangle", 0.023], [293.66, 0.11, "sine", 0.018, 0.06]],
+      relationshipUp: [[587.33, 0.08, "triangle", 0.028], [783.99, 0.14, "sine", 0.025, 0.1]],
+      taobaoOrder: [[520, 0.05, "triangle", 0.026], [740, 0.07, "square", 0.016, 0.045], [980, 0.08, "sine", 0.018, 0.095]],
+      officeBadge: [[392, 0.08, "triangle", 0.026], [587.33, 0.12, "sine", 0.022, 0.08]],
+      emailArrive: [[783.99, 0.05, "triangle", 0.025], [1046.5, 0.08, "sine", 0.02, 0.06]],
+      visaApproved: [[523.25, 0.1, "triangle", 0.034], [659.25, 0.14, "triangle", 0.03, 0.09], [987.77, 0.18, "sine", 0.026, 0.22]]
     };
 
     const pattern = patterns[id] || patterns[important ? "cgUnlock" : "uiClick"];

@@ -283,7 +283,7 @@ export const epoch3Events = {
     speaker: "Neighbor Li",
     bgImage: '/images/simulator/backgrounds/bg_dorm_room.jpg',
     location: "Dorm Hallway",
-    text: "'New student? No problem.' Neighbor Li compares three bedding sets, rejects two sellers, and teaches you the phrase bu tai hua suan. Not very worth it. The lesson feels bigger than bedding.",
+    text: "Neighbor Li leans into your phone screen. 'New student? No problem. First lesson: cheap is not always saving money.'\n\nYou: 'I thought this pillow was a good deal.'\n\nNeighbor Li: 'This pillow is for someone with no neck.' He rejects two sellers, circles a shipping estimate, and teaches you bu tai hua suan: not very worth it.\n\nBy the time the order goes through, it feels less like shopping and more like someone quietly making room for you in the building.",
     choices: [
       {
         text: "Thank Li and prepare for the first night.",
@@ -305,7 +305,7 @@ export const epoch3Events = {
         effects: {
           location: "Shanghai",
           stats: { energy: -6, culture: 8 },
-          flags: { arrived_in_china: true, first_night_choice: "Accepted the hard mattress" }
+          flags: { arrived_in_china: true, adaptation_novelty: true, first_night_choice: "Accepted the hard mattress" }
         }
       },
       {
@@ -315,7 +315,7 @@ export const epoch3Events = {
         effects: {
           location: "Shanghai",
           stats: { wealth: -120, energy: 12 },
-          flags: { arrived_in_china: true, first_night_choice: "Ordered a mattress topper" }
+          flags: { arrived_in_china: true, adaptation_novelty: true, first_night_choice: "Ordered a mattress topper" }
         }
       }
     ]
@@ -333,7 +333,26 @@ export const epoch3Events = {
         effects: {
           stats: { digitalProficiency: 5, energy: -2 },
           guanxi: { admin: 8 },
-          flags: { decision_e3_registration: "Careful office registration", student_card_ready: true }
+          flags: { decision_e3_registration: "Careful office registration", student_card_ready: true },
+          lifeCheck: {
+            id: "registration_office_rhythm",
+            label: "Registration Office Rhythm",
+            route: "Admin",
+            tags: ["admin", "registration", "arrival"],
+            stats: { digitalProficiency: 0.45, culture: 0.25, energy: 0.05 },
+            guanxi: { admin: 0.25 },
+            dc: 11,
+            success: {
+              message: "The office still moves slowly, but your screenshots and politeness keep the machine from eating the whole day.",
+              stats: { energy: 2, culture: 1 },
+              flags: { registration_rhythm_clean: true }
+            },
+            failure: {
+              message: "You finish registration, but each window takes a little more energy because the sequence never fully clicks.",
+              stats: { energy: -3 },
+              flags: { registration_rhythm_strained: true }
+            }
+          }
         }
       },
       {
@@ -344,7 +363,28 @@ export const epoch3Events = {
           stats: { energy: 4 },
           guanxi: { intlStudents: 8 },
           relationships: { Sophie: { friendship: 6 } },
-          flags: { decision_e3_registration: "Senior checklist registration", student_card_ready: true, met_sophie_on_campus: true }
+          flags: { decision_e3_registration: "Senior checklist registration", student_card_ready: true, met_sophie_on_campus: true },
+          lifeCheck: {
+            id: "registration_senior_checklist",
+            label: "Senior Checklist Registration",
+            route: "International",
+            tags: ["admin", "registration", "arrival", "intl"],
+            stats: { digitalProficiency: 0.35, culture: 0.2, energy: 0.08 },
+            guanxi: { intlStudents: 0.25 },
+            character: "Sophie",
+            relationshipWeight: 0.3,
+            dc: 11,
+            success: {
+              message: "Sophie's checklist turns registration into a sequence you can follow and later explain to someone else.",
+              stats: { digitalProficiency: 1, energy: 2 },
+              flags: { registration_checklist_reusable: true }
+            },
+            failure: {
+              message: "The checklist helps, but you realize following instructions is not the same as understanding the system.",
+              stats: { energy: -2 },
+              flags: { registration_checklist_dependency: true }
+            }
+          }
         }
       },
       {
@@ -353,7 +393,26 @@ export const epoch3Events = {
         effects: {
           stats: { chinese: 6, energy: -5 },
           guanxi: { admin: 3 },
-          flags: { decision_e3_registration: "Improvised registration", student_card_ready: true }
+          flags: { decision_e3_registration: "Improvised registration", student_card_ready: true },
+          lifeCheck: {
+            id: "registration_improv",
+            label: "Improvised Registration",
+            route: "Admin",
+            tags: ["admin", "registration", "language"],
+            stats: { chinese: 0.45, culture: 0.2, energy: 0.04 },
+            guanxi: { admin: 0.2 },
+            dc: 10,
+            success: {
+              message: "Improvising works because your Chinese is just strong enough to repair mistakes in real time.",
+              stats: { culture: 2 },
+              flags: { registration_improv_repaired: true }
+            },
+            failure: {
+              message: "You make it through, but being corrected at every window leaves a bruise on your confidence.",
+              stats: { energy: -4 },
+              flags: { registration_improv_bruise: true }
+            }
+          }
         }
       }
     ]
@@ -746,7 +805,7 @@ export const epoch3Events = {
     speaker: "Professor Lin",
     bgImage: '/images/simulator/backgrounds/bg_library_night.jpg',
     location: "Faculty Office",
-    text: "'You are not behind because you are foreign,' Professor Lin says. 'You are behind because the semester is difficult. That problem has methods.' He draws a schedule that looks strict enough to become a personality.",
+    text: "Professor Lin turns your marked-up notes sideways, then looks at you over his glasses.\n\nProfessor Lin: 'You are not behind because you are foreign. You are behind because the semester is difficult. That problem has methods.'\n\nYou: 'So I am not uniquely failing?'\n\nProfessor Lin: 'No. But you are uniquely responsible for what you do next.'\n\nHe draws a weekly schedule so strict it almost looks like a second personality.",
     choices: [
       {
         text: "Follow the method and return to the weekly rhythm.",
@@ -774,7 +833,7 @@ export const epoch3Events = {
     speaker: "Sophie",
     bgImage: '/images/simulator/backgrounds/bg_international_common_room.jpg',
     location: "Dorm Common Room",
-    text: "Sophie brings snacks, someone makes a shared notes folder, and the review night becomes part study session, part proof that nobody is failing alone. The grades still matter. So does not disappearing.",
+    text: "Sophie drops a bag of snacks onto the common-room table like emergency supplies.\n\nSophie: 'Before anyone says they are fine, we are defining fine. Do you mean actually fine, or international-student fine?'\n\nYou: 'The second one.'\n\nSophie: 'Thought so. Open your laptop. I made a shared notes folder.'\n\nThe review night becomes part study session, part proof that nobody is failing alone.",
     choices: [
       {
         text: "Return to the semester with backup.",
@@ -866,7 +925,7 @@ export const epoch3Events = {
     speaker: "Professor Lin",
     bgImage: '/images/simulator/backgrounds/bg_library_night.jpg',
     location: "Faculty Office",
-    text: "'Research is not glamorous at first,' Professor Lin says. 'It is showing up when the data is boring.' You understand that this is both a warning and an invitation.",
+    text: "Professor Lin hands you a folder with three pages of instructions and zero romance.\n\nProfessor Lin: 'Research is not glamorous at first. It is showing up when the data is boring.'\n\nYou: 'That sounds like a warning.'\n\nProfessor Lin: 'It is also an invitation. The difference is whether you come back next week.'\n\nFor the first time, the academic route feels less like prestige and more like a discipline you can choose.",
     choices: [
       {
         text: "Accept the slow work and return to campus life.",
@@ -894,7 +953,7 @@ export const epoch3Events = {
     speaker: "Xiao Chen",
     bgImage: '/images/simulator/backgrounds/bg_incubator_room.jpg',
     location: "Coffee Shop Near Campus",
-    text: "Xiao Chen opens a spreadsheet full of supplier links, campus survey notes, and wildly optimistic revenue guesses. 'Small test first,' he says. For once, the city feels less like a maze and more like a prototype.",
+    text: "Xiao Chen rotates his laptop toward you. The spreadsheet has supplier links, survey notes, and revenue guesses that are either ambitious or legally a weather forecast.\n\nXiao Chen: 'Small test first. Ten users. One problem. No fantasy.'\n\nYou: 'This is your version of being cautious?'\n\nXiao Chen: 'My cautious is still faster than most people's brave.'\n\nFor once, the city feels less like a maze and more like a prototype.",
     choices: [
       {
         text: "Test the idea without betting your whole semester.",
@@ -908,7 +967,7 @@ export const epoch3Events = {
     speaker: "Sophie",
     bgImage: '/images/simulator/cg/cg_orientation_guide.jpg',
     location: "Dorm Common Room",
-    text: "The guide starts as a checklist and turns into something warmer: where to buy bedding, which office window matters, how to ask for help before you are desperate. You realize practical kindness is also infrastructure.",
+    text: "Sophie opens a blank document titled THINGS WE WISH SOMEONE TOLD US.\n\nSophie: 'No inspirational quotes. Only survival-grade information.'\n\nYou: 'Bedding links, office windows, phone plans, how to ask for help before the panic stage?'\n\nSophie: 'Exactly. Practical kindness. With headings.'\n\nThe guide starts as a checklist and turns into something warmer: proof that your confusion can become someone else's shortcut.",
     choices: [
       {
         text: "Publish the guide in the student group.",
@@ -1224,7 +1283,251 @@ export const epoch3Events = {
         effects: {
           stats: { energy: 70, academics: -8, wealth: -200 },
           guanxi: { professors: -4, localStudents: -3, intlStudents: -3 },
-          flags: { forced_recovery_used: true, weekly_focus: "Forced recovery week" }
+          flags: { forced_recovery_used: true, weekly_focus: "Forced recovery week" },
+          lifeCheck: {
+            id: "forced_recovery_rebuild",
+            label: "Forced Recovery Rebuild",
+            route: "Survival",
+            tags: ["survival", "social", "academic"],
+            stats: { energy: 0.18, culture: 0.12, digitalProficiency: 0.08 },
+            guanxi: { professors: 0.15, intlStudents: 0.12, localStudents: 0.12 },
+            routes: { survival: 1.2 },
+            dc: 12,
+            success: {
+              message: "The forced pause costs you a week, but your support systems keep it from becoming a collapse.",
+              stats: { energy: 5 },
+              flags: { recovery_week_stabilized: true }
+            },
+            failure: {
+              message: "You recover physically, but the missed messages and delayed work leave a bruise the semester will remember.",
+              stats: { academics: -3 },
+              flags: { recovery_week_scar: true }
+            }
+          }
+        }
+      }
+    ]
+  },
+
+  "academic_crisis": {
+    speaker: "Academic Advisor",
+    bgImage: '/images/simulator/backgrounds/bg_library_night.jpg',
+    location: "Minghai Advising Office",
+    text: "The warning is not a dramatic failure screen. It is an appointment. Your grades are low enough that the advisor stops using comforting language and starts using verbs: attend, document, repair, ask. The semester is not over, but it is no longer pretending you can drift through it.",
+    choices: [
+      {
+        text: "Ask Professor Lin for a recovery plan. [Academics +, Professor bond +, Energy -]",
+        next: "hub",
+        effects: {
+          stats: { academics: 18, energy: -10 },
+          guanxi: { professors: 8 },
+          relationships: { "Professor Lin": { friendship: 8 } },
+          flags: { academic_crisis_used: true, academic_recovery_plan: true, route_academic: true, weekly_focus: "Academic recovery plan" },
+          lifeCheck: {
+            id: "academic_recovery_plan",
+            label: "Academic Recovery Plan",
+            route: "Academic",
+            tags: ["academic", "recovery"],
+            stats: { academics: 0.28, energy: 0.08 },
+            guanxi: { professors: 0.3 },
+            routes: { academic: 1.2 },
+            character: "Professor Lin",
+            relationshipWeight: 0.25,
+            dc: 13,
+            success: {
+              message: "Professor Lin's recovery plan gives the crisis a shape: attendance, drafts, and one repairable week at a time.",
+              stats: { academics: 4 },
+              flags: { academic_recovery_check_passed: true }
+            },
+            failure: {
+              message: "The plan exists, but your margin is thin. One more bad week could turn repair into probation.",
+              stats: { energy: -3 },
+              flags: { academic_recovery_check_strained: true }
+            }
+          }
+        }
+      },
+      {
+        text: "Cut social plans and rebuild through retakes. [Academics +, Networks -]",
+        next: "hub",
+        effects: {
+          stats: { academics: 16, energy: -4 },
+          guanxi: { intlStudents: -5, localStudents: -5 },
+          flags: { academic_crisis_used: true, retake_grind: true, weekly_focus: "Retake grind" },
+          lifeCheck: {
+            id: "retake_grind",
+            label: "Retake Grind",
+            route: "Academic",
+            tags: ["academic", "survival"],
+            stats: { academics: 0.32, energy: 0.05 },
+            routes: { academic: 1, survival: 0.8 },
+            dc: 12,
+            success: {
+              message: "The grind is lonely, but it stops the transcript from becoming the whole story.",
+              stats: { academics: 3 },
+              flags: { retake_grind_stabilized: true }
+            },
+            failure: {
+              message: "You gain points and lose texture. The grade recovers faster than your life does.",
+              stats: { energy: -4 },
+              flags: { retake_grind_social_scar: true }
+            }
+          }
+        }
+      }
+    ]
+  },
+
+  "delayed_phone_payment_friction": {
+    speaker: "Phone Counter",
+    bgImage: '/images/simulator/backgrounds/bg_phone_network_problem.jpg',
+    location: "Campus Mobile Shop",
+    text: "The choice to leave phone setup for later comes back with fluorescent lighting. The clerk needs one verification, then another. The translation app stalls. A line forms behind you. This is not a catastrophe; it is the exact kind of small friction that turns arrival into exhaustion.",
+    choices: [
+      {
+        text: "Finish WeChat, Alipay, and DiDi setup the hard way. [Digital +, Energy -]",
+        next: "hub",
+        effects: {
+          stats: { digitalProficiency: 9, energy: -10, wealth: -60 },
+          flags: { has_wechat: true, has_alipay: true, has_didi: true, delayed_phone_payment_friction_seen: true, first_delayed_consequence_seen: true, adaptation_information_overload: true, weekly_focus: "Phone setup friction" }
+        }
+      }
+    ]
+  },
+
+  "delayed_language_anxiety": {
+    speaker: "Canteen Window",
+    bgImage: '/images/simulator/backgrounds/bg_canteen_counter.jpg',
+    location: "Minghai Canteen",
+    text: "The auntie asks a simple follow-up question. You know it is simple because everyone behind you understands it. That makes it worse. For three seconds, language is not vocabulary. It is heat in your face, people waiting, and the ugly wish to disappear.",
+    choices: [
+      {
+        text: "Ask her to repeat it and survive the embarrassment. [Chinese +, Culture +]",
+        next: "hub",
+        effects: {
+          stats: { chinese: 12, culture: 6, energy: -5 },
+          flags: { delayed_language_anxiety_seen: true, adaptation_language_anxiety: true, adaptation_first_independent_solution: true, weekly_focus: "Language anxiety breakthrough" }
+        }
+      },
+      {
+        text: "Switch to pointing and promise to study later. [Energy +, Chinese -]",
+        next: "hub",
+        effects: {
+          stats: { energy: 4, chinese: -3 },
+          flags: { delayed_language_anxiety_seen: true, adaptation_language_anxiety: true, language_avoidance_debt: true, weekly_focus: "Language avoidance debt" }
+        }
+      }
+    ]
+  },
+
+  "delayed_housing_compromise": {
+    speaker: "Housing Reality",
+    bgImage: '/images/simulator/cg/cg_housing_shared_flat_first_night.png',
+    location: "Minghai Dorm District",
+    text: "The cheap or unfinished housing choice stops being a line item and becomes mornings: bad sleep, a longer walk, roommate noise, one missing thing you should have bought sooner. Housing is not background. It is the machine that prints your energy every week.",
+    choices: [
+      {
+        text: "Pay for the missing basics and protect the semester. [Wealth -, Energy +]",
+        next: "hub",
+        effects: {
+          stats: { wealth: -360, energy: 14, culture: 2 },
+          flags: { delayed_housing_compromise_seen: true, housing_friction_repaired: true, weekly_focus: "Housing compromise repaired" }
+        }
+      },
+      {
+        text: "Accept the compromise and build a cheaper routine. [Survival route]",
+        next: "hub",
+        effects: {
+          stats: { wealth: 160, energy: -4, digitalProficiency: 3 },
+          flags: { delayed_housing_compromise_seen: true, housing_energy_scar: true, weekly_focus: "Cheap housing compromise" }
+        }
+      }
+    ]
+  },
+
+  "delayed_dorm_auntie_help": {
+    speaker: "Dorm Auntie",
+    bgImage: '/images/simulator/cg/cg_dorm_auntie_parcel_help.jpg',
+    location: "Dorm Parcel Shelf",
+    text: "A document packet arrives while you are trapped across campus. You expect trouble. Instead, the dorm auntie remembers you from the parcel errand, waves away the panic, and keeps it safe behind the desk. One small kindness from weeks ago returns with a stamp on it.",
+    choices: [
+      {
+        text: "Thank her properly and stop treating errands as background. [Culture +, Admin safety +]",
+        next: "hub",
+        effects: {
+          stats: { culture: 6, energy: 5 },
+          guanxi: { localStudents: 5, admin: 3 },
+          flags: { delayed_dorm_auntie_help_seen: true, adaptation_life_rhythm: true, weekly_focus: "Dorm auntie helped with parcel" }
+        }
+      }
+    ]
+  },
+
+  "delayed_calendar_focus_payoff": {
+    speaker: "Calendar Reminder",
+    bgImage: '/images/simulator/cg/cg_calendar_midterm_warning.png',
+    location: "SimPad Calendar",
+    text: "The pinned reminder returns at exactly the right moment. Not dramatically. Usefully. A deadline that would have arrived as a slap now arrives as a checklist: documents already grouped, reading already started, next office window already saved. Future-you is briefly, sincerely grateful.",
+    choices: [
+      {
+        text: "Let planning become part of the weekly rhythm. [Academics +, Energy +]",
+        next: "hub",
+        effects: {
+          stats: { academics: 6, energy: 4, digitalProficiency: 2 },
+          flags: { delayed_calendar_focus_seen: true, adaptation_life_rhythm: true, weekly_focus: "Calendar focus paid off" }
+        }
+      }
+    ]
+  },
+
+  "delayed_wechat_silence": {
+    speaker: "WeChat",
+    bgImage: '/images/simulator/backgrounds/bg_phone_network_problem.jpg',
+    location: "Dorm Room",
+    text: "Two quiet weeks do not break a friendship. They change its temperature. A message thread you meant to answer slides lower. Someone stops assuming you are available. The phone does not punish you with a warning label. It simply shows how relationships become easier to lose when they live behind tiny red dots.",
+    choices: [
+      {
+        text: "Send honest catch-up messages instead of pretending nothing happened. [Relationships repaired, Energy -]",
+        next: "hub",
+        effects: {
+          stats: { energy: -3, chinese: 2 },
+          relationships: { Sophie: { friendship: 2 }, "Neighbor Li": { friendship: 2 }, "Xiao Chen": { friendship: 2 } },
+          flags: { delayed_wechat_silence_seen: true, wechat_silence_consequence_ready: false, wechat_repair_messages_sent: true, weekly_focus: "WeChat relationship repair" }
+        }
+      }
+    ]
+  },
+
+  "delayed_didi_pickup_confusion": {
+    speaker: "DiDi App",
+    bgImage: '/images/simulator/cg/cg_didi_pickup_zone_confusion.png',
+    location: "Campus East Gate",
+    text: "The ride is called. The car is close. You are not. Shanghai offers three gates, two identical convenience stores, one driver speaking quickly, and a map pin that insists it is correct while your feet disagree. The fare is not the lesson. The pickup zone is.",
+    choices: [
+      {
+        text: "Save the correct pickup points and stop trusting the pin alone. [Digital +, Energy -]",
+        next: "hub",
+        effects: {
+          stats: { digitalProficiency: 7, energy: -3, culture: 2 },
+          flags: { delayed_didi_pickup_confusion_seen: true, didi_pickup_friction_ready: false, didi_pickup_points_saved: true, weekly_focus: "DiDi pickup-zone lesson" }
+        }
+      }
+    ]
+  },
+
+  "delayed_taobao_wrong_address": {
+    speaker: "Courier Call",
+    bgImage: '/images/simulator/cg/cg_taobao_wrong_address.png',
+    location: "Dorm Parcel Shelf",
+    text: "The courier calls while you are between classes. You understand only half the sentence, but the half you understand is enough: wrong gate, wrong shelf, wrong assumption. The order is small. The lesson is not. Taobao is not only buying things; it is maintaining an address in motion.",
+    choices: [
+      {
+        text: "Fix the address template and write a better courier note. [Digital +, Chinese +]",
+        next: "hub",
+        effects: {
+          stats: { digitalProficiency: 6, chinese: 3, energy: -2 },
+          guanxi: { localStudents: 2 },
+          flags: { delayed_taobao_wrong_address_seen: true, taobao_address_template_fixed: true, weekly_focus: "Taobao address repair" }
         }
       }
     ]
@@ -1242,7 +1545,26 @@ export const epoch3Events = {
         effects: {
           stats: { wealth: 3200, energy: 8 },
           relationships: { Family: { friendship: 8 } },
-          flags: { emergency_funding_used: true, emergency_funding_source: "Family transfer", weekly_focus: "Financial rescue: family transfer" }
+          flags: { emergency_funding_used: true, emergency_funding_source: "Family transfer", weekly_focus: "Financial rescue: family transfer" },
+          lifeCheck: {
+            id: "family_transfer_recovery",
+            label: "Family Transfer Recovery",
+            route: "Survival",
+            tags: ["survival", "social"],
+            stats: { energy: 0.12, digitalProficiency: 0.08 },
+            routes: { survival: 1.2 },
+            dc: 10,
+            success: {
+              message: "The money arrives with guilt attached, but it gives the year enough oxygen to continue.",
+              stats: { energy: 2 },
+              flags: { money_recovery_stabilized: true }
+            },
+            failure: {
+              message: "The transfer saves the week and tightens something at home. The rescue is real; so is the pressure.",
+              stats: { energy: -2 },
+              flags: { family_transfer_pressure: true }
+            }
+          }
         }
       },
       {
@@ -1251,7 +1573,27 @@ export const epoch3Events = {
         effects: {
           stats: { wealth: 2600, digitalProficiency: 4, energy: -6 },
           guanxi: { admin: 10 },
-          flags: { emergency_funding_used: true, emergency_funding_source: "Minghai hardship bursary", weekly_focus: "Financial rescue: hardship bursary" }
+          flags: { emergency_funding_used: true, emergency_funding_source: "Minghai hardship bursary", weekly_focus: "Financial rescue: hardship bursary" },
+          lifeCheck: {
+            id: "hardship_bursary_recovery",
+            label: "Hardship Bursary Recovery",
+            route: "Survival",
+            tags: ["survival", "admin"],
+            stats: { digitalProficiency: 0.3, culture: 0.12, energy: 0.05 },
+            guanxi: { admin: 0.35 },
+            routes: { survival: 1.2 },
+            dc: 12,
+            success: {
+              message: "Your paperwork turns vulnerability into an approved process instead of a private disaster.",
+              stats: { digitalProficiency: 2 },
+              flags: { bursary_recovery_stabilized: true, money_recovery_stabilized: true }
+            },
+            failure: {
+              message: "The bursary helps, but the appointment leaves you aware of how thin the margin still is.",
+              stats: { energy: -3 },
+              flags: { bursary_recovery_scar: true }
+            }
+          }
         }
       },
       {
@@ -1262,7 +1604,29 @@ export const epoch3Events = {
           stats: { wealth: 2200, energy: 6 },
           guanxi: { intlStudents: 10 },
           relationships: { Sophie: { friendship: 6 } },
-          flags: { emergency_funding_used: true, emergency_funding_source: "International student mutual aid", weekly_focus: "Financial rescue: mutual aid" }
+          flags: { emergency_funding_used: true, emergency_funding_source: "International student mutual aid", weekly_focus: "Financial rescue: mutual aid" },
+          lifeCheck: {
+            id: "mutual_aid_recovery",
+            label: "Mutual-Aid Recovery",
+            route: "International",
+            tags: ["survival", "social", "intl"],
+            stats: { culture: 0.16, energy: 0.08 },
+            guanxi: { intlStudents: 0.35 },
+            routes: { intl: 1, survival: 0.8 },
+            character: "Sophie",
+            relationshipWeight: 0.25,
+            dc: 12,
+            success: {
+              message: "Letting people help you becomes part of the support circle instead of a private humiliation.",
+              stats: { energy: 3 },
+              flags: { mutual_aid_recovery_stabilized: true, money_recovery_stabilized: true }
+            },
+            failure: {
+              message: "The network catches you, but needing it costs more pride than you expected.",
+              stats: { energy: -2 },
+              flags: { mutual_aid_recovery_scar: true }
+            }
+          }
         }
       }
     ]

@@ -87,7 +87,25 @@ export const epoch2Events = {
         next: "e2_w11_digital_access",
         effects: {
           stats: { digitalProficiency: 5, energy: -3 },
-          flags: { got_visa: true, visa_ready: true, decision_e2_visa: "Approved on first appointment" }
+          flags: { got_visa: true, visa_ready: true, decision_e2_visa: "Approved on first appointment" },
+          lifeCheck: {
+            id: "visa_document_stack",
+            label: "X1 Visa Document Stack",
+            route: "Admin",
+            tags: ["admin", "visa"],
+            stats: { digitalProficiency: 0.55, energy: 0.08 },
+            dc: 9,
+            success: {
+              message: "The copies, screenshots, and document order make the appointment feel bureaucratic instead of catastrophic.",
+              stats: { energy: 2, digitalProficiency: 1 },
+              flags: { visa_document_stack_clean: true }
+            },
+            failure: {
+              message: "You still get through, but one missing detail teaches you that paperwork has its own memory.",
+              stats: { energy: -3 },
+              flags: { visa_document_stack_strained: true }
+            }
+          }
         }
       }
     ]
@@ -105,7 +123,25 @@ export const epoch2Events = {
         next: "e2_w11_digital_access",
         effects: {
           stats: { wealth: -120, energy: -15, digitalProficiency: 3 },
-          flags: { got_visa: true, visa_ready: true, decision_e2_visa: "Approved after document correction", visa_copy_lesson: true }
+          flags: { got_visa: true, visa_ready: true, decision_e2_visa: "Approved after document correction", visa_copy_lesson: true },
+          lifeCheck: {
+            id: "visa_document_recovery",
+            label: "Visa Document Recovery",
+            route: "Admin",
+            tags: ["admin", "visa"],
+            stats: { digitalProficiency: 0.5, energy: 0.05 },
+            dc: 10,
+            success: {
+              message: "The correction is annoying, not disastrous. Your document system absorbs the hit.",
+              stats: { digitalProficiency: 2 },
+              flags: { visa_recovery_composed: true }
+            },
+            failure: {
+              message: "The correction costs more energy than money. You get the visa, but the lesson follows you to Shanghai.",
+              stats: { energy: -4 },
+              flags: { visa_recovery_scar: true }
+            }
+          }
         }
       }
     ]

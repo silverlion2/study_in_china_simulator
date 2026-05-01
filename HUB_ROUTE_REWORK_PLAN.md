@@ -10,6 +10,7 @@
 - 先重构玩家每周看到的主入口
 - 让 Hub 承接前面主线生成的 `route_*`、`decision_e3_*`、`relationships` 和 `guanxi`
 - 让每次周行动都更像玩家在塑造留学生活，而不是刷加点活动
+- 让 Hub 成为玩家主动找角色、邀约角色、回应角色请求的主要入口
 
 ---
 
@@ -29,6 +30,31 @@ Hub 主菜单从原来的活动分类改为六类：
 - City, Travel & Arcade Extras
 
 这样可以避免一次性删除旧系统，同时让第一屏体验变得更像路线选择。
+
+当前新增玩法层：
+
+- `Life Check` 会把关键路线事件变成一次准备度检定。
+- 检定不随机，来自属性、圈层关系、角色信任、路线承诺和已经解锁的准备卡。
+- 准备卡不是新抽卡系统，而是现有行为的回收：Calendar pin、角色 Talk/Request、手机准备、语言道具等都会在关键场景里变成加成。
+- 失败不会立刻 Game Over，而是留下 `*_strained` 或 `*_scar` flags，供后续 recovery arc 回收。
+
+当前已完成的路线项目 UI：
+
+- Academic Portfolio
+- Internship Dossier
+- Neighborhood Map
+- Support Circle Guide
+- Shanghai Prototype
+- Budget Ledger
+
+这些面板放在 SimPad 的 Story 页，用于把每条路线从“数值倾向”变成玩家可追踪的项目进度。
+
+每条主路线后续都应包含一个角色互动入口：
+
+- **Talk**：短对话，补角色近况和关系温度
+- **Invite**：玩家主动约对方一起做事，占用本周行动
+- **Request**：角色主动提出请求，通常带有关系、路线或价值判断
+- **Follow-up**：对上一场冲突或关键选择进行回收
 
 ---
 
@@ -174,6 +200,21 @@ Hub 主菜单从原来的活动分类改为六类：
 - 已新增风险修复事件：compliance cleanup、career shortcut repair、prototype reliability repair
 - 已新增风险混合结局：compliance scare、shortcut tax、unstable launch
 
+已确认进入后续计划：
+
+- 每条路线增加更多面对面角色互动，而不是只靠 WeChat 和系统总结
+- 每个主要角色增加至少 1 个主动邀约事件和 1 个角色请求事件
+- 偏转述的角色事件逐步改成多轮对话，玩家选择表达态度
+- Hub 中角色入口要让玩家感觉“我今天去找谁”，不是只选择“刷哪个数值”
+
+本轮已落地：
+
+- Hub 主菜单新增 `Character Contacts`
+- `Character Contacts` 首批包含 7 个 Talk / Invite 事件和 7 个 Request 事件
+- WeChat 联系人卡片可以直接进入首批角色互动或后期路线事件
+- SimPad Story 时间线会记录角色互动记忆点
+- WeChat 最近互动会显示角色对话 / 请求造成的关系记忆
+
 当前保留：
 
 - `submenu_entertainment`
@@ -205,6 +246,8 @@ Hub 主菜单从原来的活动分类改为六类：
 后续还需要：
 
 - 根据 `route_*` 增强不同事件权重
+- 继续补 Follow-up 类角色互动入口
+- 为 Professor Lin、Dr. Mei、Sophie、Xiao Chen、Neighbor Li、Manager Zhang、Uncle Wang 各补 Trust / Tension / Commitment 的更多直接对话事件
 - 把 romance 选项改成“可选关系支线”，不要出现在默认主轴
 - 继续 polish 结局文本，让不同路线的最终回收更有区分度
 - 继续观察 Week 21-29 后期事件的 wealth、energy、relationships 奖励是否过强

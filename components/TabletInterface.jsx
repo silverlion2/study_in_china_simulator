@@ -8,12 +8,14 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
   const { stats, guanxi, turn, phase, flags } = state;
   const [activeTab, setActiveTab] = useState('Story');
   const [selectedMemory, setSelectedMemory] = useState(null);
+  const [selectedGalleryRoute, setSelectedGalleryRoute] = useState('All');
   const [utilityMessage, setUtilityMessage] = useState("");
   const housingChoice = flags.housing_choice || flags.decision_e2_housing || "";
   const originLabel = flags.origin_asian ? "Neighboring Asia" : flags.origin_western ? "Western background" : flags.origin_developing ? "Global South" : null;
   const identityLabel = flags.gender_male ? "Male" : flags.gender_female ? "Female" : flags.gender_nonbinary ? "Non-binary / another identity" : null;
   const majorLabel = flags.major_business ? "Business and Management" : flags.major_stem ? "Engineering and Computing" : flags.major_humanities ? "Humanities and China Studies" : null;
   const fundingLabel = flags.finance_scholarship ? "Scholarship-funded" : flags.finance_rich ? "Family support budget" : flags.finance_working ? "Budget planner" : null;
+  const backgroundLabel = flags.background_label || (flags.background_scholarship_student ? "Scholarship student" : flags.background_family_funded ? "Family-funded student" : flags.background_working_budget ? "Working-class budget route" : flags.background_heritage_learner ? "Heritage learner" : flags.background_total_beginner ? "Total beginner" : null);
   const applicationStatus = flags.accepted_offer ? "Offer accepted" : flags.completed_application ? "Submitted, awaiting result" : flags.target_minghai ? "Minghai selected" : flags.decision_e1_start ? "Application shaping" : "Departure eve";
   const routeLabels = [
     flags.route_academic && "Academic",
@@ -42,6 +44,20 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
     flags.city_reliability_repaired && "Prototype reliability repaired"
   ].filter(Boolean).join(" / ");
   const routeMemoryLabel = [
+    flags.contact_professor_lin_talk_1 && "Professor Lin honest office hour",
+    flags.contact_dr_mei_talk_1 && "Dr. Mei research coffee",
+    flags.contact_sophie_talk_1 && "Sophie private check-in",
+    flags.contact_xiao_chen_talk_1 && "Xiao Chen market walk",
+    flags.contact_neighbor_li_talk_1 && "Neighbor Li dorm map",
+    flags.contact_manager_zhang_talk_1 && "Manager Zhang career chat",
+    flags.contact_uncle_wang_talk_1 && "Uncle Wang quiet-stall talk",
+    flags.request_professor_lin_class_question && "Professor Lin class-question request",
+    flags.request_dr_mei_field_notes && "Dr. Mei field-note request",
+    flags.request_sophie_new_student && "Sophie arrival-support request",
+    flags.request_xiao_chen_onboarding && "Xiao Chen onboarding request",
+    flags.request_neighbor_li_parcel && "Neighbor Li parcel request",
+    flags.request_manager_zhang_answer && "Manager Zhang interview-answer request",
+    flags.request_uncle_wang_order_help && "Uncle Wang order-help request",
     flags.academic_empty_lecture && "Almost-empty Friday lecture",
     flags.local_rain_gate && "Rainy dorm gate help",
     flags.intl_common_room_meal && "Common-room comfort meal",
@@ -56,9 +72,23 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
     flags.city_reliability_debt && "Prototype reliability debt active",
     flags.city_reliability_repaired && "Prototype reliability repaired"
   ].filter(Boolean).join(" / ");
+  const adaptationLabel = [
+    flags.adaptation_novelty && "Fresh arrival",
+    flags.adaptation_information_overload && "Information overload",
+    flags.adaptation_language_anxiety && "Language anxiety",
+    flags.adaptation_first_independent_solution && "First independent solution",
+    flags.adaptation_life_rhythm && "Life rhythm forming"
+  ].filter(Boolean).join(" / ");
   const calendarItems = getCalendarItems(state);
   const memoryEntries = getMemoryEntries(flags);
   const unlockedMemoryCount = memoryEntries.filter(memory => isMemoryUnlocked(memory, flags)).length;
+  const galleryRoutes = ["All", ...Array.from(new Set(memoryEntries.map(memory => memory.route)))];
+  const visibleMemoryEntries = selectedGalleryRoute === "All"
+    ? memoryEntries
+    : memoryEntries.filter(memory => memory.route === selectedGalleryRoute);
+  const characterArcs = getCharacterArcProgress(state);
+  const priorityMessages = getWeChatPriorityMessages(state);
+  const routePlayPanels = getRoutePlayPanels(state);
 
   const launchStoryNode = (nodeId, cost = 0, statEffects = {}) => {
     if (cost > 0 && stats.wealth < cost) return;
@@ -191,6 +221,7 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
                             <DecisionFlag label="Motivation" value={flags.decision_e1_start} />
                             <DecisionFlag label="Starting Point" value={originLabel} />
                             <DecisionFlag label="Identity" value={identityLabel} />
+                            <DecisionFlag label="Opening Background" value={backgroundLabel} />
                             <DecisionFlag label="Chinese Foundation" value={flags.decision_e1_hsk} />
                             <DecisionFlag label="Major Track" value={majorLabel} />
                             <DecisionFlag label="Statement" value={flags.decision_e1_plan} />
@@ -237,7 +268,9 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
                             <DecisionFlag label="Social Circle" value={flags.decision_e3_social_circle} />
                             <DecisionFlag label="Life Rhythm" value={flags.decision_e3_rhythm} />
                             <DecisionFlag label="Route Bias" value={routeLabels} />
+                            <DecisionFlag label="Route Commitment" value={flags.route_commitment_label} />
                             <DecisionFlag label="Weekly Focus" value={flags.weekly_focus} />
+                            <DecisionFlag label="Adaptation Curve" value={adaptationLabel} />
                             <DecisionFlag label="Route Memory" value={routeMemoryLabel} />
                             <DecisionFlag label="Relationship Tension" value={relationshipTensionLabel} />
                             <DecisionFlag label="Risk Status" value={riskStatusLabel} />
@@ -248,6 +281,40 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
                                 {turn < 32 ? "⏳ Story unfolding..." : "🎓 Ready for Final Evaluation"}
                             </div>
                         </TimelineNode>
+
+                        <div className="relative z-10 rounded-2xl border border-violet-400/25 bg-slate-950/80 p-4 shadow-xl">
+                            <div className="mb-3 flex items-center justify-between gap-3">
+                                <div>
+                                    <h3 className="text-sm font-black uppercase tracking-[0.18em] text-violet-200">Character Arcs</h3>
+                                    <p className="mt-1 text-xs leading-relaxed text-slate-400">Each core character now has a visible chain: first contact, trust, conflict, and commitment.</p>
+                                </div>
+                                <div className="rounded-xl bg-violet-400/15 px-3 py-2 text-right font-mono text-xs text-violet-100">
+                                    {characterArcs.filter(arc => arc.completedStages >= 4).length}/{characterArcs.length}
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 gap-3">
+                                {characterArcs.map(arc => (
+                                    <CharacterArcCard key={arc.name} arc={arc} />
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="relative z-10 rounded-2xl border border-cyan-400/25 bg-slate-950/80 p-4 shadow-xl">
+                            <div className="mb-3 flex items-center justify-between gap-3">
+                                <div>
+                                    <h3 className="text-sm font-black uppercase tracking-[0.18em] text-cyan-200">Route Projects</h3>
+                                    <p className="mt-1 text-xs leading-relaxed text-slate-400">Each life route now has a concrete project you are building, not only a score.</p>
+                                </div>
+                                <div className="rounded-xl bg-cyan-400/15 px-3 py-2 text-right font-mono text-xs text-cyan-100">
+                                    {routePlayPanels.filter(panel => panel.completedSteps >= 3).length}/{routePlayPanels.length}
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 gap-3">
+                                {routePlayPanels.map(panel => (
+                                    <RouteProjectCard key={panel.id} panel={panel} />
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 )}
 
@@ -272,8 +339,8 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
                                     key={item.id}
                                     item={item}
                                     onPin={() => {
-                                        gameEngine.setFlag('calendar_focus', item.title);
-                                        setUtilityMessage(`Pinned: ${item.title}`);
+                                        const result = gameEngine.pinCalendarFocus(item.title);
+                                        setUtilityMessage(result.message);
                                     }}
                                     pinned={flags.calendar_focus === item.title}
                                 />
@@ -410,6 +477,25 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
                             <div className="text-xl opacity-80 cursor-pointer">⊕</div>
                         </div>
                         <div className="flex-1 overflow-y-auto w-full no-scrollbar">
+                            {priorityMessages.length > 0 && (
+                                <div className="bg-[#f6fff4] border-b border-green-200 p-3 space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <h3 className="text-xs font-black uppercase tracking-[0.16em] text-green-700">Unread Story Messages</h3>
+                                            <p className="text-[10px] text-green-700/70">Replying can move a relationship chain forward.</p>
+                                        </div>
+                                        <span className="rounded-full bg-[#1AAD19] px-2 py-0.5 text-[10px] font-bold text-white">{priorityMessages.length}</span>
+                                    </div>
+                                    {priorityMessages.map(message => (
+                                        <WeChatPriorityMessage
+                                            key={`${message.from}-${message.nodeId}`}
+                                            message={message}
+                                            disabled={(message.cost || 0) > stats.wealth}
+                                            onOpen={() => launchStoryNode(message.nodeId, message.cost || 0, message.effects || {})}
+                                        />
+                                    ))}
+                                </div>
+                            )}
                             {Object.keys(state.relationships || {}).length === 0 ? (
                                 <div className="text-center p-8 text-slate-500 flex flex-col items-center justify-center h-full">
                                     <div className="text-5xl mb-4 grayscale opacity-40">📱</div>
@@ -577,6 +663,7 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
                             desc="A short ride across campus or to a nearby print shop. Useful when one small task would otherwise eat the day."
                             disabled={phase !== "In-China" || flags.used_didi_this_week || stats.wealth < 45}
                             onSelect={() => gameEngine.useDidiRide('standard')}
+                            onMessage={setUtilityMessage}
                         />
                         <RideCard
                             title="Cross-Town Shortcut"
@@ -585,6 +672,7 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
                             desc="Skip the worst transfer and arrive with enough focus left to actually talk to people."
                             disabled={phase !== "In-China" || flags.used_didi_this_week || stats.wealth < 88}
                             onSelect={() => gameEngine.useDidiRide('comfort')}
+                            onMessage={setUtilityMessage}
                         />
                         <RideCard
                             title="Airport Transfer Practice"
@@ -593,6 +681,7 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
                             desc="A more expensive rehearsal for handling luggage, pickup points, and app-based transport under pressure."
                             disabled={phase !== "In-China" || flags.used_didi_this_week || stats.wealth < 160}
                             onSelect={() => gameEngine.useDidiRide('airport')}
+                            onMessage={setUtilityMessage}
                         />
 
                         <div className="rounded-2xl border border-yellow-500/20 bg-slate-950/70 p-4">
@@ -625,6 +714,9 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
 
                         {flags.used_didi_this_week && (
                             <div className="text-center text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Ride used this week. Calendar reset unlocks the app again.</div>
+                        )}
+                        {utilityMessage && (
+                            <div className="rounded-xl border border-yellow-500/30 bg-slate-950/80 p-3 text-xs text-yellow-100">{utilityMessage}</div>
                         )}
                     </div>
                 )}
@@ -811,10 +903,21 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
                                     <div className="text-2xl font-black">{unlockedMemoryCount}/{memoryEntries.length}</div>
                                 </div>
                             </div>
+                            <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+                                {galleryRoutes.map(route => (
+                                    <button
+                                        key={route}
+                                        onClick={() => setSelectedGalleryRoute(route)}
+                                        className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-bold transition-all ${selectedGalleryRoute === route ? 'border-white bg-white text-fuchsia-700' : 'border-white/25 bg-white/10 text-fuchsia-50 hover:bg-white/20'}`}
+                                    >
+                                        {route}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
 
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                            {memoryEntries.map((memory) => {
+                            {visibleMemoryEntries.map((memory) => {
                                 const unlocked = isMemoryUnlocked(memory, flags);
                                 return (
                                     <button
@@ -1058,6 +1161,60 @@ function getMemoryEntries(flags) {
             unlocked: flags.language_partner_cafe
         },
         {
+            id: "shared_flat_first_night",
+            title: "Shared Flat First Night",
+            route: "Housing",
+            image: "images/simulator/cg/cg_housing_shared_flat_first_night.png",
+            desc: "The first night turns an address choice into a living rhythm: kitchen noise, unpacked clothes, and a desk lamp that has to become home.",
+            hint: "Choose or struggle through a shared-flat housing path.",
+            unlocked: flags.housing_choice === "Shared flat" || flags.decision_e2_housing === "Shared flat" || flags.housing_followup_done || flags.delayed_housing_compromise_seen
+        },
+        {
+            id: "studio_rent_pressure",
+            title: "Studio Rent Pressure",
+            route: "Housing",
+            image: "images/simulator/cg/cg_studio_rent_pressure.png",
+            desc: "Privacy has a price, and the price starts talking back when rent, meals, transport, and coursework arrive in the same week.",
+            hint: "Let housing costs become a real budget pressure.",
+            unlocked: /studio/i.test(flags.housing_choice || flags.decision_e2_housing || "") || flags.housing_friction_debt || flags.housing_energy_scar
+        },
+        {
+            id: "calendar_focus",
+            title: "Calendar Warning",
+            route: "Phone Layer",
+            image: "images/simulator/cg/cg_calendar_midterm_warning.png",
+            desc: "A pinned reminder returns before panic can become the plan.",
+            hint: "Pin a deadline and let it pay off in a later week.",
+            unlocked: flags.delayed_calendar_focus_seen || flags.calendar_midterm_prepped || flags.calendar_final_prepped
+        },
+        {
+            id: "wechat_repair",
+            title: "WeChat Repair",
+            route: "Phone Layer",
+            image: "images/simulator/backgrounds/bg_phone_network_problem.jpg",
+            desc: "Two quiet weeks cool a thread, then an honest message warms it back up.",
+            hint: "Let message silence create distance, then repair it honestly.",
+            unlocked: flags.wechat_repair_messages_sent || flags.delayed_wechat_silence_seen
+        },
+        {
+            id: "didi_pickup",
+            title: "DiDi Pickup Zone",
+            route: "Phone Layer",
+            image: "images/simulator/cg/cg_didi_pickup_zone_confusion.png",
+            desc: "The app button was easy. The real lesson was choosing the gate the driver could actually find.",
+            hint: "Use DiDi without enough city setup and learn the pickup-zone lesson.",
+            unlocked: flags.didi_pickup_points_saved || flags.delayed_didi_pickup_confusion_seen
+        },
+        {
+            id: "taobao_address",
+            title: "Taobao Address Repair",
+            route: "Phone Layer",
+            image: "images/simulator/cg/cg_taobao_wrong_address.png",
+            desc: "A tiny courier mistake becomes a practical lesson in how an address lives inside an app.",
+            hint: "Use Taobao wrong-address recovery and fix the address template.",
+            unlocked: flags.taobao_address_template_fixed || flags.delayed_taobao_wrong_address_seen
+        },
+        {
             id: "professor",
             title: "Professor Lin Office Hours",
             route: "Academic",
@@ -1067,6 +1224,15 @@ function getMemoryEntries(flags) {
             unlocked: flags.lin_recommendation_ready
         },
         {
+            id: "lin_plain_explanation",
+            title: "Plain Explanation",
+            route: "Academic",
+            image: "images/simulator/cg/cg_professor_lin_plain_explanation.png",
+            desc: "Professor Lin asks you to explain without decoration, and the missing part of your own understanding finally shows itself.",
+            hint: "Help Professor Lin turn a confused question into a clear explanation.",
+            unlocked: flags.request_professor_lin_class_question
+        },
+        {
             id: "mei",
             title: "Dr. Mei Project Meeting",
             route: "Academic",
@@ -1074,6 +1240,15 @@ function getMemoryEntries(flags) {
             desc: "The research question becomes too real to treat as a line on a resume.",
             hint: "Commit to Dr. Mei's research project.",
             unlocked: flags.dr_mei_project_commitment
+        },
+        {
+            id: "mei_field_notes",
+            title: "Field Notes",
+            route: "Academic",
+            image: "images/simulator/cg/cg_dr_mei_field_notes.png",
+            desc: "Messy notes become a lesson in uncertainty, blind spots, and the responsibility not to beautify reality.",
+            hint: "Read Dr. Mei's messy notes for what they failed to notice.",
+            unlocked: flags.request_dr_mei_field_notes
         },
         {
             id: "research_poster",
@@ -1094,6 +1269,15 @@ function getMemoryEntries(flags) {
             unlocked: flags.sophie_support_circle || flags.sophie_orientation_committee
         },
         {
+            id: "sophie_arrival_rescue",
+            title: "Arrival Rescue",
+            route: "International",
+            image: "images/simulator/cg/cg_sophie_arrival_rescue.png",
+            desc: "You and Sophie turn one lost arrival call into calm steps, then into the first draft of a better guide.",
+            hint: "Help Sophie talk a lost new student through arrival panic.",
+            unlocked: flags.request_sophie_new_student || flags.sophie_arrival_helper
+        },
+        {
             id: "orientation",
             title: "Orientation Guide",
             route: "International",
@@ -1112,6 +1296,15 @@ function getMemoryEntries(flags) {
             unlocked: flags.xiao_chen_demo_day
         },
         {
+            id: "xiao_onboarding_test",
+            title: "Onboarding Test",
+            route: "Shanghai",
+            image: "images/simulator/cg/cg_xiao_chen_onboarding_test.png",
+            desc: "The silent usability test hurts Xiao Chen's pride and saves the product from pretending users read everything.",
+            hint: "Watch real students struggle with Xiao Chen's onboarding draft.",
+            unlocked: flags.request_xiao_chen_onboarding || flags.xiao_chen_onboarding_clear
+        },
+        {
             id: "angel_demo",
             title: "Angel Demo",
             route: "Shanghai",
@@ -1128,6 +1321,15 @@ function getMemoryEntries(flags) {
             desc: "The office badge makes legal preparation feel suddenly physical.",
             hint: "Prepare Manager Zhang's referral path.",
             unlocked: flags.manager_zhang_referral_ready || flags.legal_internship_ready
+        },
+        {
+            id: "zhang_mock_interview",
+            title: "Mock Interview",
+            route: "Career",
+            image: "images/simulator/cg/cg_manager_zhang_mock_interview.png",
+            desc: "Manager Zhang turns a soft answer into evidence, numbers, boundaries, and a sharper version of ambition.",
+            hint: "Rewrite Manager Zhang's practice answer around evidence.",
+            unlocked: flags.request_manager_zhang_answer || flags.manager_zhang_evidence_answer
         },
         {
             id: "office_badge",
@@ -1157,6 +1359,15 @@ function getMemoryEntries(flags) {
             unlocked: flags.uncle_wang_regular
         },
         {
+            id: "wang_order_bridge",
+            title: "Order Bridge",
+            route: "Local",
+            image: "images/simulator/cg/cg_uncle_wang_order_bridge.png",
+            desc: "At Uncle Wang's stall, helping means giving someone the words without taking the moment away.",
+            hint: "Help a nervous student order without making them feel small.",
+            unlocked: flags.request_uncle_wang_order_help || flags.uncle_wang_order_bridge
+        },
+        {
             id: "canteen_auntie",
             title: "Canteen Auntie",
             route: "Local",
@@ -1173,6 +1384,15 @@ function getMemoryEntries(flags) {
             desc: "The parcel shelf teaches app codes, dorm rules, and the value of greeting people first.",
             hint: "Turn a package pickup into daily-life language practice.",
             unlocked: flags.dorm_auntie_parcel_help
+        },
+        {
+            id: "neighbor_parcel_crisis",
+            title: "Parcel Crisis",
+            route: "Local",
+            image: "images/simulator/cg/cg_neighbor_li_parcel_crisis.png",
+            desc: "A hallway parcel mix-up becomes a small diplomatic crisis, and Neighbor Li trusts you with the practical middle.",
+            hint: "Help Neighbor Li make a hallway parcel problem normal again.",
+            unlocked: flags.request_neighbor_li_parcel || flags.neighbor_li_parcel_mediator
         },
         {
             id: "study_group",
@@ -1226,8 +1446,166 @@ function isMemoryUnlocked(memory) {
     return Boolean(memory.unlocked);
 }
 
+function CharacterArcCard({ arc }) {
+    const meta = getContactMeta(arc.name);
+    const pct = Math.round((arc.completedStages / arc.stages.length) * 100);
+    const tone = arc.completedStages >= 4
+        ? "border-amber-300/40 bg-amber-300/10 text-amber-100"
+        : arc.completedStages >= 2
+          ? "border-sky-300/35 bg-sky-300/10 text-sky-100"
+          : arc.completedStages >= 1
+            ? "border-emerald-300/35 bg-emerald-300/10 text-emerald-100"
+            : "border-slate-700 bg-slate-900/80 text-slate-300";
+
+    return (
+        <div className={`rounded-xl border p-3 ${tone}`}>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-950/60 text-2xl">{meta.emoji}</div>
+                    <div>
+                        <div className="font-black text-white">{arc.name}</div>
+                        <div className="text-[10px] font-bold uppercase tracking-[0.16em] opacity-70">{meta.route} / {arc.stageLabel}</div>
+                    </div>
+                </div>
+                <div className="text-right font-mono text-xs">
+                    <div className="font-black">{arc.completedStages}/{arc.stages.length}</div>
+                    <div className="opacity-70">Bond {arc.bond}</div>
+                </div>
+            </div>
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-950/60">
+                <div className="h-full rounded-full bg-current transition-all duration-500" style={{ width: `${pct}%` }}></div>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {arc.stages.map(stage => (
+                    <div key={stage.label} className={`rounded-lg border px-2 py-1 text-[10px] font-semibold ${stage.done ? "border-current bg-white/10 text-white" : "border-slate-700 bg-slate-950/45 text-slate-500"}`}>
+                        {stage.done ? "✓ " : ""}{stage.label}
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+function RouteProjectCard({ panel }) {
+    const pct = Math.round((panel.completedSteps / panel.steps.length) * 100);
+    const activeTone = panel.completedSteps >= 4
+        ? "border-emerald-300/40 bg-emerald-300/10 text-emerald-100"
+        : panel.completedSteps >= 2
+          ? "border-cyan-300/35 bg-cyan-300/10 text-cyan-100"
+          : panel.commitment > 0
+            ? "border-amber-300/35 bg-amber-300/10 text-amber-100"
+            : "border-slate-700 bg-slate-900/80 text-slate-300";
+
+    return (
+        <div className={`rounded-xl border p-3 ${activeTone}`}>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <div className="flex items-center gap-2">
+                        <span className="text-xl">{panel.icon}</span>
+                        <span className="font-black text-white">{panel.title}</span>
+                    </div>
+                    <p className="mt-1 text-xs leading-snug opacity-75">{panel.desc}</p>
+                </div>
+                <div className="text-right font-mono text-xs">
+                    <div className="font-black">{panel.completedSteps}/{panel.steps.length}</div>
+                    <div className="opacity-70">Route {panel.commitment}</div>
+                </div>
+            </div>
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-950/60">
+                <div className="h-full rounded-full bg-current transition-all duration-500" style={{ width: `${pct}%` }}></div>
+            </div>
+            <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {panel.steps.map(step => (
+                    <div key={step.label} className={`rounded-lg border px-2 py-1.5 text-[10px] font-semibold ${step.done ? "border-current bg-white/10 text-white" : "border-slate-700 bg-slate-950/45 text-slate-500"}`}>
+                        {step.done ? "✓ " : ""}{step.label}
+                    </div>
+                ))}
+            </div>
+            {panel.latestCheck && (
+                <div className={`mt-3 rounded-lg border px-3 py-2 text-xs ${panel.latestCheck.success ? "border-emerald-300/25 bg-emerald-300/10 text-emerald-100" : "border-rose-300/25 bg-rose-300/10 text-rose-100"}`}>
+                    Latest check: {panel.latestCheck.label} {panel.latestCheck.score}/{panel.latestCheck.dc}
+                </div>
+            )}
+        </div>
+    );
+}
+
+function WeChatPriorityMessage({ message, disabled, onOpen }) {
+    return (
+        <div className="rounded-xl border border-green-200 bg-white p-3 shadow-sm">
+            <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-green-50 text-2xl">{message.emoji}</div>
+                    <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-sm font-black text-gray-900">{message.from}</span>
+                            <span className="rounded-full bg-green-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-green-700">{message.route}</span>
+                            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-gray-500">{message.stage}</span>
+                        </div>
+                        <p className="mt-1 text-xs leading-snug text-gray-600">{message.preview}</p>
+                    </div>
+                </div>
+                <button
+                    onClick={disabled ? null : onOpen}
+                    disabled={disabled}
+                    className={`shrink-0 rounded-full px-3 py-1.5 text-[10px] font-black transition-all ${disabled ? "cursor-not-allowed bg-gray-200 text-gray-400" : "bg-[#1AAD19] text-white hover:bg-[#159014]"}`}
+                >
+                    {disabled ? "Need RMB" : message.actionLabel}
+                </button>
+            </div>
+        </div>
+    );
+}
+
 function getWeChatMeetup(name, flags, phase, turn) {
-    if (phase !== "In-China" || turn < 21) return null;
+    if (phase !== "In-China") return null;
+
+    const firstMeetups = {};
+
+    if (!flags.contact_professor_lin_talk_1) {
+        firstMeetups["Professor Lin"] = { label: "Talk", nodeId: "event_contact_professor_lin_talk_1" };
+    } else if (!flags.request_professor_lin_class_question) {
+        firstMeetups["Professor Lin"] = { label: "Request", nodeId: "event_request_professor_lin_class_question" };
+    }
+
+    if (flags.met_dr_mei && !flags.contact_dr_mei_talk_1) {
+        firstMeetups["Dr. Mei"] = { label: "Coffee", nodeId: "event_contact_dr_mei_talk_1" };
+    } else if (flags.contact_dr_mei_talk_1 && !flags.request_dr_mei_field_notes) {
+        firstMeetups["Dr. Mei"] = { label: "Request", nodeId: "event_request_dr_mei_field_notes" };
+    }
+
+    if (!flags.contact_sophie_talk_1) {
+        firstMeetups.Sophie = { label: "Check-in", nodeId: "event_contact_sophie_talk_1" };
+    } else if (!flags.request_sophie_new_student) {
+        firstMeetups.Sophie = { label: "Request", nodeId: "event_request_sophie_new_student" };
+    }
+
+    if (flags.met_neighbor_li && !flags.contact_neighbor_li_talk_1) {
+        firstMeetups["Neighbor Li"] = { label: "Dorm map", nodeId: "event_contact_neighbor_li_talk_1" };
+    } else if (flags.contact_neighbor_li_talk_1 && !flags.request_neighbor_li_parcel) {
+        firstMeetups["Neighbor Li"] = { label: "Request", nodeId: "event_request_neighbor_li_parcel" };
+    }
+
+    if (flags.met_uncle_wang && !flags.contact_uncle_wang_talk_1) {
+        firstMeetups["Uncle Wang"] = { label: "Stall talk", nodeId: "event_contact_uncle_wang_talk_1" };
+    } else if (flags.contact_uncle_wang_talk_1 && !flags.request_uncle_wang_order_help) {
+        firstMeetups["Uncle Wang"] = { label: "Request", nodeId: "event_request_uncle_wang_order_help" };
+    }
+
+    if (flags.met_manager_zhang && !flags.contact_manager_zhang_talk_1) {
+        firstMeetups["Manager Zhang"] = { label: "Career chat", nodeId: "event_contact_manager_zhang_talk_1" };
+    } else if (flags.contact_manager_zhang_talk_1 && !flags.request_manager_zhang_answer) {
+        firstMeetups["Manager Zhang"] = { label: "Request", nodeId: "event_request_manager_zhang_answer" };
+    }
+
+    if (flags.met_xiao_chen && !flags.contact_xiao_chen_talk_1) {
+        firstMeetups["Xiao Chen"] = { label: "Walk", nodeId: "event_contact_xiao_chen_talk_1" };
+    } else if (flags.contact_xiao_chen_talk_1 && !flags.request_xiao_chen_onboarding) {
+        firstMeetups["Xiao Chen"] = { label: "Request", nodeId: "event_request_xiao_chen_onboarding" };
+    }
+
+    if (firstMeetups[name]) return firstMeetups[name];
+    if (turn < 21) return null;
 
     const meetups = {
         "Professor Lin": flags.lin_academic_method && !flags.lin_recommendation_ready && {
@@ -1263,6 +1641,237 @@ function getWeChatMeetup(name, flags, phase, turn) {
     };
 
     return meetups[name] || null;
+}
+
+function getCharacterArcProgress(state) {
+    const flags = state.flags || {};
+    const relationships = state.relationships || {};
+    const arcs = [
+        {
+            name: "Professor Lin",
+            stages: [
+                { label: "First Office Hour", done: flags.contact_professor_lin_talk_1 || flags.met_professor_lin_on_campus },
+                { label: "Academic Method", done: flags.lin_academic_method || flags.request_professor_lin_class_question },
+                { label: "Feedback Tension", done: flags.lin_midterm_tension_resolved || flags.lin_feedback_repaired || flags.lin_feedback_avoided },
+                { label: "Recommendation", done: flags.lin_recommendation_ready }
+            ]
+        },
+        {
+            name: "Dr. Mei",
+            stages: [
+                { label: "Research Coffee", done: flags.contact_dr_mei_talk_1 || flags.met_dr_mei },
+                { label: "Project Trust", done: flags.dr_mei_project_trust || flags.request_dr_mei_field_notes },
+                { label: "Ethics Conflict", done: flags.dr_mei_midterm_tension_resolved || flags.dr_mei_ethics_reframed || flags.dr_mei_efficiency_choice },
+                { label: "Commitment", done: flags.dr_mei_project_commitment }
+            ]
+        },
+        {
+            name: "Sophie",
+            stages: [
+                { label: "Private Check-in", done: flags.contact_sophie_talk_1 || flags.wechat_sophie_added },
+                { label: "Support Circle", done: flags.sophie_support_circle || flags.request_sophie_new_student },
+                { label: "Bubble Tension", done: flags.sophie_midterm_tension_resolved || flags.sophie_bridge_plan || flags.sophie_safe_bubble_choice },
+                { label: "Orientation Guide", done: flags.sophie_orientation_committee }
+            ]
+        },
+        {
+            name: "Neighbor Li",
+            stages: [
+                { label: "Dorm Map", done: flags.contact_neighbor_li_talk_1 || flags.wechat_neighbor_li_added },
+                { label: "Local Trust", done: flags.neighbor_li_local_trust || flags.request_neighbor_li_parcel },
+                { label: "Boundary Repair", done: flags.neighbor_li_midterm_tension_resolved || flags.neighbor_li_boundary_repaired || flags.neighbor_li_boundary_avoided },
+                { label: "Festival Invite", done: flags.neighbor_li_festival_invite }
+            ]
+        },
+        {
+            name: "Uncle Wang",
+            stages: [
+                { label: "Stall Talk", done: flags.contact_uncle_wang_talk_1 || flags.met_uncle_wang },
+                { label: "Neighborhood Story", done: flags.uncle_wang_neighborhood_story || flags.request_uncle_wang_order_help },
+                { label: "Real Reason", done: flags.uncle_wang_midterm_tension_resolved || flags.uncle_wang_honest_answer || flags.uncle_wang_polite_answer },
+                { label: "Regular Table", done: flags.uncle_wang_regular }
+            ]
+        },
+        {
+            name: "Manager Zhang",
+            stages: [
+                { label: "Career Chat", done: flags.contact_manager_zhang_talk_1 || flags.met_manager_zhang },
+                { label: "Career Trust", done: flags.manager_zhang_career_trust || flags.request_manager_zhang_answer },
+                { label: "Boundary Lesson", done: flags.manager_zhang_midterm_tension_resolved || flags.manager_zhang_boundaries_accepted || flags.career_shortcut_temptation },
+                { label: "Referral", done: flags.manager_zhang_referral_ready }
+            ]
+        },
+        {
+            name: "Xiao Chen",
+            stages: [
+                { label: "Market Walk", done: flags.contact_xiao_chen_talk_1 || flags.wechat_xiao_chen_added },
+                { label: "Prototype Trust", done: flags.xiao_chen_city_prototype || flags.request_xiao_chen_onboarding },
+                { label: "Reliability Conflict", done: flags.xiao_chen_midterm_tension_resolved || flags.xiao_chen_responsible_pace || flags.city_speed_over_care },
+                { label: "Demo Day", done: flags.xiao_chen_demo_day }
+            ]
+        }
+    ];
+
+    return arcs.map(arc => {
+        const rel = relationships[arc.name] || {};
+        const completedStages = arc.stages.filter(stage => stage.done).length;
+        return {
+            ...arc,
+            completedStages,
+            bond: rel.friendship || 0,
+            stageLabel: completedStages >= 4 ? "Complete" : completedStages >= 3 ? "Conflict" : completedStages >= 2 ? "Trust" : completedStages >= 1 ? "Contact" : "Unknown"
+        };
+    });
+}
+
+function getRoutePlayPanels(state) {
+    const flags = state.flags || {};
+    const routeCommitments = state.routeCommitments || {};
+    const lastChecks = state.lifeChecks?.history || [];
+    const findLatest = (ids) => [...lastChecks].reverse().find(check => ids.includes(check.id));
+
+    const panels = [
+        {
+            id: "academic",
+            icon: "📚",
+            title: "Academic Portfolio",
+            desc: "Office hours, research notes, plain explanations, and a final proof of academic growth.",
+            commitment: routeCommitments.academic || 0,
+            latestCheck: findLatest(["lin_plain_explanation", "lin_concise_answer", "mei_field_note_blind_spots", "mei_research_memo"]),
+            steps: [
+                { label: "Professor method", done: flags.contact_professor_lin_talk_1 || flags.lin_academic_method },
+                { label: "Plain explanation", done: flags.request_professor_lin_class_question || flags.lin_explanation_check_passed },
+                { label: "Research notes", done: flags.request_dr_mei_field_notes || flags.mei_blind_spot_check_passed },
+                { label: "Portfolio index", done: flags.academic_portfolio_indexed || flags.academic_portfolio_check_passed || flags.dr_mei_project_commitment || flags.ending_researcher || flags.ending_scholar }
+            ]
+        },
+        {
+            id: "career",
+            icon: "💼",
+            title: "Internship Dossier",
+            desc: "Evidence-based answers, legal boundaries, referrals, and an internship path that can survive scrutiny.",
+            commitment: routeCommitments.career || 0,
+            latestCheck: findLatest(["manager_evidence_answer", "manager_confidence_boundary"]),
+            steps: [
+                { label: "Career chat", done: flags.contact_manager_zhang_talk_1 || flags.met_manager_zhang },
+                { label: "Evidence answer", done: flags.manager_zhang_evidence_answer || flags.manager_evidence_check_passed },
+                { label: "Boundary lesson", done: flags.manager_zhang_boundaries_accepted || flags.manager_boundary_check_passed },
+                { label: "Internship dossier", done: flags.internship_dossier_ready || flags.internship_dossier_check_passed || flags.manager_zhang_referral_ready || flags.legal_internship_ready }
+            ]
+        },
+        {
+            id: "local",
+            icon: "🏙️",
+            title: "Neighborhood Map",
+            desc: "Unwritten dorm rules, practical Chinese, parcel diplomacy, and the places that start recognizing you.",
+            commitment: routeCommitments.local || 0,
+            latestCheck: findLatest(["neighbor_parcel_mediation", "neighbor_parcel_overreach", "uncle_wang_order_bridge", "uncle_wang_teach_sentence"]),
+            steps: [
+                { label: "Dorm map", done: flags.contact_neighbor_li_talk_1 || flags.neighbor_li_local_trust },
+                { label: "Parcel mediation", done: flags.request_neighbor_li_parcel || flags.neighbor_parcel_check_passed },
+                { label: "Order bridge", done: flags.request_uncle_wang_order_help || flags.wang_order_check_passed },
+                { label: "Neighborhood map", done: flags.neighborhood_map_indexed || flags.neighborhood_map_check_passed || flags.uncle_wang_regular || flags.ending_local_insider }
+            ]
+        },
+        {
+            id: "intl",
+            icon: "💬",
+            title: "Support Circle Guide",
+            desc: "Arrival support, WeChat repair, newcomer help, and an international-student guide that becomes infrastructure.",
+            commitment: routeCommitments.intl || 0,
+            latestCheck: findLatest(["registration_senior_checklist"]),
+            steps: [
+                { label: "Private check-in", done: flags.contact_sophie_talk_1 || flags.wechat_sophie_added },
+                { label: "Arrival rescue", done: flags.request_sophie_new_student || flags.sophie_arrival_helper },
+                { label: "Support circle", done: flags.sophie_support_circle || flags.wechat_repair_messages_sent },
+                { label: "Guide chapter", done: flags.support_guide_chapter_ready || flags.support_guide_check_passed || flags.sophie_orientation_committee || flags.ending_influencer }
+            ]
+        },
+        {
+            id: "city",
+            icon: "📱",
+            title: "Shanghai Prototype",
+            desc: "City apps, user tests, product reliability, and the student-service idea Xiao Chen keeps sharpening.",
+            commitment: routeCommitments.city || 0,
+            latestCheck: findLatest(["registration_office_rhythm", "registration_improv"]),
+            steps: [
+                { label: "City setup", done: flags.first_didi_used || flags.first_taobao_used || flags.city_data_pack_used },
+                { label: "Market walk", done: flags.contact_xiao_chen_talk_1 || flags.xiao_chen_city_prototype },
+                { label: "Onboarding test", done: flags.request_xiao_chen_onboarding || flags.xiao_chen_onboarding_clear },
+                { label: "Telemetry board", done: flags.prototype_telemetry_board || flags.prototype_telemetry_check_passed || flags.xiao_chen_demo_day || flags.ending_entrepreneur }
+            ]
+        },
+        {
+            id: "survival",
+            icon: "¥",
+            title: "Budget Ledger",
+            desc: "Housing costs, emergency buffers, recovery weeks, and the unglamorous math that keeps the year playable.",
+            commitment: routeCommitments.survival || 0,
+            latestCheck: findLatest(["visa_document_stack", "visa_document_recovery"]),
+            steps: [
+                { label: "Funding plan", done: flags.finance_scholarship || flags.finance_rich || flags.finance_working },
+                { label: "Housing choice", done: flags.decision_e2_housing || flags.housing_choice },
+                { label: "Emergency response", done: flags.emergency_funding_used || flags.forced_recovery_used },
+                { label: "Budget ledger", done: flags.budget_ledger_audited || flags.budget_ledger_check_passed || flags.ending_quiet_return || flags.ending_out_of_money || flags.ending_scholar || flags.ending_diplomat || flags.ending_local_insider }
+            ]
+        }
+    ];
+
+    return panels.map(panel => ({
+        ...panel,
+        completedSteps: panel.steps.filter(step => step.done).length
+    }));
+}
+
+function getWeChatPriorityMessages(state) {
+    const flags = state.flags || {};
+    const relationships = state.relationships || {};
+    const phase = state.phase;
+    const turn = state.turn || 1;
+    if (phase !== "In-China") return [];
+
+    const messages = Object.keys(relationships)
+        .map(name => {
+            const meetup = getWeChatMeetup(name, flags, phase, turn);
+            if (!meetup) return null;
+            const meta = getContactMeta(name);
+            const stage = getRelationshipStage(name, relationships[name] || {}, flags);
+            return {
+                from: name,
+                emoji: meta.emoji,
+                route: meta.route,
+                nodeId: meetup.nodeId,
+                cost: meetup.cost || 0,
+                effects: meetup.effects || {},
+                actionLabel: meetup.label,
+                stage: stage.label,
+                preview: getWeChatMessagePreview(name, meetup.nodeId, flags)
+            };
+        })
+        .filter(Boolean);
+
+    return messages.slice(0, 6);
+}
+
+function getWeChatMessagePreview(name, nodeId) {
+    const previews = {
+        event_contact_professor_lin_talk_1: "Professor Lin: Office hours. Bring one honest problem, not three decorative ones.",
+        event_request_professor_lin_class_question: "Professor Lin: A classmate's question may expose your own gap. Useful.",
+        event_contact_dr_mei_talk_1: "Dr. Mei: Coffee is acceptable. Vague fascination is not.",
+        event_request_dr_mei_field_notes: "Dr. Mei: Read these notes for what they failed to notice.",
+        event_contact_sophie_talk_1: "Sophie: Quick check-in. Real answer preferred over brochure answer.",
+        event_request_sophie_new_student: "Sophie: A new student is spiraling at the pickup point. Help?",
+        event_contact_neighbor_li_talk_1: "Neighbor Li: You need the dorm map before the dorm maps you.",
+        event_request_neighbor_li_parcel: "Neighbor Li: Parcel situation in the hallway. Normal is enough.",
+        event_contact_uncle_wang_talk_1: "Uncle Wang: Come before the smoke gets too loud.",
+        event_request_uncle_wang_order_help: "Uncle Wang: Help this student order without making them feel small.",
+        event_contact_manager_zhang_talk_1: "Manager Zhang: Fifteen minutes. One real question.",
+        event_request_manager_zhang_answer: "Manager Zhang: Your answer is better. Still too soft.",
+        event_contact_xiao_chen_talk_1: "Xiao Chen: Campus complaints are unpaid market research.",
+        event_request_xiao_chen_onboarding: "Xiao Chen: Too many words? Honesty first."
+    };
+
+    return previews[nodeId] || `${name}: There is a conversation waiting.`;
 }
 
 function getContactMeta(name) {
@@ -1338,6 +1947,8 @@ function getRecentInteraction(name, flags) {
             [flags.lin_recommendation_ready, "He is willing to attach his name to your habits."],
             [flags.lin_feedback_repaired, "You turned blunt feedback into a better working method."],
             [flags.lin_feedback_avoided, "You recovered privately after his draft comments."],
+            [flags.request_professor_lin_class_question, "He trusted you to explain a difficult class question plainly."],
+            [flags.contact_professor_lin_talk_1, "You booked twenty honest minutes instead of performing competence."],
             [flags.academic_empty_lecture, "You stayed for the almost-empty lecture and asked the real question."],
             [flags.lin_academic_method, "He helped you rebuild your academic method."],
             [flags.met_professor_lin_on_campus, "Your first Minghai class turned him from an application name into a real professor."]
@@ -1346,6 +1957,10 @@ function getRecentInteraction(name, flags) {
             [flags.dr_mei_project_commitment, "You joined the harder research question."],
             [flags.dr_mei_ethics_reframed, "You reframed the project around people, not just data."],
             [flags.dr_mei_efficiency_choice, "You kept the research scope efficient and narrow."],
+            [flags.dr_mei_field_note_care, "You marked what the field notes failed to notice."],
+            [flags.request_dr_mei_field_notes, "She asked you to read messy notes without beautifying them."],
+            [flags.dr_mei_ethics_seed, "Over coffee, she pushed you to ask who your research might turn into an example."],
+            [flags.dr_mei_observation_notebook, "Over coffee, she made Shanghai's contradictions more specific."],
             [flags.dr_mei_project_trust, "She trusts you with a real research contradiction."],
             [flags.dr_mei_followup_ready, "Her reading list turned a nervous question into a possible research path."],
             [flags.met_dr_mei, "You first met her after a research talk, when one specific question earned a real reply."]
@@ -1354,6 +1969,9 @@ function getRecentInteraction(name, flags) {
             [flags.sophie_orientation_committee, "Your support circle is becoming orientation infrastructure."],
             [flags.sophie_bridge_plan, "You planned a bridge beyond the international bubble."],
             [flags.sophie_safe_bubble_choice, "You protected the group as a safe place for now."],
+            [flags.sophie_arrival_helper, "She trusted you with a new student's arrival spiral."],
+            [flags.request_sophie_new_student, "You helped turn someone else's panic into steps."],
+            [flags.contact_sophie_talk_1, "She asked whether you were okay, or only international-student okay."],
             [flags.intl_common_room_meal, "You helped make the common-room meal feel like a temporary home."],
             [flags.sophie_support_circle, "You designed support before people fall apart."],
             [flags.wechat_sophie_added, "You first added her at orientation, when the group chats stopped being abstract."]
@@ -1362,6 +1980,10 @@ function getRecentInteraction(name, flags) {
             [flags.neighbor_li_festival_invite, "You were trusted with neighborhood festival prep."],
             [flags.neighbor_li_boundary_repaired, "You repaired a dorm boundary misunderstanding."],
             [flags.neighbor_li_boundary_avoided, "You chose politeness over direct repair."],
+            [flags.neighbor_li_parcel_mediator, "Li let you help mediate a hallway parcel problem."],
+            [flags.request_neighbor_li_parcel, "The dorm hallway trusted you with a small practical crisis."],
+            [flags.neighbor_li_errand_promise, "You promised to help with the next hallway errand."],
+            [flags.neighbor_li_dorm_map, "Li trusted you with the dorm's unwritten map."],
             [flags.local_rain_gate, "You helped keep the rainy dorm gate moving."],
             [flags.neighbor_li_local_trust, "You handled a dorm misunderstanding with care."],
             [flags.wechat_neighbor_li_added, "Your dorm floor became less mysterious after Li explained the unwritten rules."]
@@ -1370,6 +1992,10 @@ function getRecentInteraction(name, flags) {
             [flags.uncle_wang_regular, "His table has become part of your weekly rhythm."],
             [flags.uncle_wang_honest_answer, "You answered why you came to China honestly."],
             [flags.uncle_wang_polite_answer, "You gave the safe answer and kept some distance."],
+            [flags.uncle_wang_order_bridge, "He trusted you to help another student order without embarrassment."],
+            [flags.request_uncle_wang_order_help, "A confusing order became a small bridge at the stall."],
+            [flags.uncle_wang_neighborhood_lesson, "Before the rush, he told you what students misunderstand about the neighborhood."],
+            [flags.uncle_wang_ordering_practice, "He helped you practice ordering for the next student who freezes."],
             [flags.uncle_wang_neighborhood_story, "He gave the neighborhood more context than any guidebook."],
             [flags.met_uncle_wang, "You first found his skewer stall by following smoke, laughter, and hungry Minghai students."]
         ],
@@ -1379,6 +2005,10 @@ function getRecentInteraction(name, flags) {
             [flags.career_mock_interview, "A brutal mock interview made your story more specific."],
             [flags.manager_zhang_boundaries_accepted, "You accepted that relationships and boundaries both matter."],
             [flags.career_shortcut_temptation, "You felt the pull of faster introductions and shortcuts."],
+            [flags.manager_zhang_evidence_answer, "You rewrote the interview answer around evidence instead of atmosphere."],
+            [flags.request_manager_zhang_answer, "He asked for a sharper answer because vague confidence was not enough."],
+            [flags.manager_zhang_interview_risks, "He told you why international students fail interviews when the answers stay too general."],
+            [flags.manager_zhang_usefulness_frame, "He pushed you to become useful before asking for opportunity."],
             [flags.manager_zhang_career_trust, "He pushed you to look useful, not decorative."],
             [flags.manager_zhang_followup_ready, "A careful follow-up turned his panel into an actual checklist."],
             [flags.met_manager_zhang, "You first met him after a recruiting panel, resume in hand and timing suddenly important."]
@@ -1390,6 +2020,10 @@ function getRecentInteraction(name, flags) {
             [flags.city_qr_complaint_night, "You read the complaint screenshots instead of defending the idea."],
             [flags.xiao_chen_responsible_pace, "You slowed down until the service was reliable."],
             [flags.city_speed_over_care, "You chose Shanghai speed and accepted the mess."],
+            [flags.xiao_chen_onboarding_clear, "You cut the onboarding screen until the first task was clear."],
+            [flags.request_xiao_chen_onboarding, "He asked you to test the copy before launch."],
+            [flags.xiao_chen_user_interviews, "You walked the campus market and listened before pitching."],
+            [flags.xiao_chen_fast_pitch_seed, "You let him challenge a quick idea before it became fantasy."],
             [flags.xiao_chen_city_prototype, "You learned how to argue about the prototype honestly."],
             [flags.wechat_xiao_chen_added, "You first saved his contact after he treated campus like a map of small systems."]
         ],
@@ -1432,7 +2066,11 @@ function ArcadeGameButton({ id, title, emoji, flags, onReplay }) {
     );
 }
 
-function RideCard({ title, cost, energyGain, desc, disabled, onSelect }) {
+function RideCard({ title, cost, energyGain, desc, disabled, onSelect, onMessage }) {
+    const handleSelect = () => {
+        const result = onSelect?.();
+        if (result?.message) onMessage?.(result.message);
+    };
     return (
         <div className="rounded-xl border border-yellow-500/30 bg-slate-900/70 p-4 shadow-xl transition-all hover:border-yellow-400/60">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -1448,7 +2086,7 @@ function RideCard({ title, cost, energyGain, desc, disabled, onSelect }) {
                     </div>
                 </div>
                 <button
-                    onClick={disabled ? null : onSelect}
+                    onClick={disabled ? null : handleSelect}
                     disabled={disabled}
                     className={`w-full shrink-0 rounded-lg px-4 py-2 text-sm font-bold transition-all sm:w-auto ${disabled ? 'cursor-not-allowed bg-slate-800 text-slate-500' : 'bg-yellow-400 text-slate-950 hover:-translate-y-0.5 hover:bg-yellow-300'}`}
                 >

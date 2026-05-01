@@ -28,8 +28,11 @@ const templates = [
     'data/epoch2.js',
     'data/epoch3.js',
     'data/hubData.js',
+    'lib/sceneBackgrounds.js',
+    'lib/sceneAudio.js',
     'components/Dashboard.jsx',
     'components/TabletInterface.jsx',
+    'components/QuestTracker.jsx',
     'components/StoryPanel.jsx',
     'components/MiniGames.jsx',
     'page.js'

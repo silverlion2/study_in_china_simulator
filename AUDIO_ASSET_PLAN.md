@@ -406,6 +406,64 @@ node tools/generate_minimax_music.mjs --force
 - 迷你游戏专属短循环
 - 更多 UI hover / disabled / error 音
 
+## 12.1 2.0 人物配音规划
+
+人物配音建议放到 2.0，而不是 1.x 立刻做。
+
+原因：
+
+- 角色对话量还在扩充，过早生成语音会导致后续改文案成本很高。
+- 主要角色的语气、节奏、称呼和关系阶段需要先稳定。
+- 当前更重要的是把 Talk / Invite / Request / Follow-up 做成可玩的互动系统。
+
+2.0 进入配音前置条件：
+
+- 每个主要角色至少完成 Contact、Trust、Tension、Commitment 四段核心直接对话。
+- 每个角色已经有稳定 voice brief：年龄感、语速、口音边界、情绪范围、禁忌风格。
+- 剧情文本完成一次英文 copy polish，避免同一句台词反复重录。
+- 前端支持 voice channel 音量、跳过语音、自动播放开关和无声 fallback。
+
+建议目录：
+
+```text
+assets/audio/voice/
+  professor_lin/
+  dr_mei/
+  sophie/
+  xiao_chen/
+  neighbor_li/
+  manager_zhang/
+  uncle_wang/
+```
+
+命名规则：
+
+```text
+voice_sophie_contact_001.mp3
+voice_xiao_chen_tension_003.mp3
+voice_professor_lin_commitment_002.mp3
+```
+
+Minimax 使用建议：
+
+- 第一批只生成关键台词，不给所有旁白配音。
+- 角色台词优先，系统旁白默认不配音。
+- 同一角色先做 5-8 条 voice sample，让玩家确认气质后再批量生成。
+- 所有 voice prompt 禁止指定真实演员、名人、影视角色或可识别声音。
+- 中英混杂台词要人工确认发音，尤其是 Minghai、WeChat、RMB、office hour、guanxi 等词。
+
+角色 voice brief 初稿：
+
+| 角色 | 声音方向 |
+|---|---|
+| Professor Lin | 克制、清晰、略严厉但不冷酷，语速中慢 |
+| Dr. Mei | 理性、敏锐、温和但有锋利问题，语速中等 |
+| Sophie | 亲近、疲惫时仍幽默，国际学生同龄人感 |
+| Xiao Chen | 快、亮、有创业兴奋感，但 tension 时会急 |
+| Neighbor Li | 自然、本地同学感，直接但不刻薄 |
+| Manager Zhang | 职业、稳、边界清楚，像认真给机会的人 |
+| Uncle Wang | 温暖、街区生活感，语速稍慢，轻松但不 caricature |
+
 ## 13. 风格边界
 
 应该避免：

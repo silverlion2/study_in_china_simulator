@@ -13,214 +13,9 @@ import { gameNodes } from './data/hubData';
 import { audioManifest } from './data/audioManifest';
 import TabletInterface from './components/TabletInterface';
 import MiniGameOverlay from './components/MiniGames';
-
-const QuestTracker = ({ state }) => {
-    let questTitle = "Explore the Campus";
-    let questDesc = "No urgent deadlines right now.";
-    const flags = state.flags || {};
-
-    if (state.phase === "Application" && !flags.decision_e1_start) {
-        questTitle = "Departure Eve";
-        questDesc = "Pack, check your messages, and remember how the China plan began.";
-    } else if (state.phase === "Application" && !flags.target_minghai) {
-        questTitle = "Choose Your China Plan";
-        questDesc = "Define your motivation, background, Chinese foundation, and target university.";
-    } else if (state.phase === "Application" && !flags.statement_finalized) {
-        questTitle = "Write the Application";
-        questDesc = "Shape your Minghai University statement and ask Professor Lin for real feedback.";
-    } else if (state.phase === "Application" && !flags.finance_scholarship && !flags.finance_rich && !flags.finance_working) {
-        questTitle = "Plan the Budget";
-        questDesc = "Decide how this year in Shanghai will be funded.";
-    } else if (state.phase === "Application" && !flags.completed_application) {
-        questTitle = "Submit to Minghai";
-        questDesc = "Finish documents, handle the interview, and submit before the deadline.";
-    } else if (state.phase === "Application" && !flags.accepted_offer) {
-         questTitle = "Open the Result";
-         questDesc = "Your Minghai University admission email is waiting.";
-    } else if (state.phase === "Pre-Departure" && !flags.admission_package_ready) {
-        questTitle = "Decode the Admission Package";
-        questDesc = "Understand Minghai's offer, visa form, and the document stack before the X1 appointment.";
-    } else if (state.phase === "Pre-Departure" && !flags.got_visa) {
-        questTitle = "Secure the X1 Visa";
-        questDesc = "Bring the right documents and get your passport ready for China.";
-    } else if (state.phase === "Pre-Departure" && !flags.decision_e2_wechat) {
-        questTitle = "Prepare Your Phone";
-        questDesc = "Set up digital access, WeChat, Alipay, and arrival tools for Shanghai.";
-    } else if (state.phase === "Pre-Departure" && !flags.decision_e2_housing) {
-        questTitle = "Choose Housing";
-        questDesc = "Balance privacy, budget, and your first Minghai social connections.";
-    } else if (state.phase === "Pre-Departure" && !flags.decision_e2_flight) {
-        questTitle = "Book the Flight";
-        questDesc = "Choose how much money, time, and energy the route to Shanghai will cost.";
-    } else if (state.phase === "Pre-Departure" && !flags.semester_plan) {
-        questTitle = "Set Up First Semester";
-        questDesc = "Prepare for classes, campus Chinese, and registration before arrival.";
-    } else if (state.phase === "Pre-Departure" && (!flags.decision_e2_pack || !flags.decision_e2_farewell)) {
-        questTitle = "Pack and Say Goodbye";
-        questDesc = "Decide what fits in the suitcase and what needs to be said before leaving.";
-    } else if (state.phase === "Pre-Departure") {
-        questTitle = "Boarding Call";
-        questDesc = "It's time to board the flight to Shanghai.";
-    } else if (state.phase === "In-China" && !flags.arrived_in_china) {
-        questTitle = "Arrive at Minghai";
-        questDesc = "Get from Pudong to campus, eat your first meal, and set up the dorm.";
-    } else if (state.phase === "In-China" && !flags.decision_e3_registration) {
-        questTitle = "Complete Registration";
-        questDesc = "Get your student card, campus account, and first residence-permit deadlines under control.";
-    } else if (state.phase === "In-China" && !flags.decision_e3_first_class) {
-        questTitle = "Attend First Class";
-        questDesc = "Discover what your Minghai major feels like in a real classroom.";
-    } else if (state.phase === "In-China" && !flags.decision_e3_social_circle) {
-        questTitle = "Find Your First Circle";
-        questDesc = "Start building the relationships that make campus feel less abstract.";
-    } else if (state.phase === "In-China" && !flags.decision_e3_rhythm && state.turn < 24) {
-        questTitle = "Find Your First Rhythm";
-        questDesc = "Choose whether your early Minghai life leans academic, local, international, career, or city-focused.";
-    } else if (state.phase === "In-China" && state.turn < 24) {
-        questTitle = "Prepare for Midterms";
-        questDesc = "Use the weekly rhythm to strengthen your weakest part before Week 24.";
-    } else if (state.phase === "In-China" && !flags.decision_e3_internship && state.turn < 32) {
-        questTitle = "Choose a Future Direction";
-        questDesc = "Turn your China experience toward research, career, local integration, student support, or city opportunity.";
-    } else if (state.phase === "In-China" && state.turn < 32) {
-        questTitle = "Finish the Year";
-        questDesc = "Bring your studies, relationships, and future direction into the final review.";
-    } else if (state.turn >= 32) {
-        questTitle = "Epilogue";
-        questDesc = "Your journey is coming to an end.";
-    }
-
-    return (
-        <div className="absolute top-14 left-4 z-40 bg-slate-900/80 border border-slate-700/50 backdrop-blur-md p-3 rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.5)] w-64 pointer-events-none transition-all duration-300">
-            <h3 className="text-amber-400 font-bold text-[10px] uppercase tracking-widest mb-1 flex items-center justify-between">
-                <span>🎯 Current Objective</span>
-                <span className="bg-amber-500/20 px-1 py-0.5 rounded text-amber-300">Active</span>
-            </h3>
-            <p className="text-slate-100 font-semibold text-sm leading-tight">{questTitle}</p>
-            <p className="text-slate-400 text-[11px] mt-1.5 leading-tight italic">{questDesc}</p>
-        </div>
-    );
-};
-
-const getFallbackBackground = (state, node) => {
-    const flags = state.flags || {};
-    const speaker = node?.speaker || "";
-    const location = node?.location || "";
-    const text = node?.text || "";
-    const context = `${speaker} ${location} ${text}`;
-
-    if (/Out of Money|balance hits zero|Financial Emergency|locked gates|money crisis|hardship bursary|mutual-aid/i.test(context)) {
-        return '/images/simulator/cg/cg_money_crisis.jpg';
-    }
-    if (/Campus Clinic|recovery|sick|Body files a formal complaint/i.test(context)) {
-        return '/images/simulator/backgrounds/bg_campus_clinic.jpg';
-    }
-    if (/club fair|Campus Square|Hundred Regiment|student club/i.test(context)) {
-        return '/images/simulator/backgrounds/bg_campus_square_club_fair.jpg';
-    }
-    if (/festival|Neighbor Li|neighborhood festival/i.test(context)) {
-        return '/images/simulator/backgrounds/bg_neighborhood_festival.jpg';
-    }
-    if (/Language Partner|campus cafe|coffee meetup|check-in dinner|support circle/i.test(context)) {
-        return '/images/simulator/backgrounds/bg_campus_cafe.jpg';
-    }
-    if (/Dorm Common Room|common room|homesick|comfort meal|international territory/i.test(context)) {
-        return '/images/simulator/backgrounds/bg_dorm_common_room.jpg';
-    }
-    if (/Peking Opera|Opera Theater|opera mask/i.test(context)) {
-        return '/images/simulator/backgrounds/bg_beijing_opera.jpg';
-    }
-    if (/Canton Fair|Trade Fair Floor/i.test(context)) {
-        return '/images/simulator/backgrounds/bg_canton_fair.jpg';
-    }
-    if (/Terracotta|Guide Jin/i.test(context)) {
-        return '/images/simulator/backgrounds/bg_terracotta_museum.jpg';
-    }
-    if (/hotpot|mala|sesame oil/i.test(context)) {
-        return '/images/simulator/backgrounds/bg_chengdu_hotpot.jpg';
-    }
-    if (/Panda|panda|conservation|Sanctuary Guide/i.test(context)) {
-        return '/images/simulator/backgrounds/bg_chengdu_panda_base.jpg';
-    }
-    if (/The Bund|Huangpu|Pearl Tower|skyline/i.test(context)) {
-        return '/images/simulator/backgrounds/bg_shanghai_bund_evening.jpg';
-    }
-    if (/Fuxing Park|INS|nightlife|Disco/i.test(context)) {
-        return '/images/simulator/backgrounds/bg_fuxing_park_night.jpg';
-    }
-    if (/Lujiazui|fintech|payment rails|Fintech Coin/i.test(context)) {
-        return '/images/simulator/backgrounds/bg_lujiazui_fintech_talk.jpg';
-    }
-    if (/alumni dinner|business cards|networking/i.test(context)) {
-        return '/images/simulator/backgrounds/bg_alumni_dinner.jpg';
-    }
-    if (/VPN|outside-web|payment problem|payment app|Phone Screen/i.test(context)) {
-        return '/images/simulator/backgrounds/bg_phone_network_problem.jpg';
-    }
-    if (/dorm inspection|Dorm Auntie|hot plates|rice cookers|unauthorized appliances/i.test(context)) {
-        return '/images/simulator/backgrounds/bg_dorm_inspection.jpg';
-    }
-    if (/Beijing|Forbidden City|Qianmen|Hutong|Palace|Peking Opera|Taxi Driver Lao Li/i.test(context)) {
-        return '/images/simulator/backgrounds/bg_beijing_hutong.jpg';
-    }
-    if (/Guangzhou|Canton Fair|Baima|Wholesale Market|Boss Wu|Trade Fair/i.test(context)) {
-        return '/images/simulator/backgrounds/bg_guangzhou_market.jpg';
-    }
-    if (/Chengdu|People's Park|Kuanzhai|hotpot|Teahouse|Sanctuary Guide|panda/i.test(context)) {
-        return '/images/simulator/backgrounds/bg_chengdu_teahouse.jpg';
-    }
-    if (/Xi'an|Terracotta|Muslim Quarter|Ancient City Wall|Guide Jin|Street Vendor/i.test(context)) {
-        return '/images/simulator/backgrounds/bg_xian_city_wall.jpg';
-    }
-    if (/Hangzhou|West Lake|Tea Pavilion|Binjiang|Tech Info Session/i.test(context)) {
-        return '/images/simulator/backgrounds/bg_hangzhou_west_lake.jpg';
-    }
-    if (/Sanya|Houhai|Yalong Bay|Surfer|Beach Club|Public Beach/i.test(context)) {
-        return '/images/simulator/backgrounds/bg_sanya_beach.jpg';
-    }
-    if (/Uncle Wang|BBQ|barbecue|skewer|neighborhood/i.test(context)) {
-        return '/images/simulator/backgrounds/bg_uncle_wang_bbq.jpg';
-    }
-    if (/Sophie|International Student|Minghai Intl|common room|orientation/i.test(context)) {
-        return '/images/simulator/backgrounds/bg_international_common_room.jpg';
-    }
-    if (/Career Office|Manager Zhang|internship|resume|referral|office badge/i.test(context)) {
-        return '/images/simulator/backgrounds/bg_career_office.jpg';
-    }
-    if (/Xiao Chen|incubator|demo|prototype|startup|student-service|Lujiazui|Opportunity/i.test(context)) {
-        return '/images/simulator/backgrounds/bg_incubator_room.jpg';
-    }
-    if (/Metro|Line 2|subway/i.test(context)) {
-        return '/images/simulator/backgrounds/bg_shanghai_metro.jpg';
-    }
-    if (/Professor Lin|office hours|recommendation|academic method|draft feedback/i.test(context)) {
-        return '/images/simulator/backgrounds/bg_professor_office.jpg';
-    }
-    if (/Dr\\. Mei|research discussion|research question|conference abstract|research ethics/i.test(context)) {
-        return '/images/simulator/backgrounds/bg_research_meeting_room.jpg';
-    }
-    if (/Library|research|midterm|academic/i.test(context)) {
-        return '/images/simulator/backgrounds/bg_library_night.jpg';
-    }
-
-    if (state.phase === "Application") {
-        if (flags.accepted_offer) return '/images/simulator/backgrounds/bg_departure_eve_room.jpg';
-        return '/images/simulator/backgrounds/bg_application_laptop.jpg';
-    }
-
-    if (state.phase === "Pre-Departure") {
-        if (state.turn >= 15) return '/images/simulator/backgrounds/bg_predeparture_suitcase.jpg';
-        if (state.turn >= 13) return '/images/simulator/backgrounds/bg_airplane_window.jpg';
-        return '/images/simulator/cg/cg_document_stack_jw202.jpg';
-    }
-
-    if (state.phase === "In-China") {
-        if (!flags.arrived_in_china) return '/images/simulator/backgrounds/bg_pudong_arrivals.jpg';
-        return '/images/simulator/backgrounds/bg_minghai_gate.jpg';
-    }
-
-    return '/images/simulator/hub_bg.jpg';
-};
+import QuestTracker from './components/QuestTracker';
+import { getFallbackBackground } from './lib/sceneBackgrounds';
+import { getSceneAmbienceId, getSceneBgmId } from './lib/sceneAudio';
 
 const cloneStateForSummary = (state) => JSON.parse(JSON.stringify(state || {}));
 
@@ -286,6 +81,39 @@ const buildWeekTransition = (beforeState, state, nextNode) => {
     };
 };
 
+const getDelayedConsequenceNode = (state) => {
+    const flags = state.flags || {};
+    if (state.phase !== "In-China" || !flags.arrived_in_china) return null;
+    if (!flags.campus_rhythm_started) return null;
+
+    if (!flags.delayed_phone_payment_friction_seen && state.turn >= 21 && (!flags.has_alipay || !flags.has_wechat || flags.airport_app_setup_stress)) {
+        return "delayed_phone_payment_friction";
+    }
+    if (!flags.delayed_language_anxiety_seen && state.turn >= 21 && (flags.chinese_beginner || state.stats.chinese < 25)) {
+        return "delayed_language_anxiety";
+    }
+    if (!flags.delayed_housing_compromise_seen && state.turn >= 22 && (flags.dorm_pending || flags.taobao_wrong_size_lesson || flags.housing_friction_debt || !flags.housing_sorted)) {
+        return "delayed_housing_compromise";
+    }
+    if (!flags.delayed_dorm_auntie_help_seen && state.turn >= 22 && (flags.dorm_auntie_parcel_help || flags.neighbor_li_parcel_mediator)) {
+        return "delayed_dorm_auntie_help";
+    }
+    if (!flags.delayed_calendar_focus_seen && state.turn >= 23 && (flags.calendar_midterm_prepped || flags.calendar_admin_prepped || flags.calendar_future_prepped)) {
+        return "delayed_calendar_focus_payoff";
+    }
+    if (!flags.delayed_wechat_silence_seen && state.turn >= 22 && flags.wechat_silence_consequence_ready) {
+        return "delayed_wechat_silence";
+    }
+    if (!flags.delayed_didi_pickup_confusion_seen && state.turn >= 22 && flags.didi_pickup_friction_ready) {
+        return "delayed_didi_pickup_confusion";
+    }
+    if (!flags.delayed_taobao_wrong_address_seen && state.turn >= 22 && flags.taobao_wrong_address_recovery_used) {
+        return "delayed_taobao_wrong_address";
+    }
+
+    return null;
+};
+
 const TITLE_GALLERY_ITEMS = [
     {
         id: "admission",
@@ -328,6 +156,54 @@ const TITLE_GALLERY_ITEMS = [
         unlock: (flags) => flags.language_partner_cafe
     },
     {
+        id: "shared_flat_first_night",
+        title: "Shared Flat First Night",
+        route: "Housing",
+        image: "/images/simulator/cg/cg_housing_shared_flat_first_night.png",
+        hint: "Choose or struggle through a shared-flat housing path.",
+        unlock: (flags) => flags.housing_choice === "Shared flat" || flags.decision_e2_housing === "Shared flat" || flags.housing_followup_done || flags.delayed_housing_compromise_seen
+    },
+    {
+        id: "studio_rent_pressure",
+        title: "Studio Rent Pressure",
+        route: "Housing",
+        image: "/images/simulator/cg/cg_studio_rent_pressure.png",
+        hint: "Let housing costs become a real budget pressure.",
+        unlock: (flags) => /studio/i.test(flags.housing_choice || flags.decision_e2_housing || "") || flags.housing_friction_debt || flags.housing_energy_scar
+    },
+    {
+        id: "calendar_focus",
+        title: "Calendar Warning",
+        route: "Phone Layer",
+        image: "/images/simulator/cg/cg_calendar_midterm_warning.png",
+        hint: "Pin a deadline and let it pay off in a later week.",
+        unlock: (flags) => flags.delayed_calendar_focus_seen || flags.calendar_midterm_prepped || flags.calendar_final_prepped
+    },
+    {
+        id: "wechat_repair",
+        title: "WeChat Repair",
+        route: "Phone Layer",
+        image: "/images/simulator/backgrounds/bg_phone_network_problem.jpg",
+        hint: "Let message silence create distance, then repair it honestly.",
+        unlock: (flags) => flags.wechat_repair_messages_sent || flags.delayed_wechat_silence_seen
+    },
+    {
+        id: "didi_pickup",
+        title: "DiDi Pickup Zone",
+        route: "Phone Layer",
+        image: "/images/simulator/cg/cg_didi_pickup_zone_confusion.png",
+        hint: "Use DiDi without enough city setup and learn the pickup-zone lesson.",
+        unlock: (flags) => flags.didi_pickup_points_saved || flags.delayed_didi_pickup_confusion_seen
+    },
+    {
+        id: "taobao_address",
+        title: "Taobao Address Repair",
+        route: "Phone Layer",
+        image: "/images/simulator/cg/cg_taobao_wrong_address.png",
+        hint: "Use Taobao wrong-address recovery and fix the address template.",
+        unlock: (flags) => flags.taobao_address_template_fixed || flags.delayed_taobao_wrong_address_seen
+    },
+    {
         id: "professor",
         title: "Professor Lin Office Hours",
         route: "Academic",
@@ -336,12 +212,28 @@ const TITLE_GALLERY_ITEMS = [
         unlock: (flags) => flags.lin_recommendation_ready
     },
     {
+        id: "lin_plain_explanation",
+        title: "Plain Explanation",
+        route: "Academic",
+        image: "/images/simulator/cg/cg_professor_lin_plain_explanation.png",
+        hint: "Help Professor Lin turn a confused question into a clear explanation.",
+        unlock: (flags) => flags.request_professor_lin_class_question
+    },
+    {
         id: "mei",
         title: "Dr. Mei Project Meeting",
         route: "Academic",
         image: "/images/simulator/cg/cg_dr_mei_project_meeting.jpg",
         hint: "Commit to Dr. Mei's research project.",
         unlock: (flags) => flags.dr_mei_project_commitment
+    },
+    {
+        id: "mei_field_notes",
+        title: "Field Notes",
+        route: "Academic",
+        image: "/images/simulator/cg/cg_dr_mei_field_notes.png",
+        hint: "Read Dr. Mei's messy notes for what they failed to notice.",
+        unlock: (flags) => flags.request_dr_mei_field_notes
     },
     {
         id: "research_poster",
@@ -360,6 +252,14 @@ const TITLE_GALLERY_ITEMS = [
         unlock: (flags) => flags.sophie_support_circle || flags.sophie_orientation_committee
     },
     {
+        id: "sophie_arrival_rescue",
+        title: "Arrival Rescue",
+        route: "International",
+        image: "/images/simulator/cg/cg_sophie_arrival_rescue.png",
+        hint: "Help Sophie talk a lost new student through arrival panic.",
+        unlock: (flags) => flags.request_sophie_new_student || flags.sophie_arrival_helper
+    },
+    {
         id: "orientation",
         title: "Orientation Guide",
         route: "International",
@@ -376,6 +276,14 @@ const TITLE_GALLERY_ITEMS = [
         unlock: (flags) => flags.xiao_chen_demo_day
     },
     {
+        id: "xiao_onboarding_test",
+        title: "Onboarding Test",
+        route: "Shanghai",
+        image: "/images/simulator/cg/cg_xiao_chen_onboarding_test.png",
+        hint: "Watch real students struggle with Xiao Chen's onboarding draft.",
+        unlock: (flags) => flags.request_xiao_chen_onboarding || flags.xiao_chen_onboarding_clear
+    },
+    {
         id: "angel_demo",
         title: "Angel Demo",
         route: "Shanghai",
@@ -390,6 +298,14 @@ const TITLE_GALLERY_ITEMS = [
         image: "/images/simulator/cg/cg_manager_zhang_office_badge.jpg",
         hint: "Prepare Manager Zhang's referral path.",
         unlock: (flags) => flags.manager_zhang_referral_ready || flags.legal_internship_ready
+    },
+    {
+        id: "zhang_mock_interview",
+        title: "Mock Interview",
+        route: "Career",
+        image: "/images/simulator/cg/cg_manager_zhang_mock_interview.png",
+        hint: "Rewrite Manager Zhang's practice answer around evidence.",
+        unlock: (flags) => flags.request_manager_zhang_answer || flags.manager_zhang_evidence_answer
     },
     {
         id: "office_badge",
@@ -416,6 +332,14 @@ const TITLE_GALLERY_ITEMS = [
         unlock: (flags) => flags.uncle_wang_regular
     },
     {
+        id: "wang_order_bridge",
+        title: "Order Bridge",
+        route: "Local",
+        image: "/images/simulator/cg/cg_uncle_wang_order_bridge.png",
+        hint: "Help a nervous student order without making them feel small.",
+        unlock: (flags) => flags.request_uncle_wang_order_help || flags.uncle_wang_order_bridge
+    },
+    {
         id: "canteen_auntie",
         title: "Canteen Auntie",
         route: "Local",
@@ -430,6 +354,14 @@ const TITLE_GALLERY_ITEMS = [
         image: "/images/simulator/cg/cg_dorm_auntie_parcel_help.jpg",
         hint: "Turn a package pickup into daily-life language practice.",
         unlock: (flags) => flags.dorm_auntie_parcel_help
+    },
+    {
+        id: "neighbor_parcel_crisis",
+        title: "Parcel Crisis",
+        route: "Local",
+        image: "/images/simulator/cg/cg_neighbor_li_parcel_crisis.png",
+        hint: "Help Neighbor Li make a hallway parcel problem normal again.",
+        unlock: (flags) => flags.request_neighbor_li_parcel || flags.neighbor_li_parcel_mediator
     },
     {
         id: "study_group",
@@ -473,53 +405,237 @@ const TITLE_GALLERY_ITEMS = [
     }
 ];
 
-const getSceneBgmId = (state, node, screenMode) => {
-    if (screenMode !== "game") return "title";
+const getMemoryUnlockSet = (flags = {}) => new Set(
+    TITLE_GALLERY_ITEMS
+      .filter(item => {
+          try {
+              return Boolean(item.unlock(flags));
+          } catch (error) {
+              return false;
+          }
+      })
+      .map(item => item.title)
+);
 
-    const phase = state?.phase || "Application";
-    const nodeId = state?.currentNodeId || "";
-    const speaker = node?.speaker || "";
-    const location = node?.location || "";
-    const text = node?.text || "";
-    const context = `${nodeId} ${speaker} ${location} ${text}`;
+const getStatDeltas = (beforeState, afterState) => {
+    const statLabels = {
+        academics: "Academics",
+        chinese: "Chinese",
+        culture: "Culture",
+        digitalProficiency: "Digital",
+        energy: "Energy",
+        wealth: "RMB"
+    };
 
-    if (/Out of Money|Financial Emergency|money crisis|ending_out_of_money|quiet return|game_over_wealth/i.test(context)) {
-        return "crisisMoney";
-    }
-    if (/ending_/i.test(nodeId)) {
-        if (/out_of_money|quiet|failed|bad/i.test(nodeId)) return "quietEnding";
-        return "goodEnding";
-    }
-    if (/Xiao Chen|incubator|demo|prototype|startup|angel/i.test(context)) return "startupDemo";
-    if (/Manager Zhang|Career Office|internship|office badge|return offer|alumni dinner/i.test(context)) return "careerOffice";
-    if (/Uncle Wang|Neighbor Li|BBQ|barbecue|skewer|festival|neighborhood/i.test(context)) return "localLife";
-    if (/Sophie|International Student|support circle|common room|orientation/i.test(context)) return "socialWarm";
-    if (/Professor Lin|Dr\\. Mei|Library|research|classroom|midterm|academic|office hours/i.test(context)) return "studyLibrary";
-    if (/Bund|Metro|Line 2|Lujiazui|Shanghai city|Fuxing|nightlife|city/i.test(context)) return "shanghaiCity";
-
-    if (phase === "Application") {
-        if (/deadline|interview|submit|feedback|decision|result/i.test(context)) return "applicationPressure";
-        return "applicationLateNight";
-    }
-    if (phase === "Pre-Departure") {
-        if (/JW202|visa|document|admission package|paperwork/i.test(context)) return "documentsAdmin";
-        if (/flight|boarding|airplane|arrival|Pudong/i.test(context)) return "flightArrival";
-        return "predepartureHome";
-    }
-    if (phase === "In-China" && !state?.flags?.arrived_in_china) {
-        return "flightArrival";
-    }
-
-    return "campusDaily";
+    return Object.entries(statLabels)
+      .map(([key, label]) => {
+          const beforeValue = beforeState?.stats?.[key] ?? 0;
+          const afterValue = afterState?.stats?.[key] ?? 0;
+          return { key, label, delta: afterValue - beforeValue, value: afterValue };
+      })
+      .filter(item => item.delta !== 0);
 };
 
+const getNetworkDelta = (beforeState, afterState) => {
+    const beforeGuanxi = beforeState?.guanxi || {};
+    const afterGuanxi = afterState?.guanxi || {};
+    const guanxiDelta = Object.keys({ ...beforeGuanxi, ...afterGuanxi }).reduce((total, key) => {
+        return total + ((afterGuanxi[key] || 0) - (beforeGuanxi[key] || 0));
+    }, 0);
+
+    const beforeRelationships = beforeState?.relationships || {};
+    const afterRelationships = afterState?.relationships || {};
+    const relationshipDelta = Object.keys({ ...beforeRelationships, ...afterRelationships }).reduce((total, character) => {
+        return total + ((afterRelationships[character]?.friendship || 0) - (beforeRelationships[character]?.friendship || 0));
+    }, 0);
+
+    return { guanxiDelta, relationshipDelta };
+};
+
+const buildChoiceFeedbackToast = (beforeState, afterState, choice, nextNode) => {
+    const statDeltas = getStatDeltas(beforeState, afterState);
+    const { guanxiDelta, relationshipDelta } = getNetworkDelta(beforeState, afterState);
+    const previousMemories = getMemoryUnlockSet(beforeState?.flags || {});
+    const currentMemories = getMemoryUnlockSet(afterState?.flags || {});
+    const newMemories = [...currentMemories].filter(title => !previousMemories.has(title));
+    const beforeFlags = beforeState?.flags || {};
+    const afterFlags = afterState?.flags || {};
+    const changedFlags = Object.keys({ ...beforeFlags, ...afterFlags })
+      .filter(flag => beforeFlags[flag] !== afterFlags[flag] && !/^last_life_check/.test(flag) && !/^life_check_/.test(flag));
+    const lifeCheck = afterState?.lifeChecks?.last;
+    const isFreshLifeCheck = choice?.effects?.lifeCheck && lifeCheck?.id === choice.effects.lifeCheck.id;
+    const isEnding = /^ending_/.test(nextNode || "");
+
+    const items = [
+        ...statDeltas.slice(0, 4).map(item => ({
+            label: item.label,
+            value: `${item.delta > 0 ? "+" : ""}${item.delta}`,
+            tone: item.delta > 0 ? "good" : "bad"
+        }))
+    ];
+
+    if (guanxiDelta) {
+        items.push({ label: "Guanxi", value: `${guanxiDelta > 0 ? "+" : ""}${guanxiDelta}`, tone: guanxiDelta > 0 ? "good" : "bad" });
+    }
+    if (relationshipDelta) {
+        items.push({ label: "Bond", value: `${relationshipDelta > 0 ? "+" : ""}${relationshipDelta}`, tone: relationshipDelta > 0 ? "good" : "bad" });
+    }
+    if (newMemories.length > 0) {
+        items.push({ label: "Memory", value: newMemories[0], tone: "memory" });
+    }
+    if (isFreshLifeCheck) {
+        items.unshift({
+            label: lifeCheck.success ? "Life Check Passed" : "Life Check Strained",
+            value: `${lifeCheck.score}/${lifeCheck.dc}`,
+            tone: lifeCheck.success ? "good" : "bad"
+        });
+    }
+    if (items.length === 0 && changedFlags.length > 0) {
+        items.push({ label: "Story", value: "Updated", tone: "memory" });
+    }
+
+    if (items.length === 0 && !isEnding) return null;
+
+    return {
+        title: isEnding
+          ? "Ending Route Opened"
+          : isFreshLifeCheck
+            ? lifeCheck.label
+            : newMemories.length > 0
+              ? "Memory Unlocked"
+              : "Choice Impact",
+        body: isFreshLifeCheck
+          ? lifeCheck.message
+          : newMemories.length > 0
+            ? newMemories.slice(0, 2).join(" / ")
+            : choice?.text || "The choice has been applied.",
+        tone: isEnding ? "ending" : isFreshLifeCheck && !lifeCheck.success ? "risk" : newMemories.length > 0 ? "memory" : "normal",
+        items: items.slice(0, 5)
+    };
+};
+
+const buildChoiceAudioFeedback = (beforeState, afterState, choice, nextNode) => {
+    const sounds = [];
+    const statDeltas = getStatDeltas(beforeState, afterState);
+    const { guanxiDelta, relationshipDelta } = getNetworkDelta(beforeState, afterState);
+    const flags = afterState?.flags || {};
+    const previousMemories = getMemoryUnlockSet(beforeState?.flags || {});
+    const currentMemories = getMemoryUnlockSet(flags);
+    const unlockedMemory = [...currentMemories].some(title => !previousMemories.has(title));
+    const lifeCheck = afterState?.lifeChecks?.last;
+    const isFreshLifeCheck = choice?.effects?.lifeCheck && lifeCheck?.id === choice.effects.lifeCheck.id;
+
+    if (flags.got_visa && !beforeState?.flags?.got_visa) sounds.push({ type: "stinger", id: "visaApproved" });
+    if (flags.accepted_offer && !beforeState?.flags?.accepted_offer) sounds.push({ type: "sfx", id: "emailArrive" });
+    if (unlockedMemory) sounds.push({ type: "stinger", id: "cgUnlock" });
+    if (isFreshLifeCheck) sounds.push({ type: lifeCheck.success ? "stinger" : "sfx", id: lifeCheck.success ? "cgUnlock" : "deadlineWarning" });
+    if (/^ending_/.test(nextNode || "")) {
+        sounds.push({ type: "stinger", id: /out_of_money|quiet|probation|deportee|scare|shortcut|unreliable/i.test(nextNode) ? "badEnding" : "endingUnlock" });
+    }
+    if (statDeltas.some(item => item.key === "wealth" && item.delta > 0)) sounds.push({ type: "sfx", id: "moneyGain" });
+    if (statDeltas.some(item => item.key === "wealth" && item.delta < 0)) sounds.push({ type: "sfx", id: "moneySpend" });
+    if (statDeltas.some(item => item.key !== "wealth" && item.delta > 0)) sounds.push({ type: "sfx", id: "statUp" });
+    if (statDeltas.some(item => item.key !== "wealth" && item.delta < 0)) sounds.push({ type: "sfx", id: "statDown" });
+    if (guanxiDelta > 0 || relationshipDelta > 0) sounds.push({ type: "sfx", id: "relationshipUp" });
+
+    const deduped = [];
+    const seen = new Set();
+    for (const sound of sounds) {
+        const key = `${sound.type}:${sound.id}`;
+        if (!seen.has(key)) {
+            seen.add(key);
+            deduped.push(sound);
+        }
+    }
+    return deduped.slice(0, 4);
+};
+
+function ChoiceImpactToast({ toast }) {
+    if (!toast) return null;
+
+    const toneClass = {
+        normal: "border-sky-300/35 bg-slate-950/90 text-sky-50",
+        memory: "border-fuchsia-300/40 bg-fuchsia-950/85 text-fuchsia-50",
+        risk: "border-rose-300/45 bg-rose-950/85 text-rose-50",
+        ending: "border-amber-300/45 bg-amber-950/85 text-amber-50"
+    }[toast.tone] || "border-sky-300/35 bg-slate-950/90 text-sky-50";
+
+    const chipClass = (tone) => ({
+        good: "border-emerald-300/30 bg-emerald-400/10 text-emerald-100",
+        bad: "border-rose-300/30 bg-rose-400/10 text-rose-100",
+        memory: "border-fuchsia-300/30 bg-fuchsia-400/10 text-fuchsia-100"
+    }[tone] || "border-slate-300/20 bg-slate-800/70 text-slate-100");
+
+    return (
+        <div className={`absolute right-4 top-16 z-[75] w-[min(22rem,calc(100%-2rem))] rounded-2xl border p-4 shadow-[0_18px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl animate-in fade-in slide-in-from-right-4 duration-300 ${toneClass}`}>
+            <div className="text-[10px] font-black uppercase tracking-[0.22em] opacity-70">Feedback</div>
+            <div className="mt-1 text-sm font-black">{toast.title}</div>
+            {toast.body && <p className="mt-1 line-clamp-2 text-xs leading-relaxed opacity-80">{toast.body}</p>}
+            {toast.items?.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                    {toast.items.map((item, index) => (
+                        <span key={`${item.label}-${index}`} className={`rounded-lg border px-2 py-1 text-[10px] font-bold ${chipClass(item.tone)}`}>
+                            {item.label}: {item.value}
+                        </span>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
+function CoverScreen({ onStart }) {
+    useEffect(() => {
+        const handleKeyDown = (event) => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onStart();
+            }
+        };
+        document.addEventListener("keydown", handleKeyDown);
+        return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [onStart]);
+
+    return (
+        <div className="relative flex h-full w-full items-end justify-center overflow-hidden bg-slate-950 text-white">
+            <div
+                className="absolute inset-0 bg-cover bg-center"
+                style={{ backgroundImage: 'url("/images/simulator/generated/sim_panda_cover_start.png")' }}
+            ></div>
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_46%,rgba(15,23,42,0)_0%,rgba(15,23,42,0.18)_46%,rgba(2,6,23,0.84)_100%)]"></div>
+            <div className="absolute inset-x-0 bottom-0 h-72 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent"></div>
+            <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-slate-950/45 to-transparent"></div>
+
+            <div className="relative z-10 flex w-full max-w-4xl flex-col items-center px-6 pb-12 text-center sm:pb-16">
+                <div className="mb-4 rounded-full border border-white/20 bg-slate-950/35 px-4 py-2 text-[10px] font-black uppercase tracking-[0.34em] text-amber-100 shadow-2xl backdrop-blur-md">
+                    Minghai University / Shanghai
+                </div>
+                <p className="max-w-2xl text-sm font-medium leading-7 text-slate-200 drop-shadow-lg sm:text-base">
+                    A study-abroad visual novel life simulator about the choices before arrival, the city after landing, and the year that follows.
+                </p>
+                <button
+                    onClick={onStart}
+                    className="mt-7 min-w-56 rounded-full border border-amber-100/70 bg-amber-300 px-10 py-4 text-lg font-black uppercase tracking-[0.32em] text-slate-950 shadow-[0_20px_60px_rgba(251,191,36,0.35)] transition hover:-translate-y-0.5 hover:bg-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-100"
+                >
+                    Start
+                </button>
+            </div>
+        </div>
+    );
+}
+
 function TitleScreen({ mode, hasSave, savedFlags, titleMessage, audioEnabled, onNewGame, onLoadGame, onOpenGallery, onBack, onToggleAudio }) {
+    const [selectedGalleryRoute, setSelectedGalleryRoute] = useState("All");
     const galleryMode = mode === "gallery";
     const galleryEntries = TITLE_GALLERY_ITEMS.map(item => ({
         ...item,
         unlocked: Boolean(item.unlock(savedFlags || {}))
     }));
     const unlockedCount = galleryEntries.filter(item => item.unlocked).length;
+    const galleryRoutes = ["All", ...Array.from(new Set(galleryEntries.map(item => item.route)))];
+    const visibleGalleryEntries = selectedGalleryRoute === "All"
+        ? galleryEntries
+        : galleryEntries.filter(item => item.route === selectedGalleryRoute);
 
     return (
         <div className="relative flex h-full w-full overflow-hidden bg-slate-950 text-slate-100">
@@ -568,8 +684,20 @@ function TitleScreen({ mode, hasSave, savedFlags, titleMessage, audioEnabled, on
                             </div>
                         </div>
 
+                        <div className="mt-5 flex gap-2 overflow-x-auto pb-1">
+                            {galleryRoutes.map(route => (
+                                <button
+                                    key={route}
+                                    onClick={() => setSelectedGalleryRoute(route)}
+                                    className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-bold transition-all ${selectedGalleryRoute === route ? "border-white bg-white text-fuchsia-700" : "border-white/20 bg-white/10 text-fuchsia-50 hover:bg-white/20"}`}
+                                >
+                                    {route}
+                                </button>
+                            ))}
+                        </div>
+
                         <div className="mt-6 grid min-h-0 flex-1 grid-cols-2 gap-4 overflow-y-auto pr-2 sm:grid-cols-3 lg:grid-cols-4">
-                            {galleryEntries.map(item => (
+                            {visibleGalleryEntries.map(item => (
                                 <div
                                     key={item.id}
                                     className={`overflow-hidden rounded-3xl border bg-slate-950/78 shadow-2xl transition ${item.unlocked ? "border-fuchsia-300/40 hover:-translate-y-1" : "border-slate-700 opacity-70"}`}
@@ -700,11 +828,14 @@ export default function SimulatorPage() {
   const [gigGameId, setGigGameId] = useState(null);
   const [weekTransition, setWeekTransition] = useState(null);
   const [isSceneFocusMode, setIsSceneFocusMode] = useState(false);
-  const [screenMode, setScreenMode] = useState("title");
+  const [screenMode, setScreenMode] = useState("cover");
   const [titleMessage, setTitleMessage] = useState("");
   const [hasSave, setHasSave] = useState(false);
   const [savedFlags, setSavedFlags] = useState({});
   const [audioEnabled, setAudioEnabled] = useState(false);
+  const [feedbackToast, setFeedbackToast] = useState(null);
+  const [restartConfirmOpen, setRestartConfirmOpen] = useState(false);
+  const feedbackTimerRef = useRef(null);
   const audioEngineRef = useRef(null);
   if (!audioEngineRef.current) {
     audioEngineRef.current = new AudioManager(audioManifest);
@@ -750,6 +881,12 @@ export default function SimulatorPage() {
     setGigGameId(null);
     setWeekTransition(null);
     setIsSceneFocusMode(false);
+    setFeedbackToast(null);
+    setRestartConfirmOpen(false);
+    if (feedbackTimerRef.current) {
+      window.clearTimeout(feedbackTimerRef.current);
+      feedbackTimerRef.current = null;
+    }
   };
 
   const enableAudio = async () => {
@@ -765,6 +902,40 @@ export default function SimulatorPage() {
     if (audioEnabled) audioEngineRef.current?.playSfx(id);
   };
 
+  const playChoiceAudioFeedback = (beforeState, afterState, choice, nextNode) => {
+    if (!audioEnabled) return;
+    const sounds = buildChoiceAudioFeedback(beforeState, afterState, choice, nextNode);
+    sounds.forEach((sound, index) => {
+      window.setTimeout(() => {
+        if (sound.type === "stinger") {
+          audioEngineRef.current?.playStinger(sound.id);
+        } else {
+          audioEngineRef.current?.playSfx(sound.id);
+        }
+      }, 90 + index * 140);
+    });
+  };
+
+  const showChoiceFeedback = (beforeState, afterState, choice, nextNode) => {
+    const toast = buildChoiceFeedbackToast(beforeState, afterState, choice, nextNode);
+    if (!toast) return;
+    setFeedbackToast(toast);
+    if (feedbackTimerRef.current) window.clearTimeout(feedbackTimerRef.current);
+    feedbackTimerRef.current = window.setTimeout(() => {
+      setFeedbackToast(null);
+      feedbackTimerRef.current = null;
+    }, 3200);
+  };
+
+  const showSystemFeedback = (title, body, tone = "normal") => {
+    setFeedbackToast({ title, body, tone, items: [] });
+    if (feedbackTimerRef.current) window.clearTimeout(feedbackTimerRef.current);
+    feedbackTimerRef.current = window.setTimeout(() => {
+      setFeedbackToast(null);
+      feedbackTimerRef.current = null;
+    }, 2600);
+  };
+
   const handleToggleAudio = async () => {
     if (audioEnabled) {
       audioEngineRef.current?.stop();
@@ -774,6 +945,14 @@ export default function SimulatorPage() {
     }
     const started = await enableAudio();
     if (started) audioEngineRef.current?.playSfx("uiConfirm");
+  };
+
+  const handleStartFromCover = async () => {
+    setTitleMessage("");
+    const started = await enableAudio();
+    if (started) audioEngineRef.current?.playSfx("uiConfirm");
+    refreshSaveStatus();
+    setScreenMode("title");
   };
 
   const handleNewGameFromTitle = async () => {
@@ -818,6 +997,7 @@ export default function SimulatorPage() {
     refreshSaveStatus();
     return () => {
       audioEngineRef.current?.stop();
+      if (feedbackTimerRef.current) window.clearTimeout(feedbackTimerRef.current);
     };
   }, []);
 
@@ -843,6 +1023,7 @@ export default function SimulatorPage() {
   const handleChoice = (choice) => {
     playUiSound("uiConfirm");
     const beforeChoiceState = cloneStateForSummary(gameEngine.getState());
+    const activeNodeId = beforeChoiceState.currentNodeId || "start";
     let nextNode = events.executeChoice(choice);
 
     if (choice.action === "reset_game") {
@@ -855,7 +1036,16 @@ export default function SimulatorPage() {
 
     // Explicit action trigger
     const advancesWeek = choice.action === "advance_turn";
-    if (advancesWeek) {
+    const stateAfterEffects = gameEngine.getState();
+    const isCampusWeeklyAction = advancesWeek
+      && stateAfterEffects.phase === "In-China"
+      && (activeNodeId === "hub" || activeNodeId.startsWith("submenu_") || activeNodeId.startsWith("event_contact_") || activeNodeId.startsWith("event_request_") || activeNodeId.startsWith("event_academic_") || activeNodeId.startsWith("event_local_") || activeNodeId.startsWith("event_intl_") || activeNodeId.startsWith("event_career_") || activeNodeId.startsWith("event_city_") || activeNodeId.startsWith("event_admin_"));
+    const inferredActionSlot = choice.actionSlot
+      || (/weekend|travel|ktv|evening|bund|festival|dinner|stall|table|beach|west lake|opera|hotpot/i.test(choice.text || "") || /submenu_travel|submenu_entertainment/.test(activeNodeId) ? "weekend" : "auto");
+    const weeklyActionResult = isCampusWeeklyAction ? gameEngine.spendWeeklyAction(inferredActionSlot) : null;
+    const shouldAdvanceWeek = advancesWeek && (!isCampusWeeklyAction || weeklyActionResult?.weekComplete);
+
+    if (shouldAdvanceWeek) {
         gameEngine.advanceTurn();
     }
 
@@ -863,13 +1053,19 @@ export default function SimulatorPage() {
     const state = gameEngine.getState();
     if (state.stats.energy <= 0) nextNode = "forced_recovery_week";
     else if (state.stats.wealth <= 0) nextNode = state.flags.emergency_funding_used ? "game_over_wealth" : "money_crisis";
-    else if (state.turn === 8 && advancesWeek) nextNode = "pre_departure_start";
-    else if (state.turn === 16 && advancesWeek) nextNode = "in_china_start";
-    else if (state.turn === 24 && advancesWeek) nextNode = "epoch3_midterm";
-    else if (state.turn === 28 && advancesWeek) nextNode = "epoch3_internship";
-    else if (state.turn === 32 && advancesWeek) nextNode = "epoch3_final";
+    else if (state.phase === "In-China" && state.flags.campus_rhythm_started && state.stats.academics <= 20 && !state.flags.academic_crisis_used) nextNode = "academic_crisis";
+    else if (shouldAdvanceWeek && getDelayedConsequenceNode(state)) nextNode = getDelayedConsequenceNode(state);
+    else if (state.turn === 8 && shouldAdvanceWeek) nextNode = "pre_departure_start";
+    else if (state.turn === 16 && shouldAdvanceWeek) nextNode = "in_china_start";
+    else if (state.turn === 24 && shouldAdvanceWeek) nextNode = "epoch3_midterm";
+    else if (state.turn === 28 && shouldAdvanceWeek) nextNode = "epoch3_internship";
+    else if (state.turn === 32 && shouldAdvanceWeek) nextNode = "epoch3_final";
 
-    if (advancesWeek) {
+    const afterChoiceState = cloneStateForSummary(state);
+    showChoiceFeedback(beforeChoiceState, afterChoiceState, choice, nextNode);
+    playChoiceAudioFeedback(beforeChoiceState, afterChoiceState, choice, nextNode);
+
+    if (shouldAdvanceWeek) {
         setWeekTransition(buildWeekTransition(beforeChoiceState, cloneStateForSummary(state), nextNode));
         return;
     }
@@ -878,6 +1074,15 @@ export default function SimulatorPage() {
     setTimeout(() => {
         gameEngine.setCurrentNode(nextNode);
     }, 150);
+  };
+
+  const handleDialogueChoice = (choice) => {
+    playUiSound("uiConfirm");
+    const beforeChoiceState = cloneStateForSummary(gameEngine.getState());
+    events.applyChoiceEffects(choice);
+    const afterChoiceState = cloneStateForSummary(gameEngine.getState());
+    showChoiceFeedback(beforeChoiceState, afterChoiceState, choice, gameState.currentNodeId);
+    playChoiceAudioFeedback(beforeChoiceState, afterChoiceState, choice, gameState.currentNodeId);
   };
 
   const handleContinueWeek = () => {
@@ -995,7 +1200,7 @@ export default function SimulatorPage() {
     gameEngine.save();
     refreshSaveStatus();
     setIsMenuOpen(false);
-    alert("Game saved!");
+    showSystemFeedback("Game Saved", "Your local journey is stored on this device.", "memory");
   };
 
   const handleLoad = () => {
@@ -1005,20 +1210,27 @@ export default function SimulatorPage() {
       setIsSceneFocusMode(false);
       setIsMenuOpen(false);
       refreshSaveStatus();
-      alert("Game loaded!");
+      showSystemFeedback("Game Loaded", "Your saved Minghai year is back on screen.", "memory");
     } else {
-      alert("No save found.");
+      setIsMenuOpen(false);
+      showSystemFeedback("No Save Found", "Start a new journey before using quick load.", "risk");
     }
   };
 
   const handleRestart = () => {
     playUiSound("deadlineWarning");
-    if (confirm("Are you sure you want to restart? All unsaved progress will be lost.")) {
-      gameEngine.reset();
-      setWeekTransition(null);
-      setIsSceneFocusMode(false);
-      setIsMenuOpen(false);
-    }
+    setIsMenuOpen(false);
+    setRestartConfirmOpen(true);
+  };
+
+  const handleConfirmRestart = () => {
+    playUiSound("deadlineWarning");
+    gameEngine.reset();
+    setWeekTransition(null);
+    setIsSceneFocusMode(false);
+    setIsMenuOpen(false);
+    setRestartConfirmOpen(false);
+    showSystemFeedback("Game Restarted", "A fresh application journey is ready.", "risk");
   };
 
   const handleFullscreen = () => {
@@ -1051,6 +1263,20 @@ export default function SimulatorPage() {
     const bgmId = getSceneBgmId(gameState, currentNode, screenMode);
     audioEngineRef.current?.playBgm(bgmId, { fadeMs: 900 });
   }, [audioEnabled, screenMode, gameState.phase, gameState.turn, gameState.currentNodeId]);
+
+  useEffect(() => {
+    if (!audioEnabled) return;
+    const ambienceId = getSceneAmbienceId(gameState, currentNode, screenMode);
+    if (ambienceId) {
+      audioEngineRef.current?.playAmbience(ambienceId, { fadeMs: 900 });
+    } else {
+      audioEngineRef.current?.stopAmbience({ fadeMs: 450 });
+    }
+  }, [audioEnabled, screenMode, gameState.phase, gameState.turn, gameState.currentNodeId]);
+
+  if (screenMode === "cover") {
+    return <CoverScreen onStart={handleStartFromCover} />;
+  }
 
   if (screenMode !== "game") {
     return (
@@ -1166,6 +1392,37 @@ export default function SimulatorPage() {
 
         {!isSceneFocusMode && <QuestTracker state={gameState} />}
 
+        {!isSceneFocusMode && <ChoiceImpactToast toast={feedbackToast} />}
+
+        {!isSceneFocusMode && restartConfirmOpen && (
+          <div className="absolute inset-0 z-[92] flex items-center justify-center bg-slate-950/70 px-6 backdrop-blur-md">
+            <div className="w-full max-w-md rounded-2xl border border-rose-300/35 bg-slate-950/95 p-6 text-slate-100 shadow-[0_24px_80px_rgba(0,0,0,0.65)]">
+              <div className="text-[10px] font-black uppercase tracking-[0.28em] text-rose-200">Restart Game</div>
+              <h2 className="mt-3 text-2xl font-black text-white">Start over?</h2>
+              <p className="mt-3 text-sm leading-relaxed text-slate-300">
+                Unsaved progress in this run will be lost. Your existing quick save stays available unless you save again later.
+              </p>
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    playUiSound("uiBack");
+                    setRestartConfirmOpen(false);
+                  }}
+                  className="rounded-xl border border-slate-600 bg-slate-900 px-4 py-2 text-sm font-bold text-slate-100 transition hover:border-slate-400 hover:bg-slate-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmRestart}
+                  className="rounded-xl border border-rose-200/30 bg-rose-500 px-4 py-2 text-sm font-black text-white shadow-[0_12px_30px_rgba(244,63,94,0.25)] transition hover:bg-rose-400"
+                >
+                  Restart
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {!isSceneFocusMode && weekTransition && (
           <div data-week-transition className="absolute inset-0 z-[90] flex items-center justify-center bg-slate-950/75 backdrop-blur-md px-6">
             <div className="relative w-full max-w-2xl overflow-hidden rounded-3xl border border-amber-300/30 bg-slate-950/95 p-7 text-center shadow-[0_24px_80px_rgba(0,0,0,0.65)] animate-in fade-in zoom-in-95 duration-500">
@@ -1234,8 +1491,10 @@ export default function SimulatorPage() {
           node={currentNode}
           state={gameState}
           onChoice={handleChoice}
+          onDialogueChoice={handleDialogueChoice}
           onTextTick={audioEnabled ? () => audioEngineRef.current?.typeTick() : null}
           availableChoices={events.getAvailableChoices(currentNodeId)}
+          availableDialogueChoices={events.getAvailableDialogueChoices(currentNodeId)}
         />}
       </div>
     </div>
