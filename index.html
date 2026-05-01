@@ -15178,19 +15178,27 @@ function ChoiceImpactToast({ toast }) {
 }
 
 function CoverScreen({ onStart }) {
+    const [isStarting, setIsStarting] = useState(false);
+
+    const triggerStart = async () => {
+        if (isStarting) return;
+        setIsStarting(true);
+        await onStart();
+    };
+
     useEffect(() => {
         const handleKeyDown = (event) => {
             if (event.key === "Enter" || event.key === " ") {
                 event.preventDefault();
-                onStart();
+                triggerStart();
             }
         };
         document.addEventListener("keydown", handleKeyDown);
         return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [onStart]);
+    }, [triggerStart]);
 
     return (
-        <div className="relative flex h-full w-full items-end justify-center overflow-hidden bg-slate-950 text-white">
+        <div className={`relative flex h-full w-full items-end justify-center overflow-hidden bg-slate-950 text-white transition duration-700 ease-out ${isStarting ? "scale-[1.015] opacity-0" : "scale-100 opacity-100"}`}>
             <div
                 className="absolute inset-0 bg-cover bg-center"
                 style={{ backgroundImage: 'url("./images/simulator/generated/sim_panda_cover_start.png")' }}
@@ -15207,10 +15215,11 @@ function CoverScreen({ onStart }) {
                     A study-abroad visual novel life simulator about the choices before arrival, the city after landing, and the year that follows.
                 </p>
                 <button
-                    onClick={onStart}
-                    className="mt-7 min-w-56 rounded-full border border-amber-100/70 bg-amber-300 px-10 py-4 text-lg font-black uppercase tracking-[0.32em] text-slate-950 shadow-[0_20px_60px_rgba(251,191,36,0.35)] transition hover:-translate-y-0.5 hover:bg-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-100"
+                    onClick={triggerStart}
+                    disabled={isStarting}
+                    className="mt-7 min-w-56 rounded-full border border-amber-100/70 bg-amber-300 px-10 py-4 text-lg font-black uppercase tracking-[0.32em] text-slate-950 shadow-[0_20px_60px_rgba(251,191,36,0.35)] transition hover:-translate-y-0.5 hover:bg-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-100 disabled:cursor-wait disabled:opacity-80"
                 >
-                    Start
+                    {isStarting ? "Starting" : "Start"}
                 </button>
             </div>
         </div>
@@ -15543,9 +15552,14 @@ function SimulatorPage() {
   const handleStartFromCover = async () => {
     setTitleMessage("");
     const started = await enableAudio();
-    if (started) audioEngineRef.current?.playSfx("uiConfirm");
+    if (started) {
+      audioEngineRef.current?.playBgm("title", { fadeMs: 450 });
+      audioEngineRef.current?.playSfx("uiConfirm");
+    }
     refreshSaveStatus();
-    setScreenMode("title");
+    window.setTimeout(() => {
+      setScreenMode("title");
+    }, started ? 620 : 280);
   };
 
   const handleNewGameFromTitle = async () => {
