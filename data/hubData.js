@@ -5,7 +5,7 @@ export const gameNodes = {
   "hub": {
     speaker: "Weekly Planner",
     bgImage: '/images/simulator/hub_bg.jpg',
-    text: "It is the start of a new week at Minghai.\n\nYou have 2 weekday actions and 1 weekend action. Pick an area, then choose a concrete activity inside it. When all actions are spent, the calendar moves forward automatically.",
+    text: "New week at Minghai.\n\nChoose one category, then choose one concrete action inside it. You have 2 weekday actions and 1 weekend action; after all actions are spent, the week advances.",
     choices: [
       {
         text: "📚 Academic Track",

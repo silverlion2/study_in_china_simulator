@@ -5973,7 +5973,7 @@ const gameNodes = {
   "hub": {
     speaker: "Weekly Planner",
     bgImage: './images/simulator/hub_bg.jpg',
-    text: "It is the start of a new week at Minghai.\n\nYou have 2 weekday actions and 1 weekend action. Pick an area, then choose a concrete activity inside it. When all actions are spent, the calendar moves forward automatically.",
+    text: "New week at Minghai.\n\nChoose one category, then choose one concrete action inside it. You have 2 weekday actions and 1 weekend action; after all actions are spent, the week advances.",
     choices: [
       {
         text: "📚 Academic Track",
@@ -13543,12 +13543,23 @@ function StoryPanel({ node, state, availableChoices, availableDialogueChoices = 
   };
   const speakerImg = node?.speaker ? speakerImages[node.speaker] : null;
   const isCharacterLine = Boolean(speakerImg);
+  const isWeeklyPlanner = state?.phase === "In-China" && node.speaker === "Weekly Planner";
+  const useCompactChoiceGrid = isWeeklyPlanner && pendingDialogueChoices.length === 0 && visibleActionChoices?.length >= 6;
+  const choiceMenuClass = useCompactChoiceGrid
+    ? "grid max-h-[46vh] w-full grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2 lg:grid-cols-3"
+    : "flex max-h-[58vh] flex-col gap-2 items-end overflow-y-auto pr-1";
+  const actionButtonClass = useCompactChoiceGrid
+    ? "bg-slate-900/90 border border-slate-700/60 hover:bg-slate-800 hover:border-amber-500 hover:text-amber-300 text-slate-200 px-3 py-2 rounded-lg text-left w-full min-h-[76px] shadow-xl backdrop-blur-md transition-all group flex flex-col relative"
+    : "bg-slate-900/90 border border-slate-700/50 hover:bg-slate-800 hover:border-amber-500 hover:text-amber-400 text-slate-200 px-4 py-3 rounded-xl text-left w-full sm:w-2/3 shadow-xl backdrop-blur-md transition-all group flex flex-col relative";
+  const actionIndexClass = useCompactChoiceGrid
+    ? "absolute left-2 top-2 text-slate-600 font-mono text-[10px] opacity-60 group-hover:opacity-100 group-hover:text-amber-500 transition-all"
+    : "absolute left-3 top-1/2 -translate-y-1/2 text-slate-600 font-mono text-[10px] opacity-50 group-hover:opacity-100 group-hover:text-amber-500 transition-all";
 
   return (
-    <div className="flex-1 flex flex-col justify-end p-4 pb-16 z-10 w-full max-w-5xl mx-auto relative pt-24">
+    <div className={`${isWeeklyPlanner ? "max-w-6xl pb-6 pt-20" : "max-w-5xl pb-16 pt-24"} flex-1 flex flex-col justify-end p-4 z-10 w-full mx-auto relative`}>
 
       {/* Choice Menu */}
-      <div className={`flex max-h-[58vh] flex-col mb-4 gap-2 items-end overflow-y-auto pr-1 transition-all duration-700 ${showChoices ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+      <div className={`${choiceMenuClass} mb-3 transition-all duration-700 ${showChoices ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
         {pendingDialogueChoices.length > 0 && pendingDialogueChoices.map((choice, i) => (
           <button
             key={`dialogue-${i}`}
@@ -13570,11 +13581,11 @@ function StoryPanel({ node, state, availableChoices, availableDialogueChoices = 
             key={i}
             tabIndex={-1}
             onClick={() => onChoice(choice)}
-            className="bg-slate-900/90 border border-slate-700/50 hover:bg-slate-800 hover:border-amber-500 hover:text-amber-400 text-slate-200 px-4 py-3 rounded-xl text-left w-full sm:w-2/3 shadow-xl backdrop-blur-md transition-all group flex flex-col relative"
+            className={actionButtonClass}
           >
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600 font-mono text-[10px] opacity-50 group-hover:opacity-100 group-hover:text-amber-500 transition-all">[{i+1}]</div>
-            <div className="pl-5">
-              <div className="font-medium text-base">{choice.text}</div>
+            <div className={actionIndexClass}>[{i+1}]</div>
+            <div className={useCompactChoiceGrid ? "pl-5" : "pl-5"}>
+              <div className={`${useCompactChoiceGrid ? "text-sm" : "text-base"} font-medium leading-tight`}>{choice.text}</div>
               {choice.detail && <div className="mt-1 text-xs leading-snug text-slate-400 group-hover:text-slate-300">{choice.detail}</div>}
             </div>
             {choice.effects && <ChoicePreview effects={choice.effects} />}
@@ -13595,7 +13606,7 @@ function StoryPanel({ node, state, availableChoices, availableDialogueChoices = 
           onClick={() => {
             if (!showChoices) revealFullText();
           }}
-          className={`${isCharacterLine ? "max-w-3xl rounded-[1.6rem] border-amber-200/40 bg-slate-950/95 p-5 sm:p-6" : "max-w-3xl rounded-xl border-slate-700 bg-slate-900/95 p-5"} relative w-full border backdrop-blur-xl shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500`}
+          className={`${isCharacterLine ? "max-w-3xl rounded-[1.6rem] border-amber-200/40 bg-slate-950/95 p-5 sm:p-6" : (isWeeklyPlanner ? "max-w-5xl rounded-xl border-slate-700 bg-slate-900/95 p-3 sm:p-4" : "max-w-3xl rounded-xl border-slate-700 bg-slate-900/95 p-5")} relative w-full border backdrop-blur-xl shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500`}
         >
           {speakerImg && (
             <>
@@ -13631,6 +13642,7 @@ function StoryPanel({ node, state, availableChoices, availableDialogueChoices = 
           <StoryTextContent
             text={displayText}
             isCharacterLine={isCharacterLine}
+            compact={isWeeklyPlanner}
             showCursor={!showChoices}
           />
           {state?.phase === "In-China" && node.speaker === "Weekly Planner" && (
@@ -13659,19 +13671,19 @@ function StoryPanel({ node, state, availableChoices, availableDialogueChoices = 
   );
 }
 
-function StoryTextContent({ text, isCharacterLine, showCursor }) {
+function StoryTextContent({ text, isCharacterLine, compact = false, showCursor }) {
   const segments = parseStoryText(text);
 
   if (segments.length === 0) {
     return (
-      <div className={`${isCharacterLine ? "font-sans text-xl text-slate-50" : "font-serif text-lg text-slate-100"} leading-relaxed mt-2 min-h-[3rem]`}>
+      <div className={`${isCharacterLine ? "font-sans text-xl text-slate-50" : (compact ? "font-serif text-base text-slate-100" : "font-serif text-lg text-slate-100")} leading-relaxed mt-2 min-h-[3rem]`}>
         {showCursor && <span className="inline-block w-1.5 bg-amber-500 opacity-50 animate-pulse ml-1">&nbsp;</span>}
       </div>
     );
   }
 
   return (
-    <div className={`${isCharacterLine ? "font-sans text-lg text-slate-50" : "font-serif text-lg text-slate-100"} mt-2 min-h-[3rem] space-y-3 leading-relaxed`}>
+    <div className={`${isCharacterLine ? "font-sans text-lg text-slate-50" : (compact ? "font-serif text-base text-slate-100" : "font-serif text-lg text-slate-100")} mt-2 min-h-[3rem] space-y-3 leading-relaxed`}>
       {segments.map((segment, index) => {
         const isLast = index === segments.length - 1;
         const cursor = showCursor && isLast ? (
