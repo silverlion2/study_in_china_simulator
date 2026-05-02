@@ -65,6 +65,10 @@ const htmlTemplate = `<!DOCTYPE html>
     body { overflow: hidden; background: #0f172a; color: white; font-family: sans-serif; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
+    .ending-scrollbar { scrollbar-width: thin; scrollbar-color: rgba(148, 163, 184, 0.45) rgba(15, 23, 42, 0.55); }
+    .ending-scrollbar::-webkit-scrollbar { width: 10px; }
+    .ending-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.55); border-radius: 999px; }
+    .ending-scrollbar::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.45); border-radius: 999px; border: 2px solid rgba(15, 23, 42, 0.85); }
   </style>
 </head>
 <body>

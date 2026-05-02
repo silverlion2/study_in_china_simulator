@@ -283,14 +283,15 @@ function runEventEffectCheck([eventId, expectedFlag, expectedLifeCheck]) {
 function runWeeklyActionEconomyCheck() {
   seedBaseState();
   const state = gameEngine.getState();
-  state.weeklyActions = { weekday: 2, weekend: 1 };
+  state.weeklyActions = { weekday: 3, weekend: 1 };
   const first = gameEngine.spendWeeklyAction('weekday');
   const second = gameEngine.spendWeeklyAction('weekday');
-  const third = gameEngine.spendWeeklyAction('weekend');
-  const fourth = gameEngine.spendWeeklyAction('weekday');
-  if (!first.spent || !second.spent || !third.spent) throw new Error('Weekly action spend should allow 2 weekday + 1 weekend actions');
-  if (fourth.spent) throw new Error('Weekly action spend should block the fourth action');
-  if (!third.weekComplete) throw new Error('Weekly action economy should mark the week complete after all action slots are spent');
+  const third = gameEngine.spendWeeklyAction('weekday');
+  const fourth = gameEngine.spendWeeklyAction('weekend');
+  const fifth = gameEngine.spendWeeklyAction('weekday');
+  if (!first.spent || !second.spent || !third.spent || !fourth.spent) throw new Error('Weekly action spend should allow 3 weekday + 1 weekend actions');
+  if (fifth.spent) throw new Error('Weekly action spend should block the fifth action');
+  if (!fourth.weekComplete) throw new Error('Weekly action economy should mark the week complete after all action slots are spent');
   return { weekday: state.weeklyActions.weekday, weekend: state.weeklyActions.weekend };
 }
 
@@ -358,7 +359,7 @@ const report = [
   '## Weekly Action Economy',
   '',
   weeklyActionResult
-    ? `- 2 weekday + 1 weekend action allowed; the fourth action is blocked. Remaining slots: weekday ${weeklyActionResult.weekday}, weekend ${weeklyActionResult.weekend}.`
+    ? `- 3 weekday + 1 weekend action allowed; the fifth action is blocked. Remaining slots: weekday ${weeklyActionResult.weekday}, weekend ${weeklyActionResult.weekend}.`
     : '- Weekly action economy check did not complete.',
   '',
   failures.length ? '## Failures' : '## Notes',

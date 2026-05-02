@@ -234,7 +234,7 @@ export const epoch2Events = {
     speaker: "Minghai Housing Portal",
     bgImage: '/images/simulator/backgrounds/bg_dorm_room.jpg',
     location: "Home Country",
-    text: "The housing portal opens at 08:00 sharp, but this time it is not a normal story choice.\n\nTask: open SimPad, enter the Housing app, compare the options, and submit one address plan there. The story will continue after the housing choice is confirmed.",
+    text: "The housing portal opens at 08:00 sharp. This is now a forced SimPad tutorial, not a normal story menu.\n\nTask: open SimPad, enter the Housing app, compare the options, and submit one address plan there. There is no story fallback here; the week continues only after the housing choice is confirmed inside SimPad.",
     choices: [
       {
         text: "Open SimPad > Housing and choose where you will live. [Required phone action]",
@@ -242,49 +242,32 @@ export const epoch2Events = {
         effects: {
           flags: { housing_simpad_required: true, housing_portal_seen: true }
         }
-      },
-      {
-        text: "Ask Minghai to auto-assign campus housing for now. [Fallback, Energy -]",
-        next: "e2_w12_roommate_intro",
-        effects: {
-          stats: { energy: -8 },
-          guanxi: { admin: 4 },
-          flags: { decision_e2_housing: "Campus allocation pending", housing_sorted: false, dorm_pending: true, housing_simpad_required: false }
-        }
       }
     ]
   },
 
   "e2_w12_roommate_intro": {
+    storyBeat: true,
     speaker: "Minghai Intl Group",
     location: "Home Country",
-    text: "A student named Sophie posts a spreadsheet of bedding sizes, extension-plug warnings, and which dorm floors have decent water pressure. Someone replies, 'You are saving lives.' Sophie answers, 'No, only backs.'",
+    text: "After the housing choice, the Minghai international group pings again. Sophie, the senior you first noticed in the departure-eve chat, posts a spreadsheet of bedding sizes, extension-plug warnings, and which dorm floors have decent water pressure.\n\nA second name appears under the dorm-floor thread: Neighbor Li. Li is not your friend yet, just a student on the floor you are likely to live near, answering practical questions before the office has even sent a clean notice.\n\nThis is the early introduction: Sophie is the international-student guide; Neighbor Li is the dorm-floor local contact. Later choices can deepen either relationship, but the names are no longer mystery labels.",
     choices: [
       {
-        text: "Introduce yourself honestly in the group. [Intl network +, Relationship +]",
+        text: "Continue",
         next: "e2_w12_housing_done",
         effects: {
-          stats: { energy: -2 },
-          guanxi: { intlStudents: 4 },
-          relationships: { Sophie: { friendship: 5 } },
-          flags: { introduced_to_group: true, met_sophie_online: true }
-        }
-      },
-      {
-        text: "Quietly save every useful message. [Digital +, Energy +]",
-        next: "e2_w12_housing_done",
-        effects: {
-          stats: { digitalProficiency: 3, energy: 3 },
-          flags: { predeparture_lurker: true }
-        }
-      },
-      {
-        text: "Ask practical questions about check-in day. [Digital +, Intl network +]",
-        next: "e2_w12_housing_done",
-        effects: {
-          stats: { digitalProficiency: 2 },
-          guanxi: { intlStudents: 6 },
-          flags: { asked_checkin_questions: true }
+          stats: { digitalProficiency: 3, culture: 2, energy: 2 },
+          guanxi: { intlStudents: 5, localStudents: 3 },
+          relationships: { Sophie: { friendship: 5 }, "Neighbor Li": { friendship: 3 } },
+          flags: {
+            introduced_to_group: true,
+            met_sophie_online: true,
+            sophie_role_known: true,
+            wechat_sophie_added: true,
+            met_neighbor_li_online: true,
+            neighbor_li_role_known: true,
+            wechat_neighbor_li_previewed: true
+          }
         }
       }
     ]
@@ -339,35 +322,20 @@ export const epoch2Events = {
   },
 
   "e2_w13_arrival_plan": {
+    storyBeat: true,
     speaker: "Arrival Notes",
     bgImage: '/images/simulator/backgrounds/bg_pudong_arrivals.jpg',
     location: "Home Country",
-    text: "Shanghai Pudong International Airport becomes a map you keep zooming into. This is not the phone setup anymore; this is the first-hour plan. Terminal. Baggage. Customs. Taxi stand. Metro. Pickup zone. If the landing goes badly, which decision will carry you to Minghai?",
+    text: "Shanghai Pudong International Airport becomes a map you keep zooming into. The first-hour plan is no longer optional: the simulator will force a SimPad DiDi tutorial after landing so you learn how phone-based transport works before the city opens wider.\n\nThe arrival group also assigns a student volunteer contact: Xiao Chen. He sends a blunt message: 'Do not freestyle Pudong pickup zones with luggage. Save screenshots first.' This is your early introduction to him: local, fast, practical, and already thinking in systems.",
     choices: [
       {
-        text: "Confirm the DiDi pickup screenshots you already prepared. [Digital +, Energy +, Wealth -]",
-        condition: { flags: { has_didi: true } },
+        text: "Continue",
         next: "e2_w13_flight_done",
         effects: {
-          stats: { digitalProficiency: 3, energy: 3, wealth: -60 },
-          flags: { airport_transfer_plan: "Pre-set DiDi pickup" }
-        }
-      },
-      {
-        text: "Plan for the official taxi queue and practice the address in Chinese. [Chinese +, Energy -]",
-        next: "e2_w13_flight_done",
-        effects: {
-          stats: { chinese: 5, energy: -3 },
-          flags: { airport_transfer_plan: "Official taxi queue" }
-        }
-      },
-      {
-        text: "Ask whether Minghai has a student pickup buddy. [Admin network +, Local network +]",
-        next: "e2_w13_flight_done",
-        effects: {
-          guanxi: { admin: 3, localStudents: 4 },
-          relationships: { "Xiao Chen": { friendship: 4 } },
-          flags: { airport_transfer_plan: "Minghai buddy pickup", met_xiao_chen_online: true }
+          stats: { digitalProficiency: 4, energy: 2 },
+          guanxi: { localStudents: 3 },
+          relationships: { "Xiao Chen": { friendship: 3 } },
+          flags: { has_didi: true, airport_transfer_plan: "Required SimPad DiDi tutorial prepared", met_xiao_chen_online: true, xiao_chen_role_known: true, wechat_xiao_chen_previewed: true }
         }
       }
     ]

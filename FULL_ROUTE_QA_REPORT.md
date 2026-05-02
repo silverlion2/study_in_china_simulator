@@ -1,6 +1,6 @@
 # Full Route QA Report
 
-Generated: 2026-05-01T11:42:43.686Z
+Generated: 2026-05-02T07:01:46.539Z
 
 ## Result
 
@@ -33,7 +33,7 @@ PASS: all route profiles, project checks, crisis recovery checks, and weekly act
 
 ## Weekly Action Economy
 
-- 2 weekday + 1 weekend action allowed; the fourth action is blocked. Remaining slots: weekday 0, weekend 0.
+- 3 weekday + 1 weekend action allowed; the fifth action is blocked. Remaining slots: weekday 0, weekend 0.
 
 ## Notes
 

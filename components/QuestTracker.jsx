@@ -6,8 +6,12 @@ export default function QuestTracker({ state }) {
     let questTitle = "Explore the Campus";
     let questDesc = "No urgent deadlines right now.";
     const flags = state.flags || {};
+    const currentNodeId = state.currentNodeId || "";
 
-    if (state.phase === "Application" && !flags.decision_e1_start) {
+    if (currentNodeId === "epoch3_midterm") {
+        questTitle = "Prepare for Midterms";
+        questDesc = "Choose the support plan that fits your route before Week 24 resolves.";
+    } else if (state.phase === "Application" && !flags.decision_e1_start) {
         questTitle = "Departure Eve";
         questDesc = "Pack, check your messages, and remember how the China plan began.";
     } else if (state.phase === "Application" && !flags.target_minghai) {
@@ -49,6 +53,18 @@ export default function QuestTracker({ state }) {
     } else if (state.phase === "Pre-Departure") {
         questTitle = "Boarding Call";
         questDesc = "It's time to board the flight to Shanghai.";
+    } else if (state.phase === "In-China" && flags.airport_didi_required) {
+        questTitle = "Use SimPad DiDi";
+        questDesc = "Open SimPad > DiDi and request Airport Transfer Practice to leave Pudong.";
+    } else if (state.phase === "In-China" && flags.taobao_simpad_required) {
+        questTitle = "Use SimPad Taobao";
+        questDesc = "Open SimPad > Taobao and buy Dorm Bedding Set or Desk Lamp Kit to finish your first dorm setup lesson.";
+    } else if (state.phase === "In-China" && flags.calendar_simpad_required) {
+        questTitle = "Use SimPad Calendar";
+        questDesc = "Open SimPad > Calendar and pin one deadline so residence-permit pressure becomes trackable.";
+    } else if (state.phase === "In-China" && flags.wechat_simpad_required) {
+        questTitle = "Use SimPad WeChat";
+        questDesc = "Open SimPad > WeChat and send one check-in to a confirmed Minghai contact.";
     } else if (state.phase === "In-China" && !flags.arrived_in_china) {
         questTitle = flags.airport_didi_required ? "Use SimPad DiDi" : "Arrive at Minghai";
         questDesc = flags.airport_didi_required
@@ -65,10 +81,13 @@ export default function QuestTracker({ state }) {
         questDesc = "Start building the relationships that make campus feel less abstract.";
     } else if (state.phase === "In-China" && !flags.decision_e3_rhythm && state.turn < 24) {
         questTitle = "Find Your First Rhythm";
-        questDesc = "Choose whether your early Minghai life leans academic, local, international, career, or city-focused.";
+        questDesc = "Meet the route contacts, then choose whether your early Minghai life leans academic, local, international, career, or city-focused.";
+    } else if (state.phase === "In-China" && flags.campus_rhythm_started && !flags.core_cast_introduced) {
+        questTitle = "Confirm Route Contacts";
+        questDesc = "Catch up with Dr. Mei, Manager Zhang, and Uncle Wang before weekly freedom opens.";
     } else if (state.phase === "In-China" && state.turn < 24) {
         questTitle = "Plan This Week";
-        questDesc = "Spend 2 weekday actions and 1 weekend action. Pick study, people, city life, or recovery.";
+        questDesc = "Spend 3 weekday actions and 1 weekend action. Pick study, people, city life, or recovery.";
     } else if (state.phase === "In-China" && !flags.decision_e3_internship && state.turn < 32) {
         questTitle = "Choose a Future Direction";
         questDesc = "Turn your China experience toward research, career, local integration, student support, or city opportunity.";

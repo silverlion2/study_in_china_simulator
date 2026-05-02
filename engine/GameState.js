@@ -41,7 +41,7 @@ const INITIAL_STATE = {
   relationships: {},
 
   weeklyActions: {
-    weekday: 2,
+    weekday: 3,
     weekend: 1
   },
 
@@ -100,7 +100,14 @@ const NODE_UNLOCK_FLAGS = {
   ending_career_shortcut: ['ending_career_shortcut'],
   ending_unreliable_builder: ['ending_unreliable_builder'],
   ending_deportee: ['ending_deportee'],
-  ending_academic_probation: ['ending_academic_probation']
+  ending_academic_probation: ['ending_academic_probation'],
+  e3_w18_lin_yue_intro: ['met_lin_yue', 'lin_yue_role_known', 'wechat_lin_yue_added'],
+  event_contact_lin_yue_talk_1: ['contact_lin_yue_talk_1'],
+  event_request_lin_yue_presentation: ['request_lin_yue_presentation'],
+  event_lin_yue_library_presentation: ['lin_yue_presentation_partner'],
+  event_lin_yue_boundary_tension: ['lin_yue_midterm_tension_resolved'],
+  event_lin_yue_family_pressure: ['lin_yue_family_pressure'],
+  event_lin_yue_riverside_walk: ['lin_yue_riverside_walk']
 };
 
 const LIFE_CHECK_PREP_CARDS = [
@@ -303,13 +310,13 @@ export class EngineState {
     if (this.state.flags.used_didi_this_week) {
       return { ok: false, message: "You already used DiDi this week." };
     }
-    if (this.state.stats.wealth < ride.cost) {
+    const airportGateActive = Boolean(this.state.flags.airport_didi_required && rideId === "airport");
+    if (this.state.stats.wealth < ride.cost && !airportGateActive) {
       return { ok: false, message: "Not enough RMB for this ride." };
     }
 
     this.addTransaction(-ride.cost, ride.label);
     const stats = { ...ride.stats };
-    const airportGateActive = Boolean(this.state.flags.airport_didi_required && rideId === "airport");
     if (airportGateActive && this.state.flags.didi_airport_mode === "pressure") {
       stats.energy = (stats.energy || 0) - 12;
       stats.digitalProficiency = (stats.digitalProficiency || 0) + 3;
@@ -385,7 +392,8 @@ export class EngineState {
   }
 
   sendWeChatCheckIn(character) {
-    if (!character || this.state.flags.sent_wechat_ping_this_week) return false;
+    if (!character) return false;
+    if (this.state.flags.sent_wechat_ping_this_week && !this.state.flags.wechat_simpad_required) return false;
     if (!this.state.relationships?.[character]) return false;
 
     this.state.relationships[character].friendship = Math.min(100, (this.state.relationships[character].friendship || 0) + 2);
@@ -490,7 +498,7 @@ export class EngineState {
 
   spendWeeklyAction(slot = 'auto') {
     if (!this.state.weeklyActions) {
-      this.state.weeklyActions = { weekday: 2, weekend: 1 };
+      this.state.weeklyActions = { weekday: 3, weekend: 1 };
     }
 
     const actions = this.state.weeklyActions;
@@ -662,7 +670,7 @@ export class EngineState {
     this.applyPhoneLayerConsequences();
 
     this.state.turn += 1;
-    this.state.weeklyActions = { weekday: 2, weekend: 1 };
+    this.state.weeklyActions = { weekday: 3, weekend: 1 };
     this.state.flags.has_worked_this_week = false;
     this.state.flags.used_didi_this_week = false;
     this.state.flags.sent_wechat_ping_this_week = false;
@@ -891,9 +899,9 @@ export class EngineState {
         if (!this.state.items) this.state.items = { ...INITIAL_STATE.items };
         else this.state.items = { ...INITIAL_STATE.items, ...this.state.items };
         if (!this.state.relationships) this.state.relationships = {};
-        if (!this.state.weeklyActions) this.state.weeklyActions = { weekday: 2, weekend: 1 };
+        if (!this.state.weeklyActions) this.state.weeklyActions = { weekday: 3, weekend: 1 };
         else this.state.weeklyActions = {
-          weekday: this.state.weeklyActions.weekday ?? 2,
+          weekday: Math.max(this.state.weeklyActions.weekday ?? 3, 3),
           weekend: this.state.weeklyActions.weekend ?? 1
         };
         if (!this.state.routeCommitments) this.state.routeCommitments = { ...INITIAL_STATE.routeCommitments };

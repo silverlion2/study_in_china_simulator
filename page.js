@@ -372,6 +372,30 @@ const TITLE_GALLERY_ITEMS = [
         unlock: (flags) => flags.local_study_group_night
     },
     {
+        id: "lin_yue_classroom",
+        title: "Lin Yue Classroom Intro",
+        route: "Local",
+        image: "/images/simulator/cg/cg_lin_yue_classroom_intro.png",
+        hint: "Meet Lin Yue after first class.",
+        unlock: (flags) => flags.met_lin_yue || flags.lin_yue_classroom_intro
+    },
+    {
+        id: "lin_yue_presentation",
+        title: "Library Presentation",
+        route: "Local",
+        image: "/images/simulator/cg/cg_lin_yue_library_presentation.png",
+        hint: "Practice a group presentation with Lin Yue.",
+        unlock: (flags) => flags.lin_yue_presentation_partner || flags.request_lin_yue_presentation
+    },
+    {
+        id: "lin_yue_riverside",
+        title: "Riverside Walk",
+        route: "Local",
+        image: "/images/simulator/cg/cg_lin_yue_riverside_walk.png",
+        hint: "Complete Lin Yue's light romance or close-friendship branch.",
+        unlock: (flags) => flags.lin_yue_riverside_walk || flags.lin_yue_soft_romance || flags.lin_yue_friendship_anchor
+    },
+    {
         id: "local_regular",
         title: "Local Regular",
         route: "Local",
@@ -466,6 +490,8 @@ const buildChoiceFeedbackToast = (beforeState, afterState, choice, nextNode) => 
     const isFreshLifeCheck = choice?.effects?.lifeCheck && lifeCheck?.id === choice.effects.lifeCheck.id;
     const isEnding = /^ending_/.test(nextNode || "");
 
+    if (isEnding) return null;
+
     const items = [
         ...statDeltas.slice(0, 4).map(item => ({
             label: item.label,
@@ -494,12 +520,10 @@ const buildChoiceFeedbackToast = (beforeState, afterState, choice, nextNode) => 
         items.push({ label: "Story", value: "Updated", tone: "memory" });
     }
 
-    if (items.length === 0 && !isEnding) return null;
+    if (items.length === 0) return null;
 
     return {
-        title: isEnding
-          ? "Ending Route Opened"
-          : isFreshLifeCheck
+        title: isFreshLifeCheck
             ? lifeCheck.label
             : newMemories.length > 0
               ? "Memory Unlocked"
@@ -509,7 +533,7 @@ const buildChoiceFeedbackToast = (beforeState, afterState, choice, nextNode) => 
           : newMemories.length > 0
             ? newMemories.slice(0, 2).join(" / ")
             : choice?.text || "The choice has been applied.",
-        tone: isEnding ? "ending" : isFreshLifeCheck && !lifeCheck.success ? "risk" : newMemories.length > 0 ? "memory" : "normal",
+        tone: isFreshLifeCheck && !lifeCheck.success ? "risk" : newMemories.length > 0 ? "memory" : "normal",
         items: items.slice(0, 5)
     };
 };
@@ -1008,8 +1032,13 @@ export default function SimulatorPage() {
   };
 
   useEffect(() => {
+    let cancelled = false;
+    audioEngineRef.current?.start("title").then((started) => {
+      if (!cancelled && started) setAudioEnabled(true);
+    });
     refreshSaveStatus();
     return () => {
+      cancelled = true;
       audioEngineRef.current?.stop();
       if (feedbackTimerRef.current) window.clearTimeout(feedbackTimerRef.current);
     };
@@ -1270,7 +1299,9 @@ export default function SimulatorPage() {
 
   const currentNodeId = gameState.currentNodeId || "start";
   const currentNode = allEvents[currentNodeId];
+  const isEndingNode = Boolean(currentNode?.choices?.some(choice => choice.action === "reset_game"));
   const sceneImage = currentNode?.bgImage || getFallbackBackground(gameState, currentNode);
+  const isCgScene = /\/images\/simulator\/cg\//.test(sceneImage || "");
 
   useEffect(() => {
     if (!audioEnabled) return;
@@ -1316,10 +1347,10 @@ export default function SimulatorPage() {
          className="w-full flex flex-col relative bg-cover bg-center transition-all duration-1000 ease-in-out"
          style={{ backgroundImage: `url("${sceneImage}")` }}
       >
-        <div className={`absolute inset-0 transition-all duration-500 ${isSceneFocusMode ? "bg-black/0 backdrop-blur-0" : "bg-black/40 backdrop-blur-sm"}`}></div>
+        <div className={`absolute inset-0 transition-all duration-500 ${isSceneFocusMode ? "bg-black/0 backdrop-blur-0" : (isEndingNode ? "bg-black/55 backdrop-blur-[2px]" : (isCgScene ? "bg-black/24 backdrop-blur-0" : "bg-black/40 backdrop-blur-sm"))}`}></div>
 
         {/* Top Info Bar */}
-        {!isSceneFocusMode && <div className="absolute top-0 left-0 w-full h-10 bg-gradient-to-b from-black/80 to-transparent z-40 flex items-center px-4 justify-between text-slate-200">
+        {!isSceneFocusMode && !isEndingNode && <div className="absolute top-0 left-0 w-full h-10 bg-gradient-to-b from-black/80 to-transparent z-40 flex items-center px-4 justify-between text-slate-200">
             <div className="flex gap-6 font-mono font-semibold ml-2 text-xs">
                 <div className="text-amber-400 text-base">Week {gameState.turn} <span className="text-slate-400 font-normal ml-1 text-xs">[{gameState.phase}]</span></div>
                 <div className="flex items-center gap-2">
@@ -1333,7 +1364,7 @@ export default function SimulatorPage() {
         </div>}
 
         {/* Top Menu */}
-        <div className="absolute top-3 right-4 z-50">
+        {!isEndingNode && <div className="absolute top-3 right-4 z-50">
           <div className="flex gap-3 items-center">
             <button
               onClick={handleToggleAudio}
@@ -1393,7 +1424,16 @@ export default function SimulatorPage() {
           </div>
             )}
           </div>
-        </div>
+        </div>}
+
+        {isSceneFocusMode && isEndingNode && (
+          <button
+            onClick={toggleSceneFocusMode}
+            className="absolute right-5 top-5 z-50 rounded-lg border border-amber-200/70 bg-slate-950/75 px-4 py-2 text-sm font-black uppercase tracking-[0.16em] text-amber-100 shadow-xl backdrop-blur-md transition hover:bg-slate-900"
+          >
+            Back to Ending
+          </button>
+        )}
 
         {isSceneFocusMode && (
           <div className="absolute inset-x-0 bottom-0 z-30 bg-gradient-to-t from-black/70 to-transparent p-6 pointer-events-none">
@@ -1404,9 +1444,9 @@ export default function SimulatorPage() {
           </div>
         )}
 
-        {!isSceneFocusMode && <QuestTracker state={gameState} />}
+        {!isSceneFocusMode && !isEndingNode && <QuestTracker state={gameState} />}
 
-        {!isSceneFocusMode && <ChoiceImpactToast toast={feedbackToast} />}
+        {!isSceneFocusMode && !isEndingNode && <ChoiceImpactToast toast={feedbackToast} />}
 
         {!isSceneFocusMode && restartConfirmOpen && (
           <div className="absolute inset-0 z-[92] flex items-center justify-center bg-slate-950/70 px-6 backdrop-blur-md">
@@ -1504,6 +1544,7 @@ export default function SimulatorPage() {
         {!isSceneFocusMode && <StoryPanel
           node={currentNode}
           state={gameState}
+          onShowScene={isEndingNode ? toggleSceneFocusMode : null}
           onChoice={handleChoice}
           onDialogueChoice={handleDialogueChoice}
           onTextTick={audioEnabled ? () => audioEngineRef.current?.typeTick() : null}

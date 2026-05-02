@@ -49,7 +49,7 @@ export default function Dashboard({ state }) {
             <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
               <Badge className="justify-between border-cyan-500/30 bg-slate-900 text-cyan-100">
                 <span>Weekday</span>
-                <span className="font-mono">{weeklyActions.weekday ?? 0}/2</span>
+                <span className="font-mono">{weeklyActions.weekday ?? 0}/3</span>
               </Badge>
               <Badge className="justify-between border-amber-500/30 bg-slate-900 text-amber-100">
                 <span>Weekend</span>

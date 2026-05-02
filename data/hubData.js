@@ -5,59 +5,66 @@ export const gameNodes = {
   "hub": {
     speaker: "Weekly Planner",
     bgImage: '/images/simulator/hub_bg.jpg',
-    text: "New week at Minghai.\n\nChoose one category, then choose one concrete action inside it. You have 2 weekday actions and 1 weekend action; after all actions are spent, the week advances.",
+    text: "New week at Minghai.\n\nChoose one category, then choose one concrete action inside it. You have 3 weekday actions and 1 weekend action; after all actions are spent, the week advances.",
     choices: [
+      {
+        text: "🧭 Required orientation: confirm route contacts first",
+        detail: "Catch up with Dr. Mei, Manager Zhang, and Uncle Wang before free weekly planning opens.",
+        condition: { flags: { "arrived_in_china": true, "core_cast_introduced": false } },
+        next: "e3_w21_required_people_intro"
+      },
       {
         text: "📚 Academic Track",
         detail: "Study blocks, office hours, research talks, and Professor Lin / Dr. Mei relationship events.",
-        condition: { flags: { "arrived_in_china": true } },
+        condition: { flags: { "arrived_in_china": true, "core_cast_introduced": true } },
         next: "submenu_academic_track"
       },
       {
         text: "🧭 Local Integration",
         detail: "Chinese practice, canteen routines, dorm rules, local classmates, and Neighbor Li.",
-        condition: { flags: { "arrived_in_china": true } },
+        condition: { flags: { "arrived_in_china": true, "core_cast_introduced": true } },
         next: "submenu_local_integration"
       },
       {
         text: "🌏 International Student Circle",
         detail: "Sophie, group chats, support nights, peer help, and international-student friendships.",
-        condition: { flags: { "arrived_in_china": true } },
+        condition: { flags: { "arrived_in_china": true, "core_cast_introduced": true } },
         next: "submenu_international_circle"
       },
       {
         text: "💼 Career Bridge",
         detail: "Internship preparation, alumni, professional contacts, and Manager Zhang.",
-        condition: { flags: { "arrived_in_china": true } },
+        condition: { flags: { "arrived_in_china": true, "core_cast_introduced": true } },
         next: "submenu_career_bridge"
       },
       {
         text: "🏙️ Shanghai Opportunity",
         detail: "City projects, transport, local tech/payment habits, and Xiao Chen's idea pipeline.",
-        condition: { flags: { "arrived_in_china": true } },
+        condition: { flags: { "arrived_in_china": true, "core_cast_introduced": true } },
         next: "submenu_shanghai_opportunity"
       },
       {
         text: "💬 Character Contacts",
         detail: "Direct hangouts and conversations with people you have already met.",
-        condition: { flags: { "arrived_in_china": true } },
+        condition: { flags: { "arrived_in_china": true, "core_cast_introduced": true } },
         next: "submenu_character_contacts"
       },
       {
         text: "🧾 Life Admin & Recovery",
         detail: "Residence permit, money pressure, housing friction, health, and emergency recovery.",
-        condition: { flags: { "arrived_in_china": true } },
+        condition: { flags: { "arrived_in_china": true, "core_cast_introduced": true } },
         next: "submenu_life_admin"
       },
       {
         text: "🕹️ City, Travel & Arcade Extras",
         detail: "Optional city scenes, weekend travel, and minigame extras.",
-        condition: { flags: { "arrived_in_china": true } },
+        condition: { flags: { "arrived_in_china": true, "core_cast_introduced": true } },
         next: "submenu_extras"
       },
       {
          text: "😴 Rest & Recharge [Energy +]",
          detail: "Spend the week recovering instead of pushing another route.",
+         condition: { flags: { "core_cast_introduced": true } },
          action: "advance_turn",
          next: "hub",
          effects: { stats: { energy: 25 }, flags: { weekly_focus: "Rest and recovery" } }
@@ -92,6 +99,11 @@ export const gameNodes = {
         text: "Join a research reading group. [Requires route_academic]",
         condition: { flags: { route_academic: true } },
         next: "event_academic_reading_group"
+      },
+      {
+        text: "Practice a group presentation with Lin Yue. [Classmate trust +]",
+        condition: { flags: { met_lin_yue: true, request_lin_yue_presentation: true, lin_yue_presentation_partner: false }, relationships: { "Lin Yue": { friendship: { min: 10 } } } },
+        next: "event_lin_yue_library_presentation"
       },
       {
         text: "Attend an almost-empty Friday lecture. [Story beat]",
@@ -154,6 +166,11 @@ export const gameNodes = {
         next: "event_local_study_group"
       },
       {
+        text: "Ask Lin Yue how local classmates really form groups. [Classmate relationship +]",
+        condition: { flags: { met_lin_yue: true, contact_lin_yue_talk_1: false } },
+        next: "event_contact_lin_yue_talk_1"
+      },
+      {
         text: "Ask Neighbor Li to explain dorm and campus routines. [Culture +, Relationship +]",
         next: "event_local_neighbor_li"
       },
@@ -190,6 +207,16 @@ export const gameNodes = {
         text: "Join local classmates for KTV without hiding behind your phone. [Wealth -, Culture +]",
         condition: { flags: { route_local: true, local_ktv_night: false }, stats: { wealth: { min: 180 } } },
         next: "event_local_ktv_night"
+      },
+      {
+        text: "Talk with Lin Yue after a class boundary gets awkward. [Week 21+, Relationship Tension]",
+        condition: { turn: { min: 21 }, flags: { lin_yue_presentation_partner: true, lin_yue_midterm_tension_resolved: false }, relationships: { "Lin Yue": { friendship: { min: 12 } } } },
+        next: "event_lin_yue_boundary_tension"
+      },
+      {
+        text: "Walk with Lin Yue after family-pressure week. [Week 27+, Light romance/friendship]",
+        condition: { turn: { min: 27 }, flags: { lin_yue_family_pressure: true, lin_yue_riverside_walk: false }, relationships: { "Lin Yue": { friendship: { min: 22 } } } },
+        next: "event_lin_yue_riverside_walk"
       },
       {
         text: "Repair a dorm boundary misunderstanding with Neighbor Li. [Week 21-27, Relationship Tension]",
@@ -527,77 +554,222 @@ export const gameNodes = {
   "submenu_character_contacts": {
     speaker: "Character Contacts",
     bgImage: '/images/simulator/backgrounds/bg_campus_cafe.jpg',
-    text: "A relationship is not only a number in your SimPad. This week, you can choose someone specific, make time for them, and let the conversation change the shape of your life at Minghai.",
+    text: "A relationship is not only a number in your SimPad. Each key person now has a small event chain: first real conversation, a request, trust-building, tension, and a later payoff. Choose who gets part of your limited week.",
     choices: [
       {
-        text: "Ask Professor Lin for a real office-hour conversation. [Talk]",
+        text: "Professor Lin 1/5: real office-hour conversation. [Talk]",
         condition: { flags: { contact_professor_lin_talk_1: false }, relationships: { "Professor Lin": { friendship: { min: 4 } } } },
         next: "event_contact_professor_lin_talk_1"
       },
       {
-        text: "Help Professor Lin with a confused class question. [Request]",
+        text: "Professor Lin 2/5: help with a confused class question. [Request]",
         condition: { flags: { contact_professor_lin_talk_1: true, request_professor_lin_class_question: false }, relationships: { "Professor Lin": { friendship: { min: 8 } } } },
         next: "event_request_professor_lin_class_question"
       },
       {
-        text: "Invite Dr. Mei to unpack the research problem over coffee. [Invite]",
+        text: "Professor Lin 3/5: rebuild your academic method. [Trust]",
+        condition: { flags: { request_professor_lin_class_question: true, lin_academic_method: false }, relationships: { "Professor Lin": { friendship: { min: 10 } } } },
+        next: "event_academic_lin_method"
+      },
+      {
+        text: "Professor Lin 4/5: talk through blunt draft feedback. [Tension]",
+        condition: { flags: { lin_academic_method: true, lin_midterm_tension_resolved: false }, relationships: { "Professor Lin": { friendship: { min: 8 } } } },
+        next: "event_academic_lin_feedback_tension"
+      },
+      {
+        text: "Professor Lin 5/5: ask about a recommendation path. [Payoff]",
+        condition: { turn: { min: 29 }, flags: { lin_academic_method: true, lin_recommendation_ready: false }, relationships: { "Professor Lin": { friendship: { min: 18 } } } },
+        next: "event_academic_lin_recommendation"
+      },
+      {
+        text: "Dr. Mei 1/5: unpack the research problem over coffee. [Talk]",
         condition: { flags: { met_dr_mei: true, contact_dr_mei_talk_1: false } },
         next: "event_contact_dr_mei_talk_1"
       },
       {
-        text: "Answer Dr. Mei's request for careful field notes. [Request]",
+        text: "Dr. Mei 2/5: answer her request for careful field notes. [Request]",
         condition: { flags: { contact_dr_mei_talk_1: true, request_dr_mei_field_notes: false } },
         next: "event_request_dr_mei_field_notes"
       },
       {
-        text: "Meet Sophie in the common room before the group arrives. [Talk]",
+        text: "Dr. Mei 3/5: discuss a real research question. [Trust]",
+        condition: { flags: { request_dr_mei_field_notes: true, dr_mei_research_question: false }, relationships: { "Dr. Mei": { friendship: { min: 10 } } } },
+        next: "event_academic_dr_mei_project"
+      },
+      {
+        text: "Dr. Mei 4/5: ask what respectful research requires. [Tension]",
+        condition: { flags: { dr_mei_research_question: true, dr_mei_midterm_tension_resolved: false }, relationships: { "Dr. Mei": { friendship: { min: 8 } } } },
+        next: "event_academic_dr_mei_ethics_tension"
+      },
+      {
+        text: "Dr. Mei 5/5: commit to the research project. [Payoff]",
+        condition: { turn: { min: 29 }, flags: { dr_mei_research_question: true, dr_mei_project_commitment: false }, relationships: { "Dr. Mei": { friendship: { min: 18 } } } },
+        next: "event_academic_dr_mei_project_commitment"
+      },
+      {
+        text: "Sophie 1/5: meet in the common room before the group arrives. [Talk]",
         condition: { flags: { contact_sophie_talk_1: false }, relationships: { Sophie: { friendship: { min: 4 } } } },
         next: "event_contact_sophie_talk_1"
       },
       {
-        text: "Help Sophie calm a new student's arrival spiral. [Request]",
+        text: "Sophie 2/5: calm a new student's arrival spiral. [Request]",
         condition: { flags: { contact_sophie_talk_1: true, request_sophie_new_student: false }, relationships: { Sophie: { friendship: { min: 8 } } } },
         next: "event_request_sophie_new_student"
       },
       {
-        text: "Walk the campus market with Xiao Chen. [Invite]",
+        text: "Sophie 3/5: decide what support should look like next semester. [Trust]",
+        condition: { flags: { request_sophie_new_student: true, sophie_support_circle: false }, relationships: { Sophie: { friendship: { min: 12 } } } },
+        next: "event_intl_sophie_support_circle"
+      },
+      {
+        text: "Sophie 4/5: talk about whether the group is becoming a bubble. [Tension]",
+        condition: { flags: { sophie_support_circle: true, sophie_midterm_tension_resolved: false }, relationships: { Sophie: { friendship: { min: 8 } } } },
+        next: "event_intl_sophie_bubble_tension"
+      },
+      {
+        text: "Sophie 5/5: pitch an orientation committee together. [Payoff]",
+        condition: { turn: { min: 25 }, flags: { sophie_support_circle: true, sophie_orientation_committee: false }, relationships: { Sophie: { friendship: { min: 18 } } } },
+        next: "event_intl_sophie_orientation_committee"
+      },
+      {
+        text: "Lin Yue 1/6: ask how local classmates form groups. [Talk]",
+        condition: { flags: { met_lin_yue: true, contact_lin_yue_talk_1: false } },
+        next: "event_contact_lin_yue_talk_1"
+      },
+      {
+        text: "Lin Yue 2/6: answer her presentation-outline request. [Request]",
+        condition: { flags: { contact_lin_yue_talk_1: true, request_lin_yue_presentation: false } },
+        next: "event_request_lin_yue_presentation"
+      },
+      {
+        text: "Lin Yue 3/6: practice the library presentation together. [Trust]",
+        condition: { flags: { request_lin_yue_presentation: true, lin_yue_presentation_partner: false }, relationships: { "Lin Yue": { friendship: { min: 10 } } } },
+        next: "event_lin_yue_library_presentation"
+      },
+      {
+        text: "Lin Yue 4/6: repair the boundary after over-relying on her. [Tension]",
+        condition: { turn: { min: 21 }, flags: { lin_yue_presentation_partner: true, lin_yue_midterm_tension_resolved: false }, relationships: { "Lin Yue": { friendship: { min: 12 } } } },
+        next: "event_lin_yue_boundary_tension"
+      },
+      {
+        text: "Lin Yue 5/6: listen when family pressure leaks through. [Trust]",
+        condition: { turn: { min: 24 }, flags: { lin_yue_midterm_tension_resolved: true, lin_yue_family_pressure: false }, relationships: { "Lin Yue": { friendship: { min: 16 } } } },
+        next: "event_lin_yue_family_pressure"
+      },
+      {
+        text: "Lin Yue 6/6: take a quiet riverside walk. [Light romance/friendship payoff]",
+        condition: { turn: { min: 27 }, flags: { lin_yue_family_pressure: true, lin_yue_riverside_walk: false }, relationships: { "Lin Yue": { friendship: { min: 22 } } } },
+        next: "event_lin_yue_riverside_walk"
+      },
+      {
+        text: "Xiao Chen 1/6: walk the campus market together. [Talk]",
         condition: { flags: { met_xiao_chen: true, contact_xiao_chen_talk_1: false } },
         next: "event_contact_xiao_chen_talk_1"
       },
       {
-        text: "Test Xiao Chen's onboarding copy before he launches it. [Request]",
+        text: "Xiao Chen 2/6: test his onboarding copy before launch. [Request]",
         condition: { flags: { contact_xiao_chen_talk_1: true, request_xiao_chen_onboarding: false } },
         next: "event_request_xiao_chen_onboarding"
       },
       {
-        text: "Ask Neighbor Li to show you the dorm's unwritten map. [Request]",
+        text: "Xiao Chen 3/6: build the next prototype honestly. [Trust]",
+        condition: { flags: { request_xiao_chen_onboarding: true, xiao_chen_city_prototype: false }, relationships: { "Xiao Chen": { friendship: { min: 12 } } } },
+        next: "event_city_xiao_chen_prototype"
+      },
+      {
+        text: "Xiao Chen 4/6: argue about speed versus responsibility. [Tension]",
+        condition: { flags: { xiao_chen_city_prototype: true, xiao_chen_midterm_tension_resolved: false }, relationships: { "Xiao Chen": { friendship: { min: 8 } } } },
+        next: "event_city_xiao_chen_speed_tension"
+      },
+      {
+        text: "Xiao Chen 5/6: draft an international-user memo. [Trust]",
+        condition: { turn: { min: 25 }, flags: { xiao_chen_project_trust: true, xiao_chen_global_angle: false }, relationships: { "Xiao Chen": { friendship: { min: 18 } } } },
+        next: "event_city_xiao_chen_global_angle"
+      },
+      {
+        text: "Xiao Chen 6/6: prepare demo day. [Payoff]",
+        condition: { turn: { min: 29 }, flags: { xiao_chen_city_prototype: true, xiao_chen_demo_day: false }, relationships: { "Xiao Chen": { friendship: { min: 18 } } } },
+        next: "event_city_xiao_chen_demo_day"
+      },
+      {
+        text: "Neighbor Li 1/5: learn the dorm's unwritten map. [Talk]",
         condition: { flags: { met_neighbor_li: true, contact_neighbor_li_talk_1: false } },
         next: "event_contact_neighbor_li_talk_1"
       },
       {
-        text: "Help Neighbor Li mediate a hallway parcel problem. [Request]",
+        text: "Neighbor Li 2/5: mediate a hallway parcel problem. [Request]",
         condition: { flags: { contact_neighbor_li_talk_1: true, request_neighbor_li_parcel: false } },
         next: "event_request_neighbor_li_parcel"
       },
       {
-        text: "Book a short career chat with Manager Zhang. [Talk]",
+        text: "Neighbor Li 3/5: handle a dorm misunderstanding. [Trust]",
+        condition: { flags: { request_neighbor_li_parcel: true, neighbor_li_local_trust: false }, relationships: { "Neighbor Li": { friendship: { min: 10 } } } },
+        next: "event_local_neighbor_li_trust"
+      },
+      {
+        text: "Neighbor Li 4/5: repair a dorm boundary misunderstanding. [Tension]",
+        condition: { flags: { neighbor_li_local_trust: true, neighbor_li_midterm_tension_resolved: false }, relationships: { "Neighbor Li": { friendship: { min: 8 } } } },
+        next: "event_local_neighbor_li_boundary"
+      },
+      {
+        text: "Neighbor Li 5/5: join neighborhood festival prep. [Payoff]",
+        condition: { turn: { min: 25 }, flags: { neighbor_li_local_trust: true, neighbor_li_festival_invite: false }, relationships: { "Neighbor Li": { friendship: { min: 18 } } } },
+        next: "event_local_neighbor_li_festival"
+      },
+      {
+        text: "Manager Zhang 1/6: book a short career chat. [Talk]",
         condition: { flags: { met_manager_zhang: true, contact_manager_zhang_talk_1: false } },
         next: "event_contact_manager_zhang_talk_1"
       },
       {
-        text: "Send Manager Zhang the polished interview answer he requested. [Request]",
+        text: "Manager Zhang 2/6: send the interview answer he requested. [Request]",
         condition: { flags: { contact_manager_zhang_talk_1: true, request_manager_zhang_answer: false } },
         next: "event_request_manager_zhang_answer"
       },
       {
-        text: "Return to Uncle Wang's stall when it is not too crowded. [Invite]",
+        text: "Manager Zhang 3/6: ask for candid career feedback. [Trust]",
+        condition: { flags: { request_manager_zhang_answer: true, manager_zhang_career_trust: false }, relationships: { "Manager Zhang": { friendship: { min: 10 } } } },
+        next: "event_career_manager_zhang_trust"
+      },
+      {
+        text: "Manager Zhang 4/6: clarify boundaries after shortcut pressure. [Tension]",
+        condition: { flags: { manager_zhang_career_trust: true, manager_zhang_midterm_tension_resolved: false }, relationships: { "Manager Zhang": { friendship: { min: 8 } } } },
+        next: "event_career_manager_zhang_boundaries"
+      },
+      {
+        text: "Manager Zhang 5/6: attend an alumni dinner. [Trust]",
+        condition: { turn: { min: 25 }, flags: { manager_zhang_career_trust: true, manager_zhang_alumni_dinner: false }, stats: { wealth: { min: 180 } }, relationships: { "Manager Zhang": { friendship: { min: 18 } } } },
+        next: "event_career_manager_zhang_alumni_dinner"
+      },
+      {
+        text: "Manager Zhang 6/6: ask about a real referral path. [Payoff]",
+        condition: { turn: { min: 29 }, flags: { manager_zhang_career_trust: true, manager_zhang_referral_ready: false }, relationships: { "Manager Zhang": { friendship: { min: 18 } } } },
+        next: "event_career_manager_zhang_referral"
+      },
+      {
+        text: "Uncle Wang 1/5: return when the stall is not crowded. [Talk]",
         condition: { flags: { met_uncle_wang: true, contact_uncle_wang_talk_1: false }, stats: { wealth: { min: 35 } } },
         next: "event_contact_uncle_wang_talk_1"
       },
       {
-        text: "Help Uncle Wang translate a student's confusing order. [Request]",
+        text: "Uncle Wang 2/5: help translate a student's confusing order. [Request]",
         condition: { flags: { contact_uncle_wang_talk_1: true, request_uncle_wang_order_help: false }, stats: { wealth: { min: 25 } } },
         next: "event_request_uncle_wang_order_help"
+      },
+      {
+        text: "Uncle Wang 3/5: hear the neighborhood story. [Trust]",
+        condition: { flags: { request_uncle_wang_order_help: true, uncle_wang_neighborhood_story: false }, relationships: { "Uncle Wang": { friendship: { min: 10 } } } },
+        next: "event_local_uncle_wang_story"
+      },
+      {
+        text: "Uncle Wang 4/5: answer why you really came here. [Tension]",
+        condition: { flags: { uncle_wang_neighborhood_story: true, uncle_wang_midterm_tension_resolved: false }, relationships: { "Uncle Wang": { friendship: { min: 8 } } } },
+        next: "event_local_uncle_wang_question"
+      },
+      {
+        text: "Uncle Wang 5/5: become a regular at his table. [Payoff]",
+        condition: { turn: { min: 29 }, flags: { uncle_wang_neighborhood_story: true, uncle_wang_regular: false }, relationships: { "Uncle Wang": { friendship: { min: 18 } } } },
+        next: "event_local_uncle_wang_regular"
       },
       {
         text: "Back to weekly planner",
@@ -781,6 +953,333 @@ export const gameNodes = {
           guanxi: { intlStudents: 7 },
           relationships: { Sophie: { friendship: 5 } },
           flags: { weekly_focus: "Sophie support dinner setup", route_intl: true, contact_sophie_talk_1: true }
+        }
+      }
+    ]
+  },
+
+  "event_contact_lin_yue_talk_1": {
+    speaker: "Lin Yue",
+    bgImage: '/images/simulator/cg/cg_lin_yue_classroom_intro.png',
+    text: "Lin Yue waits until the classroom empties before she says the thing everyone else has been too polite to say.\n\nLin Yue: 'You are trying very hard to look easy to work with.'\n\nYou: 'That is bad?'\n\nLin Yue: 'It is vague. In group projects, vague becomes extra work for someone else.'\n\nShe taps the signup sheet with her pen.\n\nLin Yue: 'Say what you can do. Say what you cannot do yet. People trust limits faster than perfect confidence.'",
+    dialogueChoices: [
+      {
+        text: "I can read the English sources well, but I need help reading the group-chat tone.",
+        reply: "Good. That is useful and honest. I can help with tone if you do not make me carry the whole conversation.",
+        effects: {
+          stats: { academics: 2, culture: 2 },
+          guanxi: { localStudents: 1 },
+          relationships: { "Lin Yue": { friendship: 3 } },
+          flags: { dialogue_lin_yue_clear_limits: true, route_local: true, route_academic: true }
+        }
+      },
+      {
+        text: "I keep waiting for permission to join, then the room moves without me.",
+        reply: "Then do not wait for permission. Ask early, ask clearly, and accept a no without making it dramatic.",
+        effects: {
+          stats: { culture: 3, energy: -1 },
+          relationships: { "Lin Yue": { friendship: 3 } },
+          flags: { dialogue_lin_yue_join_early: true, route_local: true }
+        }
+      },
+      {
+        text: "Can you tell me when I am being too dependent?",
+        reply: "Yes. But you also have to believe me when I say it. Otherwise it becomes another job for me.",
+        effects: {
+          stats: { culture: 2, chinese: 1 },
+          relationships: { "Lin Yue": { friendship: 4 } },
+          flags: { dialogue_lin_yue_dependence_boundary_seed: true, route_local: true }
+        }
+      }
+    ],
+    choices: [
+      {
+        text: "Name one useful contribution and one real limit.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { academics: 6, chinese: 3, culture: 6, energy: -3 },
+          guanxi: { localStudents: 7 },
+          relationships: { "Lin Yue": { friendship: 8 } },
+          flags: { weekly_focus: "Lin Yue classroom group talk", route_local: true, route_academic: true, contact_lin_yue_talk_1: true }
+        }
+      },
+      {
+        text: "Ask her how to read the class group chat without panicking.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { chinese: 6, culture: 7, energy: -2 },
+          guanxi: { localStudents: 6 },
+          relationships: { "Lin Yue": { friendship: 7 } },
+          flags: { weekly_focus: "Lin Yue group-chat reading lesson", route_local: true, contact_lin_yue_talk_1: true, lin_yue_group_chat_lesson: true }
+        }
+      }
+    ]
+  },
+
+  "event_request_lin_yue_presentation": {
+    speaker: "Lin Yue",
+    bgImage: '/images/simulator/cg/cg_lin_yue_classroom_intro.png',
+    text: "Lin Yue sends a voice message that begins with a sigh and ends with a practical request.\n\nLin Yue: 'Our presentation outline is becoming two different presentations wearing one title.'\n\nYou: 'That sounds bad.'\n\nLin Yue: 'It sounds normal. Bad is when everyone pretends not to notice.'\n\nShe asks you to rewrite the outline into three claims before the group meets again. Not perfect English. Not impressive formatting. Three claims people can argue about without losing face.",
+    dialogueChoices: [
+      {
+        text: "I can make the outline clearer, but I need you to tell me which claim sounds rude in Chinese.",
+        reply: "Fair. Clarity is useful. Clarity that embarrasses someone becomes a new problem.",
+        effects: {
+          stats: { academics: 3, culture: 2 },
+          relationships: { "Lin Yue": { friendship: 3 } },
+          flags: { dialogue_lin_yue_clarity_with_face: true, route_academic: true, route_local: true }
+        }
+      },
+      {
+        text: "Let me send a draft tonight, then you can reject the parts that only sound smart.",
+        reply: "Good. I like deleting smart-looking nonsense. It is relaxing.",
+        effects: {
+          stats: { academics: 4, energy: -1 },
+          relationships: { "Lin Yue": { friendship: 2 } },
+          flags: { dialogue_lin_yue_delete_nonsense: true, route_academic: true }
+        }
+      }
+    ],
+    choices: [
+      {
+        text: "Rewrite the outline into three arguable claims.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { academics: 8, culture: 4, energy: -5 },
+          guanxi: { localStudents: 5 },
+          relationships: { "Lin Yue": { friendship: 8 } },
+          flags: { weekly_focus: "Lin Yue presentation outline", route_academic: true, route_local: true, request_lin_yue_presentation: true }
+        }
+      },
+      {
+        text: "Make a messy first draft and ask Lin Yue to mark the social risks.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { academics: 6, chinese: 4, culture: 6, energy: -4 },
+          guanxi: { localStudents: 6 },
+          relationships: { "Lin Yue": { friendship: 9 } },
+          flags: { weekly_focus: "Lin Yue presentation risk draft", route_academic: true, route_local: true, request_lin_yue_presentation: true, lin_yue_social_risk_notes: true }
+        }
+      }
+    ]
+  },
+
+  "event_lin_yue_library_presentation": {
+    speaker: "Lin Yue",
+    bgImage: '/images/simulator/cg/cg_lin_yue_library_presentation.png',
+    text: "The library after ten p.m. has a special kind of silence: exhausted, fluorescent, full of people pretending not to watch each other struggle.\n\nLin Yue turns your slide deck toward you.\n\nLin Yue: 'This part is yours.'\n\nYou: 'Maybe you should present it. Your Chinese is better.'\n\nLin Yue does not smile.\n\nLin Yue: 'Of course my Chinese is better. That cannot be the rule for everything. If you only speak when the language is safe, you will never be part of the group.'\n\nThe sentence is kind enough to hurt.",
+    dialogueChoices: [
+      {
+        text: "You are right. Help me practice the first two sentences, then let me do it badly.",
+        reply: "Badly is fine. Disappearing is not. Start with the claim, not the apology.",
+        effects: {
+          stats: { chinese: 3, academics: 2 },
+          relationships: { "Lin Yue": { friendship: 4 } },
+          flags: { dialogue_lin_yue_practice_badly: true, route_academic: true, route_local: true }
+        }
+      },
+      {
+        text: "I did not realize I was making you carry the visible part.",
+        reply: "Now you realize. That is enough for tonight. Tomorrow you change it.",
+        effects: {
+          stats: { culture: 4, energy: -1 },
+          relationships: { "Lin Yue": { friendship: 4 } },
+          flags: { dialogue_lin_yue_visible_labor: true, route_local: true }
+        }
+      }
+    ],
+    choices: [
+      {
+        text: "Practice your speaking part until the apology drops away.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { academics: 10, chinese: 7, culture: 4, energy: -8 },
+          guanxi: { localStudents: 7 },
+          relationships: { "Lin Yue": { friendship: 10 } },
+          flags: { weekly_focus: "Library presentation practice with Lin Yue", route_academic: true, route_local: true, lin_yue_presentation_partner: true }
+        }
+      },
+      {
+        text: "Ask her to stop rescuing you unless you actually freeze.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { academics: 7, chinese: 8, culture: 6, energy: -6 },
+          guanxi: { localStudents: 8 },
+          relationships: { "Lin Yue": { friendship: 11 } },
+          flags: { weekly_focus: "Lin Yue no-rescue speaking pact", route_academic: true, route_local: true, lin_yue_presentation_partner: true, lin_yue_no_rescue_pact: true }
+        }
+      }
+    ]
+  },
+
+  "event_lin_yue_boundary_tension": {
+    speaker: "Lin Yue",
+    bgImage: '/images/simulator/cg/cg_lin_yue_library_presentation.png',
+    text: "After the presentation, the group chat thanks Lin Yue for 'saving' the project. Nobody says your name. The embarrassing part is that the thanks are not completely unfair.\n\nOutside the library, Lin Yue stops under the stairwell light.\n\nLin Yue: 'I like helping you. I do not like becoming your local-person shortcut.'\n\nYou start to answer too quickly, then stop.\n\nLin Yue: 'If we are friends, you have to let me be a person, not a bridge.'",
+    dialogueChoices: [
+      {
+        text: "You are right. I treated your help like infrastructure instead of effort.",
+        reply: "That is a repair sentence. Now make it a habit.",
+        effects: {
+          stats: { culture: 4, energy: -1 },
+          relationships: { "Lin Yue": { friendship: 4 } },
+          flags: { dialogue_lin_yue_infrastructure_apology: true, route_local: true }
+        }
+      },
+      {
+        text: "I got scared and hid behind the person who knew the room.",
+        reply: "I know. Fear explains it. It does not make it okay forever.",
+        effects: {
+          stats: { culture: 3, chinese: 1 },
+          relationships: { "Lin Yue": { friendship: 3 } },
+          flags: { dialogue_lin_yue_fear_not_excuse: true, route_local: true }
+        }
+      },
+      {
+        text: "I need a clearer boundary so I can stop guessing.",
+        reply: "Ask for help on one specific thing. Do the rest yourself first. That is a start.",
+        effects: {
+          stats: { digitalProficiency: 1, culture: 3 },
+          relationships: { "Lin Yue": { friendship: 3 } },
+          flags: { dialogue_lin_yue_specific_help_boundary: true, route_local: true }
+        }
+      }
+    ],
+    choices: [
+      {
+        text: "Apologize without making her comfort you.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { culture: 9, chinese: 4, energy: -3 },
+          guanxi: { localStudents: 4 },
+          relationships: { "Lin Yue": { friendship: 9 } },
+          flags: { weekly_focus: "Lin Yue boundary repair", route_local: true, lin_yue_midterm_tension_resolved: true, lin_yue_boundary_repaired: true }
+        }
+      },
+      {
+        text: "Explain your panic, but accept that explanation is not repair.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { culture: 6, energy: -1 },
+          relationships: { "Lin Yue": { friendship: 5 } },
+          flags: { weekly_focus: "Lin Yue boundary acknowledged", route_local: true, lin_yue_midterm_tension_resolved: true, lin_yue_boundary_acknowledged: true }
+        }
+      }
+    ]
+  },
+
+  "event_lin_yue_family_pressure": {
+    speaker: "Lin Yue",
+    bgImage: '/images/simulator/cg/cg_lin_yue_library_presentation.png',
+    text: "Lin Yue keeps rearranging the same three pens while her phone lights up, goes dark, then lights up again.\n\nLin Yue: 'My parents think this group project is small. They are asking about recommendation lists, internships, exams, all at the same time.'\n\nYou: 'That sounds exhausting.'\n\nShe laughs once, without much sound.\n\nLin Yue: 'Local student, local pressure. People forget that knowing the language does not make the future lighter.'\n\nFor the first time, she is not translating the room for you. She is letting you see the room she carries.",
+    dialogueChoices: [
+      {
+        text: "I can listen without turning it into a cultural lesson.",
+        reply: "Thank you. I do not want to become anyone's example tonight.",
+        effects: {
+          stats: { culture: 4, energy: 1 },
+          relationships: { "Lin Yue": { friendship: 4 } },
+          flags: { dialogue_lin_yue_not_example: true, route_local: true }
+        }
+      },
+      {
+        text: "Do you want advice, distraction, or someone to sit here while the phone keeps lighting up?",
+        reply: "The third one. Maybe tea. But mostly the third one.",
+        effects: {
+          stats: { energy: 3, culture: 2, wealth: -16 },
+          relationships: { "Lin Yue": { friendship: 4 } },
+          flags: { dialogue_lin_yue_three_options: true, route_local: true }
+        }
+      }
+    ],
+    choices: [
+      {
+        text: "Stay with her until the pressure becomes speakable.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { culture: 8, energy: 4, wealth: -20 },
+          guanxi: { localStudents: 5 },
+          relationships: { "Lin Yue": { friendship: 10 } },
+          flags: { weekly_focus: "Lin Yue family-pressure night", route_local: true, lin_yue_family_pressure: true }
+        }
+      },
+      {
+        text: "Help her turn the pressure into a practical next-week list.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { academics: 6, digitalProficiency: 4, culture: 5, energy: -2 },
+          guanxi: { localStudents: 4 },
+          relationships: { "Lin Yue": { friendship: 8 } },
+          flags: { weekly_focus: "Lin Yue pressure checklist", route_local: true, route_academic: true, lin_yue_family_pressure: true, lin_yue_pressure_checklist: true }
+        }
+      }
+    ]
+  },
+
+  "event_lin_yue_riverside_walk": {
+    speaker: "Lin Yue",
+    bgImage: '/images/simulator/cg/cg_lin_yue_riverside_walk.png',
+    text: "The river path is bright enough for safety and dark enough for honesty. Lin Yue hands you a warm bottled drink and keeps the other one for herself.\n\nLin Yue: 'I used to think international students were brave because they left home.'\n\nYou: 'And now?'\n\nLin Yue watches the water carry the city lights into broken lines.\n\nLin Yue: 'Now I think everyone is leaving something. Some people just do it without boarding a plane.'\n\nFor once, neither of you rushes to make the moment useful.",
+    dialogueChoices: [
+      {
+        text: "I like being with you when nobody has to translate the whole world.",
+        reply: "That is a dangerous sentence. Not bad dangerous. Just honest dangerous.",
+        effects: {
+          stats: { energy: 3, culture: 2 },
+          relationships: { "Lin Yue": { friendship: 3, romance: 4 } },
+          flags: { dialogue_lin_yue_honest_dangerous: true, route_local: true }
+        }
+      },
+      {
+        text: "I do not want to turn this into pressure. I just want to be clear.",
+        reply: "Clear is kind. Slow is also kind. We can keep both.",
+        effects: {
+          stats: { culture: 3, energy: 2 },
+          relationships: { "Lin Yue": { friendship: 3, romance: 3 } },
+          flags: { dialogue_lin_yue_clear_and_slow: true, route_local: true }
+        }
+      },
+      {
+        text: "Your friendship changed how this place feels to me.",
+        reply: "Then keep the friendship properly. Not as a reward. As a responsibility.",
+        effects: {
+          stats: { culture: 4, energy: 3 },
+          relationships: { "Lin Yue": { friendship: 5 } },
+          flags: { dialogue_lin_yue_friendship_responsibility: true, route_local: true }
+        }
+      }
+    ],
+    choices: [
+      {
+        text: "Admit the feeling gently and let the pace stay slow.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { culture: 8, energy: 8, wealth: -24 },
+          guanxi: { localStudents: 4 },
+          relationships: { "Lin Yue": { friendship: 8, romance: 10 } },
+          flags: { weekly_focus: "Lin Yue riverside slow confession", route_local: true, lin_yue_riverside_walk: true, lin_yue_soft_romance: true }
+        }
+      },
+      {
+        text: "Keep it as a close friendship and protect the trust you built.",
+        action: "advance_turn",
+        next: "hub",
+        effects: {
+          stats: { culture: 9, energy: 10, wealth: -18 },
+          guanxi: { localStudents: 5 },
+          relationships: { "Lin Yue": { friendship: 10 } },
+          flags: { weekly_focus: "Lin Yue riverside friendship", route_local: true, lin_yue_riverside_walk: true, lin_yue_friendship_anchor: true }
         }
       }
     ]

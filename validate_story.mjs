@@ -92,6 +92,7 @@ async function validate() {
     "Professor Lin",
     "Dr. Mei",
     "Sophie",
+    "Lin Yue",
     "Xiao Chen",
     "Neighbor Li",
     "Manager Zhang",
@@ -99,6 +100,7 @@ async function validate() {
   ]);
   for (const [nodeId, nodeData] of Object.entries(allNodes)) {
     if (!coreCharacters.has(nodeData?.speaker)) continue;
+    if (nodeData.suppressDialogueChoices) continue;
     const dialogueChoices = eventSystem.getAvailableDialogueChoices(nodeId);
     if (dialogueChoices.length < 2) {
       errors.push(`Core character node '${nodeId}' (${nodeData.speaker}) has fewer than two reply choices.`);

@@ -100,15 +100,19 @@ export const epoch1Events = {
   },
 
   "pro_group_chat": {
+    storyBeat: true,
     speaker: "Minghai Intl Group",
     location: "Home Country",
-    text: "The group chat is pure pre-departure chaos: screenshots of payment apps, warnings about hard mattresses, someone asking if rice cookers are allowed, and a senior student calmly saying, 'Bring patience. Everything else you can buy in Shanghai.'",
+    text: "The group chat is pure pre-departure chaos: screenshots of payment apps, warnings about hard mattresses, someone asking if rice cookers are allowed, and one senior student calmly pinning the useful answers.\n\nHer name is Sophie. She is already at Minghai, already tired of repeating the same advice, and still doing it anyway. First useful thing you learn: the international-student route has a person attached to it.",
     choices: [
       {
-        text: "Save the useful messages and face the real question.",
+        text: "Continue",
         next: "week1_motive",
         effects: {
-          stats: { digitalProficiency: 2 }
+          stats: { digitalProficiency: 2 },
+          guanxi: { intlStudents: 3 },
+          relationships: { Sophie: { friendship: 2 } },
+          flags: { met_sophie_online: true, sophie_role_known: true, wechat_sophie_previewed: true }
         }
       }
     ]
@@ -522,7 +526,7 @@ export const epoch1Events = {
   "w3_feedback": {
     speaker: "Professor Lin",
     location: "Email",
-    text: "Professor Lin replies faster than you expected. 'The structure is fine,' the email begins, which you quickly learn is academic language for: the real criticism starts now. He marks three sentences and writes, 'This sounds impressive, but not specific. Why China? Why you?'",
+    text: "Professor Lin, the academic mentor who agreed to review your Minghai application, replies faster than you expected. 'The structure is fine,' the email begins, which you quickly learn is academic language for: the real criticism starts now. He marks three sentences and writes, 'This sounds impressive, but not specific. Why China? Why you?'\n\nThis is your first forced introduction to him: not a friend yet, not even your professor yet, but the first adult in the story who refuses to let your China plan stay vague.",
     choices: [
       {
         text: "Revise for honesty, even if it looks less polished. [Academics +, Professor network +, Energy -]",
@@ -530,7 +534,8 @@ export const epoch1Events = {
         effects: {
           stats: { academics: 8, energy: -8 },
           guanxi: { professors: 10 },
-          flags: { lin_values_honesty: true }
+          relationships: { "Professor Lin": { friendship: 3 } },
+          flags: { lin_values_honesty: true, met_professor_lin_online: true, professor_lin_role_known: true }
         }
       },
       {
@@ -539,7 +544,8 @@ export const epoch1Events = {
         effects: {
           stats: { academics: 5, digitalProficiency: 5 },
           guanxi: { professors: 3 },
-          flags: { lin_values_strategy: true }
+          relationships: { "Professor Lin": { friendship: 2 } },
+          flags: { lin_values_strategy: true, met_professor_lin_online: true, professor_lin_role_known: true }
         }
       }
     ]
@@ -619,7 +625,8 @@ export const epoch1Events = {
         effects: {
           stats: { academics: 5 },
           guanxi: { professors: 5 },
-          flags: { recommendation_secured: true }
+          relationships: { "Professor Lin": { friendship: 3 } },
+          flags: { recommendation_secured: true, met_professor_lin_online: true, professor_lin_role_known: true }
         }
       }
     ]

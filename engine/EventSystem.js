@@ -73,6 +73,30 @@ const CHARACTER_DIALOGUE_DEFAULTS = {
       }
     ]
   },
+  "Lin Yue": {
+    routeFlag: "route_local",
+    guanxi: { localStudents: 1 },
+    choices: [
+      {
+        text: "Ask her to name the rule everyone else is assuming.",
+        reply: "Good. The rule is not hard. The hard part is noticing that nobody told you it existed.",
+        stats: { culture: 2, chinese: 1 },
+        friendship: 3
+      },
+      {
+        text: "Offer a clear contribution instead of waiting to be rescued.",
+        reply: "That is better. People can work with clear. Vague politeness creates extra homework.",
+        stats: { academics: 2, culture: 1 },
+        friendship: 2
+      },
+      {
+        text: "Check whether you are asking for help or asking her to carry the room.",
+        reply: "That question matters. Keep asking it before someone else has to.",
+        stats: { culture: 2, energy: -1 },
+        friendship: 3
+      }
+    ]
+  },
   "Xiao Chen": {
     routeFlag: "route_city",
     guanxi: { localStudents: 1 },
@@ -930,6 +954,7 @@ export class EventSystem {
   getAvailableDialogueChoices(nodeId) {
     const node = this.events[nodeId];
     if (!node) return [];
+    if (node.suppressDialogueChoices) return [];
     const state = this.engine.getState();
     if (state.flags?.[buildDialogueResolvedFlag(nodeId)]) return [];
 

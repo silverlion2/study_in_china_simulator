@@ -6,7 +6,17 @@ import { gameEngine } from '../engine/GameState';
 
 export default function TabletInterface({ state, onClose, onReplayGame, onPlayGig }) {
   const { stats, guanxi, turn, phase, flags } = state;
-  const initialTab = flags.airport_didi_required ? 'DiDi' : (flags.housing_simpad_required || state.currentNodeId === "e2_w12_housing" ? 'Housing' : 'Story');
+  const initialTab = flags.airport_didi_required
+    ? 'DiDi'
+    : flags.housing_simpad_required || state.currentNodeId === "e2_w12_housing"
+      ? 'Housing'
+      : flags.taobao_simpad_required
+        ? 'Taobao'
+        : flags.calendar_simpad_required
+          ? 'Calendar'
+          : flags.wechat_simpad_required
+            ? 'WeChat'
+            : 'Story';
   const [activeTab, setActiveTab] = useState(initialTab);
   const [selectedMemory, setSelectedMemory] = useState(null);
   const [selectedGalleryRoute, setSelectedGalleryRoute] = useState('All');
@@ -34,6 +44,10 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
     flags.neighbor_li_boundary_avoided && "Neighbor Li boundary avoided",
     flags.uncle_wang_honest_answer && "Uncle Wang honest answer",
     flags.uncle_wang_polite_answer && "Uncle Wang polite answer",
+    flags.lin_yue_boundary_repaired && "Lin Yue boundary repaired",
+    flags.lin_yue_boundary_acknowledged && "Lin Yue boundary acknowledged",
+    flags.lin_yue_soft_romance && "Lin Yue slow romance",
+    flags.lin_yue_friendship_anchor && "Lin Yue friendship anchor",
     flags.sophie_bridge_plan && "Sophie bridge plan",
     flags.sophie_safe_bubble_choice && "Sophie safe bubble",
     flags.manager_zhang_boundaries_accepted && "Manager Zhang boundaries accepted",
@@ -48,6 +62,7 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
     flags.contact_professor_lin_talk_1 && "Professor Lin honest office hour",
     flags.contact_dr_mei_talk_1 && "Dr. Mei research coffee",
     flags.contact_sophie_talk_1 && "Sophie private check-in",
+    flags.contact_lin_yue_talk_1 && "Lin Yue classmate talk",
     flags.contact_xiao_chen_talk_1 && "Xiao Chen market walk",
     flags.contact_neighbor_li_talk_1 && "Neighbor Li dorm map",
     flags.contact_manager_zhang_talk_1 && "Manager Zhang career chat",
@@ -55,6 +70,7 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
     flags.request_professor_lin_class_question && "Professor Lin class-question request",
     flags.request_dr_mei_field_notes && "Dr. Mei field-note request",
     flags.request_sophie_new_student && "Sophie arrival-support request",
+    flags.request_lin_yue_presentation && "Lin Yue presentation request",
     flags.request_xiao_chen_onboarding && "Xiao Chen onboarding request",
     flags.request_neighbor_li_parcel && "Neighbor Li parcel request",
     flags.request_manager_zhang_answer && "Manager Zhang interview-answer request",
@@ -103,6 +119,32 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
   const handleTaobaoService = (orderId) => {
     const result = gameEngine.useTaobaoServiceOrder(orderId);
     setUtilityMessage(result.message);
+  };
+
+  const handleTaobaoItemPurchase = (itemId, cost, label, effects = {}) => {
+    if (flags.taobao_simpad_required && !["beddingSet", "deskLamp"].includes(itemId)) {
+      setUtilityMessage("Required story task: choose Dorm Bedding Set or Desk Lamp Kit first. The expensive items can wait until Taobao is unlocked as a normal weekly utility.");
+      return;
+    }
+
+    const purchased = gameEngine.purchaseItem(itemId, cost, label, effects);
+    if (!purchased) {
+      setUtilityMessage("This order could not be completed right now.");
+      return;
+    }
+
+    if (flags.taobao_simpad_required) {
+      gameEngine.setFlag("taobao_simpad_required", false);
+      gameEngine.setFlag("taobao_tutorial_completed", true);
+      gameEngine.setFlag("taobao_address_saved", true);
+      gameEngine.setFlag("taobao_careful_first_order", true);
+      gameEngine.setCurrentNode("taobao_simpad_lesson_done");
+      setUtilityMessage("Taobao order confirmed. Returning to the story lesson.");
+      onClose();
+      return;
+    }
+
+    setUtilityMessage(`${label.replace(/^Taobao: /, "")} ordered.`);
   };
 
   const handleHousingChoice = (housing) => {
@@ -154,7 +196,7 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-all animate-in fade-in duration-300" onClick={onClose}>
         <div
-           className="relative w-full max-w-2xl h-[75vh] bg-slate-900 border-[8px] border-slate-950 rounded-[2rem] shadow-[0_0_40px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col animate-in zoom-in-95 duration-300"
+           className="relative h-[82vh] w-[96vw] max-w-5xl bg-slate-900 border-[8px] border-slate-950 rounded-[2rem] shadow-[0_0_40px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col animate-in zoom-in-95 duration-300"
            onClick={e => e.stopPropagation()}
         >
             {/* iPad Notch / Camera */}
@@ -170,7 +212,7 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
             </div>
 
             {/* Tab Navigation */}
-            <div className="w-full bg-slate-800 border-b border-slate-700 flex flex-wrap p-1.5 shrink-0 justify-start gap-1 shadow-sm">
+            <div className="w-full bg-slate-800 border-b border-slate-700 flex flex-wrap p-1.5 shrink-0 justify-center gap-1 shadow-sm">
                 <button
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'Story' ? 'bg-sky-500 text-white shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
                   onClick={() => setActiveTab('Story')}
@@ -360,14 +402,25 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
                             </div>
                         </div>
 
-                        <div className="space-y-3">
-                            {calendarItems.map((item) => (
-                                <CalendarCard
-                                    key={item.id}
+	                        <div className="space-y-3">
+	                            {flags.calendar_simpad_required && (
+	                                <div className="rounded-xl border border-cyan-300/40 bg-cyan-400/10 p-4 text-sm text-cyan-100">
+	                                    Required story task: pin one deadline here to continue registration. Calendar will remember the focus during later weekly transitions.
+	                                </div>
+	                            )}
+	                            {calendarItems.map((item) => (
+	                                <CalendarCard
+	                                    key={item.id}
                                     item={item}
                                     onPin={() => {
                                         const result = gameEngine.pinCalendarFocus(item.title);
                                         setUtilityMessage(result.message);
+                                        if (result.ok && flags.calendar_simpad_required) {
+                                            gameEngine.setFlag("calendar_simpad_required", false);
+                                            gameEngine.setFlag("calendar_tutorial_completed", true);
+                                            gameEngine.setCurrentNode("e3_w17_wechat_contacts");
+                                            onClose();
+                                        }
                                     }}
                                     pinned={flags.calendar_focus === item.title}
                                 />
@@ -507,10 +560,17 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
                         <div className="bg-[#1AAD19] px-4 py-3 text-white shadow relative z-10 flex justify-between items-center shrink-0">
                             <h2 className="text-md font-bold tracking-wide">WeChat</h2>
                             <div className="text-xl opacity-80 cursor-pointer">⊕</div>
-                        </div>
-                        <div className="flex-1 overflow-y-auto w-full no-scrollbar">
-                            {priorityMessages.length > 0 && (
-                                <div className="bg-[#f6fff4] border-b border-green-200 p-3 space-y-2">
+	                        </div>
+	                        <div className="flex-1 overflow-y-auto w-full no-scrollbar">
+	                            {flags.wechat_simpad_required && (
+	                                <div className="bg-[#f6fff4] border-b border-green-200 p-3">
+	                                    <div className="rounded-xl border border-[#1AAD19]/25 bg-white p-3 text-xs leading-relaxed text-green-800 shadow-sm">
+	                                        <strong>Required story task:</strong> send one check-in to Sophie, Xiao Chen, or Neighbor Li. Lin Yue joins this contact layer after first class. This teaches how WeChat keeps relationship threads alive.
+	                                    </div>
+	                                </div>
+	                            )}
+	                            {priorityMessages.length > 0 && (
+	                                <div className="bg-[#f6fff4] border-b border-green-200 p-3 space-y-2">
                                     <div className="flex items-center justify-between">
                                         <div>
                                             <h3 className="text-xs font-black uppercase tracking-[0.16em] text-green-700">Unread Story Messages</h3>
@@ -565,13 +625,22 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             const sent = gameEngine.sendWeChatCheckIn(name);
+                                                            if (sent && flags.wechat_simpad_required) {
+                                                                gameEngine.setFlag("wechat_simpad_required", false);
+                                                                gameEngine.setFlag("wechat_tutorial_completed", true);
+                                                                gameEngine.setFlag("wechat_first_checkin_contact", name);
+                                                                gameEngine.setCurrentNode("e3_w17_manager_zhang_intro");
+                                                                setUtilityMessage(`You sent ${name} a first check-in. Returning to orientation.`);
+                                                                onClose();
+                                                                return;
+                                                            }
                                                             setUtilityMessage(sent ? `You sent ${name} a short WeChat check-in.` : `You cannot message ${name} right now.`);
                                                         }}
-                                                        disabled={phase !== "In-China" || flags.sent_wechat_ping_this_week}
-                                                        className={`shrink-0 rounded-full px-2 py-1 text-[9px] font-bold transition-all ${phase !== "In-China" || flags.sent_wechat_ping_this_week ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-[#1AAD19] text-white hover:bg-[#159014]'}`}
-                                                    >
-                                                        {phase !== "In-China" ? 'Locked' : flags.sent_wechat_ping_this_week ? 'Sent' : 'Check in'}
-                                                    </button>
+	                                                        disabled={phase !== "In-China" || (flags.sent_wechat_ping_this_week && !flags.wechat_simpad_required)}
+	                                                        className={`shrink-0 rounded-full px-2 py-1 text-[9px] font-bold transition-all ${phase !== "In-China" || (flags.sent_wechat_ping_this_week && !flags.wechat_simpad_required) ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-[#1AAD19] text-white hover:bg-[#159014]'}`}
+	                                                    >
+	                                                        {phase !== "In-China" ? 'Locked' : flags.sent_wechat_ping_this_week && !flags.wechat_simpad_required ? 'Sent' : flags.wechat_simpad_required ? 'Send first' : 'Check in'}
+	                                                    </button>
                                                     {meetup && (
                                                         <button
                                                             onClick={(e) => {
@@ -818,56 +887,61 @@ export default function TabletInterface({ state, onClose, onReplayGame, onPlayGi
                                 Taobao becomes useful after you reach the dorm. The first story order teaches address setup before this app becomes a weekly utility.
                             </div>
                         )}
-                        {phase === "In-China" && (
-                            <div className="mb-4 rounded-xl border border-orange-400/30 bg-slate-950/70 p-4 text-sm text-orange-100">
-                                {flags.first_taobao_used ? "First Taobao lesson completed: you now understand address setup, delivery timing, seller ratings, and courier friction." : "Your first dorm order has not become a story lesson yet. Use Taobao carefully: cheap, fast, and correct are three different promises."}
-                            </div>
-                        )}
+	                        {phase === "In-China" && (
+	                            <div className="mb-4 rounded-xl border border-orange-400/30 bg-slate-950/70 p-4 text-sm text-orange-100">
+	                                {flags.first_taobao_used ? "First Taobao lesson completed: you now understand address setup, delivery timing, seller ratings, and courier friction." : "Your first dorm order has not become a story lesson yet. Use Taobao carefully: cheap, fast, and correct are three different promises."}
+	                            </div>
+	                        )}
+	                        {flags.taobao_simpad_required && (
+	                            <div className="mb-4 rounded-xl border border-orange-300/40 bg-orange-400/10 p-4 text-sm text-orange-100">
+	                                Required story task: buy Dorm Bedding Set or Desk Lamp Kit. This completes the first Taobao lesson and returns to the dorm story automatically.
+	                            </div>
+	                        )}
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <ItemCard
-                                id="ebike" title="Electric Bike" emoji="🛵" cost={1500}
-                                desc="Reduces weekly energy drain from walking/commuting by 1 point."
-                                isOwned={state.items?.ebike}
-                                wealth={stats.wealth}
-                                onBuy={() => gameEngine.purchaseItem('ebike', 1500, 'Taobao: Electric Bike')}
-                            />
-                            <ItemCard
-                                id="headphones" title="Noise-Canceling Headphones" emoji="🎧" cost={800}
-                                desc="Prevents Academics and Energy penalties when working part-time jobs."
-                                isOwned={state.items?.headphones}
-                                wealth={stats.wealth}
-                                onBuy={() => gameEngine.purchaseItem('headphones', 800, 'Taobao: Noise-Canceling Headphones')}
-                            />
-                            <ItemCard
-                                id="beddingSet" title="Dorm Bedding Set" emoji="🛏️" cost={280}
-                                desc="Turns the first dorm week from bare mattress panic into actual recovery. +10 Energy once."
+		                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+	                            <ItemCard
+	                                id="beddingSet" title="Dorm Bedding Set" emoji="🛏️" cost={280}
+	                                desc="Turns the first dorm week from bare mattress panic into actual recovery. +10 Energy once."
                                 isOwned={state.items?.beddingSet}
                                 wealth={stats.wealth}
-                                onBuy={() => gameEngine.purchaseItem('beddingSet', 280, 'Taobao: Dorm Bedding Set', { stats: { energy: 10 } })}
+                                onBuy={() => handleTaobaoItemPurchase('beddingSet', 280, 'Taobao: Dorm Bedding Set', { stats: { energy: 10 } })}
                             />
                             <ItemCard
                                 id="deskLamp" title="Desk Lamp Kit" emoji="💡" cost={180}
                                 desc="A small study setup upgrade. +3 Academics and +3 Energy once."
                                 isOwned={state.items?.deskLamp}
                                 wealth={stats.wealth}
-                                onBuy={() => gameEngine.purchaseItem('deskLamp', 180, 'Taobao: Desk Lamp Kit', { stats: { academics: 3, energy: 3 } })}
+                                onBuy={() => handleTaobaoItemPurchase('deskLamp', 180, 'Taobao: Desk Lamp Kit', { stats: { academics: 3, energy: 3 } })}
                             />
                             <ItemCard
                                 id="phraseCards" title="Mandarin Phrase Cards" emoji="🗂️" cost={120}
                                 desc="Tiny scripts for canteen, delivery, and office counters. +4 Chinese and +2 Culture once."
                                 isOwned={state.items?.phraseCards}
                                 wealth={stats.wealth}
-                                onBuy={() => gameEngine.purchaseItem('phraseCards', 120, 'Taobao: Mandarin Phrase Cards', { stats: { chinese: 4, culture: 2 } })}
+                                onBuy={() => handleTaobaoItemPurchase('phraseCards', 120, 'Taobao: Mandarin Phrase Cards', { stats: { chinese: 4, culture: 2 } })}
                             />
                             <ItemCard
                                 id="cityDataPack" title="City Data Pack" emoji="📶" cost={88}
                                 desc="Maps, transit, payments, and translation backups. +5 Digital Proficiency once."
                                 isOwned={state.items?.cityDataPack}
-                                wealth={stats.wealth}
-                                onBuy={() => gameEngine.purchaseItem('cityDataPack', 88, 'Taobao: City Data Pack', { stats: { digitalProficiency: 5 } })}
-                            />
-                        </div>
+	                                wealth={stats.wealth}
+	                                onBuy={() => handleTaobaoItemPurchase('cityDataPack', 88, 'Taobao: City Data Pack', { stats: { digitalProficiency: 5 } })}
+	                            />
+	                            <ItemCard
+	                                id="ebike" title="Electric Bike" emoji="🛵" cost={1500}
+	                                desc="Reduces weekly energy drain from walking/commuting by 1 point."
+	                                isOwned={state.items?.ebike}
+	                                wealth={stats.wealth}
+	                                onBuy={() => handleTaobaoItemPurchase('ebike', 1500, 'Taobao: Electric Bike')}
+	                            />
+	                            <ItemCard
+	                                id="headphones" title="Noise-Canceling Headphones" emoji="🎧" cost={800}
+	                                desc="Prevents Academics and Energy penalties when working part-time jobs."
+	                                isOwned={state.items?.headphones}
+	                                wealth={stats.wealth}
+	                                onBuy={() => handleTaobaoItemPurchase('headphones', 800, 'Taobao: Noise-Canceling Headphones')}
+	                            />
+	                        </div>
 
                         <div className="mt-5 rounded-2xl border border-orange-400/30 bg-slate-950/70 p-4">
                             <h3 className="text-sm font-black uppercase tracking-[0.18em] text-orange-300">Service Orders</h3>
@@ -1442,6 +1516,33 @@ function getMemoryEntries(flags) {
             unlocked: flags.local_study_group_night
         },
         {
+            id: "lin_yue_classroom",
+            title: "Lin Yue Classroom Intro",
+            route: "Local",
+            image: "images/simulator/cg/cg_lin_yue_classroom_intro.png",
+            desc: "A Chinese classmate turns the first group-project panic into a map of contribution, limits, and local classroom rhythm.",
+            hint: "Meet Lin Yue after first class.",
+            unlocked: flags.met_lin_yue || flags.lin_yue_classroom_intro
+        },
+        {
+            id: "lin_yue_presentation",
+            title: "Library Presentation",
+            route: "Local",
+            image: "images/simulator/cg/cg_lin_yue_library_presentation.png",
+            desc: "Lin Yue asks you to stop hiding behind her fluency and speak before the sentence is perfect.",
+            hint: "Build enough trust with Lin Yue to practice the group presentation.",
+            unlocked: flags.lin_yue_presentation_partner || flags.request_lin_yue_presentation
+        },
+        {
+            id: "lin_yue_riverside",
+            title: "Riverside Walk",
+            route: "Local",
+            image: "images/simulator/cg/cg_lin_yue_riverside_walk.png",
+            desc: "A quiet walk can become either a careful confession or a friendship kept with unusual honesty.",
+            hint: "Complete Lin Yue's family-pressure and boundary-repair events.",
+            unlocked: flags.lin_yue_riverside_walk || flags.lin_yue_soft_romance || flags.lin_yue_friendship_anchor
+        },
+        {
             id: "local_regular",
             title: "Local Regular",
             route: "Local",
@@ -1476,6 +1577,123 @@ function getMemoryEntries(flags) {
             desc: "Not every ending explodes. Some simply go quiet before you are ready.",
             hint: "Reach a low-resource ending.",
             unlocked: flags.ending_out_of_money || flags.ending_quiet_return
+        },
+        {
+            id: "ending_scholar",
+            title: "Ending: Minghai Scholar",
+            route: "Endings",
+            image: "images/simulator/cg/cg_ending_scholar.png",
+            desc: "Professor Lin turns the recommendation into a door you can actually walk through.",
+            hint: "Reach the Minghai Scholar ending.",
+            unlocked: flags.ending_scholar
+        },
+        {
+            id: "ending_researcher",
+            title: "Ending: Research Apprentice",
+            route: "Endings",
+            image: "images/simulator/cg/cg_ending_researcher.png",
+            desc: "Dr. Mei makes uncertainty feel like part of the method, not a flaw.",
+            hint: "Reach the research ending.",
+            unlocked: flags.ending_researcher
+        },
+        {
+            id: "ending_entrepreneur",
+            title: "Ending: Shanghai Builder",
+            route: "Endings",
+            image: "images/simulator/cg/cg_ending_entrepreneur.png",
+            desc: "Xiao Chen's prototype becomes a real test of trust, users, and Shanghai speed.",
+            hint: "Reach the Shanghai Builder ending.",
+            unlocked: flags.ending_entrepreneur
+        },
+        {
+            id: "ending_diplomat",
+            title: "Ending: Career Bridge",
+            route: "Endings",
+            image: "images/simulator/cg/cg_ending_diplomat.png",
+            desc: "Manager Zhang's badge turns preparation into a career bridge.",
+            hint: "Reach the Career Bridge ending.",
+            unlocked: flags.ending_diplomat || flags.ending_return_offer
+        },
+        {
+            id: "ending_influencer",
+            title: "Ending: Student Voice",
+            route: "Endings",
+            image: "images/simulator/cg/cg_ending_influencer.png",
+            desc: "Sophie's support circle becomes infrastructure for the next arrivals.",
+            hint: "Reach the Student Voice ending.",
+            unlocked: flags.ending_influencer
+        },
+        {
+            id: "ending_local_insider",
+            title: "Ending: Local Regular",
+            route: "Endings",
+            image: "images/simulator/cg/cg_ending_local_insider.png",
+            desc: "Uncle Wang and Neighbor Li turn local life into people who notice when you are missing.",
+            hint: "Reach the Local Regular ending.",
+            unlocked: flags.ending_local_insider
+        },
+        {
+            id: "ending_hsk_master",
+            title: "Ending: Language Breakthrough",
+            route: "Endings",
+            image: "images/simulator/cg/cg_ending_hsk_master.png",
+            desc: "The language win lands in the laugh after the sentence, not just the score report.",
+            hint: "Reach the HSK Master ending.",
+            unlocked: flags.ending_hsk_master
+        },
+        {
+            id: "ending_quiet_return",
+            title: "Ending: Quiet Transformation",
+            route: "Endings",
+            image: "images/simulator/cg/cg_ending_quiet_return.png",
+            desc: "The suitcase becomes an archive of the person Minghai quietly made possible.",
+            hint: "Reach the Quiet Transformation ending.",
+            unlocked: flags.ending_quiet_return
+        },
+        {
+            id: "ending_compliance_scare",
+            title: "Ending: Compliance Scare",
+            route: "Endings",
+            image: "images/simulator/cg/cg_ending_compliance_scare.png",
+            desc: "A serious office meeting turns a mistake into a narrow, fixable path.",
+            hint: "Reach the Compliance Scare ending.",
+            unlocked: flags.ending_compliance_scare
+        },
+        {
+            id: "ending_career_shortcut",
+            title: "Ending: Shortcut Tax",
+            route: "Endings",
+            image: "images/simulator/cg/cg_ending_career_shortcut.png",
+            desc: "Manager Zhang lets the cooled room teach what shortcuts cost.",
+            hint: "Reach the Shortcut Tax ending.",
+            unlocked: flags.ending_career_shortcut
+        },
+        {
+            id: "ending_unreliable_builder",
+            title: "Ending: Unstable Launch",
+            route: "Endings",
+            image: "images/simulator/cg/cg_ending_unreliable_builder.png",
+            desc: "Xiao Chen learns that trust is harder to build than traffic.",
+            hint: "Reach the Unstable Launch ending.",
+            unlocked: flags.ending_unreliable_builder
+        },
+        {
+            id: "ending_deportee",
+            title: "Ending: Visa Line",
+            route: "Endings",
+            image: "images/simulator/cg/cg_ending_deportee.png",
+            desc: "Sophie waits in the hallway when the paperwork turns into a flight home.",
+            hint: "Reach the Visa Line ending.",
+            unlocked: flags.ending_deportee
+        },
+        {
+            id: "ending_academic_probation",
+            title: "Ending: Academic Probation",
+            route: "Endings",
+            image: "images/simulator/cg/cg_ending_academic_probation.png",
+            desc: "Professor Lin makes recovery practical, scheduled, and impossible to romanticize.",
+            hint: "Reach the Academic Probation ending.",
+            unlocked: flags.ending_academic_probation
         }
     ];
 }
@@ -1618,6 +1836,12 @@ function getWeChatMeetup(name, flags, phase, turn) {
         firstMeetups.Sophie = { label: "Request", nodeId: "event_request_sophie_new_student" };
     }
 
+    if (flags.met_lin_yue && !flags.contact_lin_yue_talk_1) {
+        firstMeetups["Lin Yue"] = { label: "Talk", nodeId: "event_contact_lin_yue_talk_1" };
+    } else if (flags.contact_lin_yue_talk_1 && !flags.request_lin_yue_presentation) {
+        firstMeetups["Lin Yue"] = { label: "Request", nodeId: "event_request_lin_yue_presentation" };
+    }
+
     if (flags.met_neighbor_li && !flags.contact_neighbor_li_talk_1) {
         firstMeetups["Neighbor Li"] = { label: "Dorm map", nodeId: "event_contact_neighbor_li_talk_1" };
     } else if (flags.contact_neighbor_li_talk_1 && !flags.request_neighbor_li_parcel) {
@@ -1658,6 +1882,21 @@ function getWeChatMeetup(name, flags, phase, turn) {
             label: "Plan guide",
             nodeId: "event_intl_sophie_orientation_committee"
         },
+        "Lin Yue": flags.lin_yue_family_pressure && !flags.lin_yue_riverside_walk ? {
+            label: "Riverside walk",
+            nodeId: "event_lin_yue_riverside_walk",
+            cost: 24
+        } : flags.lin_yue_presentation_partner && !flags.lin_yue_midterm_tension_resolved ? {
+            label: "Boundary talk",
+            nodeId: "event_lin_yue_boundary_tension"
+        } : flags.request_lin_yue_presentation && !flags.lin_yue_presentation_partner ? {
+            label: "Practice",
+            nodeId: "event_lin_yue_library_presentation"
+        } : flags.lin_yue_midterm_tension_resolved && !flags.lin_yue_family_pressure ? {
+            label: "Check in",
+            nodeId: "event_lin_yue_family_pressure",
+            cost: 20
+        } : null,
         "Neighbor Li": flags.neighbor_li_local_trust && !flags.neighbor_li_festival_invite && {
             label: "Festival prep",
             nodeId: "event_local_neighbor_li_festival",
@@ -1710,6 +1949,15 @@ function getCharacterArcProgress(state) {
                 { label: "Support Circle", done: flags.sophie_support_circle || flags.request_sophie_new_student },
                 { label: "Bubble Tension", done: flags.sophie_midterm_tension_resolved || flags.sophie_bridge_plan || flags.sophie_safe_bubble_choice },
                 { label: "Orientation Guide", done: flags.sophie_orientation_committee }
+            ]
+        },
+        {
+            name: "Lin Yue",
+            stages: [
+                { label: "Classroom Intro", done: flags.contact_lin_yue_talk_1 || flags.met_lin_yue },
+                { label: "Presentation Trust", done: flags.lin_yue_presentation_partner || flags.request_lin_yue_presentation },
+                { label: "Boundary Repair", done: flags.lin_yue_midterm_tension_resolved || flags.lin_yue_boundary_repaired || flags.lin_yue_boundary_acknowledged },
+                { label: "Riverside Choice", done: flags.lin_yue_riverside_walk || flags.lin_yue_soft_romance || flags.lin_yue_friendship_anchor }
             ]
         },
         {
@@ -1805,7 +2053,7 @@ function getRoutePlayPanels(state) {
             commitment: routeCommitments.local || 0,
             latestCheck: findLatest(["neighbor_parcel_mediation", "neighbor_parcel_overreach", "uncle_wang_order_bridge", "uncle_wang_teach_sentence"]),
             steps: [
-                { label: "Dorm map", done: flags.contact_neighbor_li_talk_1 || flags.neighbor_li_local_trust },
+                { label: "Classmate bridge", done: flags.contact_lin_yue_talk_1 || flags.met_lin_yue || flags.contact_neighbor_li_talk_1 || flags.neighbor_li_local_trust },
                 { label: "Parcel mediation", done: flags.request_neighbor_li_parcel || flags.neighbor_parcel_check_passed },
                 { label: "Order bridge", done: flags.request_uncle_wang_order_help || flags.wang_order_check_passed },
                 { label: "Neighborhood map", done: flags.neighborhood_map_indexed || flags.neighborhood_map_check_passed || flags.uncle_wang_regular || flags.ending_local_insider }
@@ -1899,6 +2147,12 @@ function getWeChatMessagePreview(name, nodeId) {
         event_request_dr_mei_field_notes: "Dr. Mei: Read these notes for what they failed to notice.",
         event_contact_sophie_talk_1: "Sophie: Quick check-in. Real answer preferred over brochure answer.",
         event_request_sophie_new_student: "Sophie: A new student is spiraling at the pickup point. Help?",
+        event_contact_lin_yue_talk_1: "Lin Yue: Bring one useful contribution and one honest limit.",
+        event_request_lin_yue_presentation: "Lin Yue: The outline is becoming two presentations wearing one title.",
+        event_lin_yue_library_presentation: "Lin Yue: Practice your part before the group mistakes silence for agreement.",
+        event_lin_yue_boundary_tension: "Lin Yue: Help is not the same as being someone's shortcut.",
+        event_lin_yue_family_pressure: "Lin Yue: Not every pressure needs to become a cultural lesson.",
+        event_lin_yue_riverside_walk: "Lin Yue: Clear is kind. Slow is also kind.",
         event_contact_neighbor_li_talk_1: "Neighbor Li: You need the dorm map before the dorm maps you.",
         event_request_neighbor_li_parcel: "Neighbor Li: Parcel situation in the hallway. Normal is enough.",
         event_contact_uncle_wang_talk_1: "Uncle Wang: Come before the smoke gets too loud.",
@@ -1917,6 +2171,7 @@ function getContactMeta(name) {
         "Professor Lin": { emoji: "👨‍🏫", desc: "Academic Mentor", route: "Academic" },
         "Dr. Mei": { emoji: "👩‍🏫", desc: "Research Advisor", route: "Academic" },
         "Sophie": { emoji: "👱‍♀️", desc: "International Student Mirror", route: "International" },
+        "Lin Yue": { emoji: "👩🏻‍🎓", desc: "Chinese Classmate", route: "Local" },
         "Neighbor Li": { emoji: "🧑‍🎓", desc: "Dorm Neighbor", route: "Local" },
         "Uncle Wang": { emoji: "👨🏽‍🍳", desc: "Neighborhood Regular", route: "Local" },
         "Manager Zhang": { emoji: "👔", desc: "Corporate Recruiter", route: "Career" },
@@ -1940,6 +2195,7 @@ function getRelationshipStage(name, data, flags) {
         "Professor Lin": flags.lin_recommendation_ready,
         "Dr. Mei": flags.dr_mei_project_commitment,
         "Sophie": flags.sophie_orientation_committee,
+        "Lin Yue": flags.lin_yue_riverside_walk,
         "Neighbor Li": flags.neighbor_li_festival_invite,
         "Uncle Wang": flags.uncle_wang_regular,
         "Manager Zhang": flags.manager_zhang_referral_ready,
@@ -1949,6 +2205,7 @@ function getRelationshipStage(name, data, flags) {
         "Professor Lin": flags.lin_midterm_tension_resolved,
         "Dr. Mei": flags.dr_mei_midterm_tension_resolved,
         "Sophie": flags.sophie_midterm_tension_resolved,
+        "Lin Yue": flags.lin_yue_midterm_tension_resolved,
         "Neighbor Li": flags.neighbor_li_midterm_tension_resolved,
         "Uncle Wang": flags.uncle_wang_midterm_tension_resolved,
         "Manager Zhang": flags.manager_zhang_midterm_tension_resolved,
@@ -1958,6 +2215,7 @@ function getRelationshipStage(name, data, flags) {
         "Professor Lin": flags.lin_academic_method,
         "Dr. Mei": flags.dr_mei_project_trust,
         "Sophie": flags.sophie_support_circle,
+        "Lin Yue": flags.lin_yue_presentation_partner || flags.lin_yue_family_pressure,
         "Neighbor Li": flags.neighbor_li_local_trust,
         "Uncle Wang": flags.uncle_wang_neighborhood_story,
         "Manager Zhang": flags.manager_zhang_career_trust,
@@ -2013,6 +2271,18 @@ function getRecentInteraction(name, flags) {
             [flags.intl_common_room_meal, "You helped make the common-room meal feel like a temporary home."],
             [flags.sophie_support_circle, "You designed support before people fall apart."],
             [flags.wechat_sophie_added, "You first added her at orientation, when the group chats stopped being abstract."]
+        ],
+        "Lin Yue": [
+            [flags.lin_yue_soft_romance, "A slow riverside confession became something careful, clear, and not overpromised."],
+            [flags.lin_yue_friendship_anchor, "You kept the riverside moment as a close friendship instead of forcing a romance shape."],
+            [flags.lin_yue_riverside_walk, "A quiet walk made the relationship feel chosen, not accidental."],
+            [flags.lin_yue_family_pressure, "She trusted you with pressure that local fluency could not make lighter."],
+            [flags.lin_yue_boundary_repaired, "You repaired the moment when help started turning into dependence."],
+            [flags.lin_yue_boundary_acknowledged, "You accepted the boundary before it turned into resentment."],
+            [flags.lin_yue_presentation_partner, "She pushed you to speak before your Chinese felt safe."],
+            [flags.request_lin_yue_presentation, "She asked you to turn a messy outline into three honest claims."],
+            [flags.contact_lin_yue_talk_1, "She taught you to name one contribution and one limit before joining a group."],
+            [flags.met_lin_yue, "You first met her after class, when the group-project sheet stopped being just paper."]
         ],
         "Neighbor Li": [
             [flags.neighbor_li_festival_invite, "You were trusted with neighborhood festival prep."],

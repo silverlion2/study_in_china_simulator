@@ -140,7 +140,13 @@ export class AudioManager {
     if (entry?.ready && entry.src) {
       this.stopProceduralBgm(options);
       this.currentBgmId = id;
-      this.currentBgmElement = await this.playLoopingElement(this.currentBgmElement, entry.src, this.volumes.bgm, options.fadeMs ?? 900);
+      const nextElement = await this.playLoopingElement(this.currentBgmElement, entry.src, this.volumes.bgm, options.fadeMs ?? 900);
+      if (nextElement) {
+        this.currentBgmElement = nextElement;
+        return true;
+      }
+      this.currentBgmElement = null;
+      this.playProceduralBgm(entry.fallback || id, options);
       return true;
     }
 

@@ -39,6 +39,16 @@ Reference: `images/simulator/characters_v2/neighbor_li_v2.jpg`
 - Allowed scene clothing changes: hoodie, casual jacket, rain shell, or festival-prep layers, as long as the lean build, messy hair silhouette, and relaxed local-student face remain consistent.
 - Accepted CG: `images/simulator/cg/cg_neighbor_li_parcel_crisis.png`
 
+## Lin Yue
+
+Reference: `images/simulator/characters_v2/lin_yue_v2.png`
+
+- Young Chinese woman in her early 20s with warm light skin, oval face, clear warm brown eyes, straight dark shoulder-length hair with soft curtain bangs, small stud earrings, and a calm perceptive expression.
+- Average student build and medium height impression; approachable but direct, with a local-classmate energy that reads practical rather than dreamy.
+- Baseline visual language: light denim jacket over a cream knit top, campus backpack strap, classroom-window warmth.
+- Allowed scene clothing changes: forest green cardigan for library study, beige coat for riverside walks, rain jacket, or simple campus layers, as long as face, hair silhouette, average build, and grounded expression remain consistent.
+- Accepted CGs: `images/simulator/cg/cg_lin_yue_classroom_intro.png`, `images/simulator/cg/cg_lin_yue_library_presentation.png`, `images/simulator/cg/cg_lin_yue_riverside_walk.png`
+
 ## Manager Zhang
 
 Reference: `images/simulator/characters_v2/manager_zhang_v2.jpg`
