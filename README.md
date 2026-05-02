@@ -119,7 +119,7 @@ The project is structured to be highly pure, eschewing complicated bundle toolin
 - `components/`: Modular React components tracking specific UI functions (like the `TabletInterface`).
 - `tools/`: QA and production helper scripts, including full-route route feasibility checks.
 - `images/` and `assets/`: Runtime visual and audio assets used by the standalone build.
-- `docs/`: Visual asset plans, prompt records, contact sheets, and production notes.
+- `docs/screenshots/`: Shareable screenshots for the public README.
 
 ## 📜 License
 ISC License
