@@ -36,7 +36,7 @@ The current development build expands Sim Panda from a compact prototype into a 
 - Added 23 CG memories, including admission, documents, academic route scenes, local-life scenes, career milestones, Shanghai startup events, risk endings, and new daily-life character CGs.
 - Added a large visual asset library: campus backgrounds, Shanghai / China travel scenes, character portraits, v2 character art, route CGs, and compressed JPG runtime assets.
 - Added audio infrastructure with `AudioManager`, audio manifests, fallback Web Audio BGM/SFX, and a first batch of MP3 background tracks.
-- Added design, narrative, asset, audio, QA, and handoff documentation for continuing development.
+- Added production-ready visual and audio assets for the standalone simulator.
 - Updated the build pipeline so the standalone `index.html` stays playable offline while supporting optional PandaOffer website export.
 
 ## ✨ Features
@@ -74,7 +74,7 @@ The project is structured to be highly pure, eschewing complicated bundle toolin
 - `engine/`: The core `GameState.js` and `EventSystem.js` maintaining state without Redux.
 - `components/`: Modular React components tracking specific UI functions (like the `TabletInterface`).
 - `images/` and `assets/`: Runtime visual and audio assets used by the standalone build.
-- `docs/`: Visual asset plans, prompt records, contact sheets, and production notes.
+- Public documentation is kept in this README so development notes can remain local/private.
 
 ## 📜 License
 ISC License
