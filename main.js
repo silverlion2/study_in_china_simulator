@@ -1,6 +1,8 @@
 const { app, BrowserWindow, Menu } = require('electron');
 const path = require('path');
 
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
+
 function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 1280,

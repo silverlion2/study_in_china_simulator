@@ -87,7 +87,25 @@ export const epoch2Events = {
         next: "e2_w11_digital_access",
         effects: {
           stats: { digitalProficiency: 5, energy: -3 },
-          flags: { got_visa: true, visa_ready: true, decision_e2_visa: "Approved on first appointment" }
+          flags: { got_visa: true, visa_ready: true, decision_e2_visa: "Approved on first appointment" },
+          lifeCheck: {
+            id: "visa_document_stack",
+            label: "X1 Visa Document Stack",
+            route: "Admin",
+            tags: ["admin", "visa"],
+            stats: { digitalProficiency: 0.55, energy: 0.08 },
+            dc: 9,
+            success: {
+              message: "The copies, screenshots, and document order make the appointment feel bureaucratic instead of catastrophic.",
+              stats: { energy: 2, digitalProficiency: 1 },
+              flags: { visa_document_stack_clean: true }
+            },
+            failure: {
+              message: "You still get through, but one missing detail teaches you that paperwork has its own memory.",
+              stats: { energy: -3 },
+              flags: { visa_document_stack_strained: true }
+            }
+          }
         }
       }
     ]
@@ -105,7 +123,25 @@ export const epoch2Events = {
         next: "e2_w11_digital_access",
         effects: {
           stats: { wealth: -120, energy: -15, digitalProficiency: 3 },
-          flags: { got_visa: true, visa_ready: true, decision_e2_visa: "Approved after document correction", visa_copy_lesson: true }
+          flags: { got_visa: true, visa_ready: true, decision_e2_visa: "Approved after document correction", visa_copy_lesson: true },
+          lifeCheck: {
+            id: "visa_document_recovery",
+            label: "Visa Document Recovery",
+            route: "Admin",
+            tags: ["admin", "visa"],
+            stats: { digitalProficiency: 0.5, energy: 0.05 },
+            dc: 10,
+            success: {
+              message: "The correction is annoying, not disastrous. Your document system absorbs the hit.",
+              stats: { digitalProficiency: 2 },
+              flags: { visa_recovery_composed: true }
+            },
+            failure: {
+              message: "The correction costs more energy than money. You get the visa, but the lesson follows you to Shanghai.",
+              stats: { energy: -4 },
+              flags: { visa_recovery_scar: true }
+            }
+          }
         }
       }
     ]
@@ -198,67 +234,40 @@ export const epoch2Events = {
     speaker: "Minghai Housing Portal",
     bgImage: '/images/simulator/backgrounds/bg_dorm_room.jpg',
     location: "Home Country",
-    text: "The dorm reservation page opens at 08:00 sharp. The page is simple in the way high-stakes things are simple: room type, deposit, campus, confirm. Privacy, money, sleep, and future friendships are all pretending to be a dropdown menu.",
+    text: "The housing portal opens at 08:00 sharp. This is now a forced SimPad tutorial, not a normal story menu.\n\nTask: open SimPad, enter the Housing app, compare the options, and submit one address plan there. There is no story fallback here; the week continues only after the housing choice is confirmed inside SimPad.",
     choices: [
       {
-        text: "Reserve a single dorm room. [Wealth -, Energy +]",
-        next: "e2_w12_roommate_intro",
+        text: "Open SimPad > Housing and choose where you will live. [Required phone action]",
+        next: "e2_w12_housing",
         effects: {
-          stats: { wealth: -1000, energy: 12 },
-          flags: { decision_e2_housing: "Single dorm, higher cost", housing_sorted: true, dorm_single: true }
-        }
-      },
-      {
-        text: "Choose a cheaper double room and accept the roommate lottery. [Wealth -, Intl network +]",
-        next: "e2_w12_roommate_intro",
-        effects: {
-          stats: { wealth: -600, culture: 3 },
-          guanxi: { intlStudents: 6 },
-          flags: { decision_e2_housing: "Double dorm, roommate lottery", housing_sorted: true, dorm_double: true }
-        }
-      },
-      {
-        text: "Wait for campus allocation and save cash. [Wealth -, Energy -, Admin network +]",
-        next: "e2_w12_roommate_intro",
-        effects: {
-          stats: { wealth: -300, energy: -8 },
-          guanxi: { admin: 4 },
-          flags: { decision_e2_housing: "Campus allocation pending", housing_sorted: false, dorm_pending: true }
+          flags: { housing_simpad_required: true, housing_portal_seen: true }
         }
       }
     ]
   },
 
   "e2_w12_roommate_intro": {
+    storyBeat: true,
     speaker: "Minghai Intl Group",
     location: "Home Country",
-    text: "A student named Sophie posts a spreadsheet of bedding sizes, extension-plug warnings, and which dorm floors have decent water pressure. Someone replies, 'You are saving lives.' Sophie answers, 'No, only backs.'",
+    text: "After the housing choice, the Minghai international group pings again. Sophie, the senior you first noticed in the departure-eve chat, posts a spreadsheet of bedding sizes, extension-plug warnings, and which dorm floors have decent water pressure.\n\nA second name appears under the dorm-floor thread: Neighbor Li. Li is not your friend yet, just a student on the floor you are likely to live near, answering practical questions before the office has even sent a clean notice.\n\nThis is the early introduction: Sophie is the international-student guide; Neighbor Li is the dorm-floor local contact. Later choices can deepen either relationship, but the names are no longer mystery labels.",
     choices: [
       {
-        text: "Introduce yourself honestly in the group. [Intl network +, Relationship +]",
+        text: "Continue",
         next: "e2_w12_housing_done",
         effects: {
-          stats: { energy: -2 },
-          guanxi: { intlStudents: 4 },
-          relationships: { Sophie: { friendship: 5 } },
-          flags: { introduced_to_group: true, met_sophie_online: true }
-        }
-      },
-      {
-        text: "Quietly save every useful message. [Digital +, Energy +]",
-        next: "e2_w12_housing_done",
-        effects: {
-          stats: { digitalProficiency: 3, energy: 3 },
-          flags: { predeparture_lurker: true }
-        }
-      },
-      {
-        text: "Ask practical questions about check-in day. [Digital +, Intl network +]",
-        next: "e2_w12_housing_done",
-        effects: {
-          stats: { digitalProficiency: 2 },
-          guanxi: { intlStudents: 6 },
-          flags: { asked_checkin_questions: true }
+          stats: { digitalProficiency: 3, culture: 2, energy: 2 },
+          guanxi: { intlStudents: 5, localStudents: 3 },
+          relationships: { Sophie: { friendship: 5 }, "Neighbor Li": { friendship: 3 } },
+          flags: {
+            introduced_to_group: true,
+            met_sophie_online: true,
+            sophie_role_known: true,
+            wechat_sophie_added: true,
+            met_neighbor_li_online: true,
+            neighbor_li_role_known: true,
+            wechat_neighbor_li_previewed: true
+          }
         }
       }
     ]
@@ -313,35 +322,20 @@ export const epoch2Events = {
   },
 
   "e2_w13_arrival_plan": {
+    storyBeat: true,
     speaker: "Arrival Notes",
     bgImage: '/images/simulator/backgrounds/bg_pudong_arrivals.jpg',
     location: "Home Country",
-    text: "Shanghai Pudong International Airport becomes a map you keep zooming into. This is not the phone setup anymore; this is the first-hour plan. Terminal. Baggage. Customs. Taxi stand. Metro. Pickup zone. If the landing goes badly, which decision will carry you to Minghai?",
+    text: "Shanghai Pudong International Airport becomes a map you keep zooming into. The first-hour plan is no longer optional: the simulator will force a SimPad DiDi tutorial after landing so you learn how phone-based transport works before the city opens wider.\n\nThe arrival group also assigns a student volunteer contact: Xiao Chen. He sends a blunt message: 'Do not freestyle Pudong pickup zones with luggage. Save screenshots first.' This is your early introduction to him: local, fast, practical, and already thinking in systems.",
     choices: [
       {
-        text: "Confirm the DiDi pickup screenshots you already prepared. [Digital +, Energy +, Wealth -]",
-        condition: { flags: { has_didi: true } },
+        text: "Continue",
         next: "e2_w13_flight_done",
         effects: {
-          stats: { digitalProficiency: 3, energy: 3, wealth: -60 },
-          flags: { airport_transfer_plan: "Pre-set DiDi pickup" }
-        }
-      },
-      {
-        text: "Plan for the official taxi queue and practice the address in Chinese. [Chinese +, Energy -]",
-        next: "e2_w13_flight_done",
-        effects: {
-          stats: { chinese: 5, energy: -3 },
-          flags: { airport_transfer_plan: "Official taxi queue" }
-        }
-      },
-      {
-        text: "Ask whether Minghai has a student pickup buddy. [Admin network +, Local network +]",
-        next: "e2_w13_flight_done",
-        effects: {
-          guanxi: { admin: 3, localStudents: 4 },
-          relationships: { "Xiao Chen": { friendship: 4 } },
-          flags: { airport_transfer_plan: "Minghai buddy pickup", met_xiao_chen_online: true }
+          stats: { digitalProficiency: 4, energy: 2 },
+          guanxi: { localStudents: 3 },
+          relationships: { "Xiao Chen": { friendship: 3 } },
+          flags: { has_didi: true, airport_transfer_plan: "Required SimPad DiDi tutorial prepared", met_xiao_chen_online: true, xiao_chen_role_known: true, wechat_xiao_chen_previewed: true }
         }
       }
     ]

@@ -2,18 +2,24 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 
-export default function StoryPanel({ node, state, availableChoices, onChoice, onTextTick }) {
+export default function StoryPanel({ node, state, availableChoices, availableDialogueChoices = [], onChoice, onDialogueChoice, onTextTick, onShowScene }) {
   const [showChoices, setShowChoices] = useState(false);
   const [textKey, setTextKey] = useState(0);
   const [displayText, setDisplayText] = useState("");
+  const [selectedDialogueChoice, setSelectedDialogueChoice] = useState(null);
   const fullTextRef = useRef("");
   const onTextTickRef = useRef(onTextTick);
+  const typewriterIntervalRef = useRef(null);
 
   useEffect(() => {
     onTextTickRef.current = onTextTick;
   }, [onTextTick]);
 
   const revealFullText = () => {
+    if (typewriterIntervalRef.current) {
+      clearInterval(typewriterIntervalRef.current);
+      typewriterIntervalRef.current = null;
+    }
     setDisplayText(fullTextRef.current || node?.text || "");
     setShowChoices(true);
   };
@@ -23,6 +29,7 @@ export default function StoryPanel({ node, state, availableChoices, onChoice, on
     setShowChoices(false);
     setTextKey(prev => prev + 1);
     setDisplayText("");
+    setSelectedDialogueChoice(null);
 
     if (!node) return;
 
@@ -37,6 +44,11 @@ export default function StoryPanel({ node, state, availableChoices, onChoice, on
     fullTextRef.current = fullText;
     let i = 0;
 
+    if (typewriterIntervalRef.current) {
+      clearInterval(typewriterIntervalRef.current);
+      typewriterIntervalRef.current = null;
+    }
+
     const interval = setInterval(() => {
       const nextChar = fullText.charAt(i);
       currentText += nextChar;
@@ -47,12 +59,19 @@ export default function StoryPanel({ node, state, availableChoices, onChoice, on
       i++;
       if (i >= fullText.length) {
         clearInterval(interval);
+        typewriterIntervalRef.current = null;
         setShowChoices(true);
       }
     }, 20); // 20ms per character
+    typewriterIntervalRef.current = interval;
 
-    return () => clearInterval(interval);
-  }, [node]);
+    return () => {
+      clearInterval(interval);
+      if (typewriterIntervalRef.current === interval) {
+        typewriterIntervalRef.current = null;
+      }
+    };
+  }, [node, state]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -66,6 +85,8 @@ export default function StoryPanel({ node, state, availableChoices, onChoice, on
 
             if (!showChoices) {
               revealFullText();
+            } else if (node?.storyBeat && availableChoices?.length === 1 && availableDialogueChoices.length === 0) {
+              onChoice(availableChoices[0]);
             }
 
             return;
@@ -77,16 +98,49 @@ export default function StoryPanel({ node, state, availableChoices, onChoice, on
 
         // Number keys for choices
         const num = parseInt(e.key);
-        if (!isNaN(num) && num > 0 && availableChoices && num <= availableChoices.length) {
+        const activeDialogueChoices = availableDialogueChoices.length > 0 && !selectedDialogueChoice
+          ? availableDialogueChoices
+          : [];
+        const activeChoices = activeDialogueChoices.length > 0 ? activeDialogueChoices : availableChoices;
+
+        if (!isNaN(num) && num > 0 && activeChoices && num <= activeChoices.length) {
             e.preventDefault();
-            onChoice(availableChoices[num - 1]);
+            if (activeDialogueChoices.length > 0) {
+              handleDialogueChoice(activeDialogueChoices[num - 1]);
+            } else {
+              onChoice(activeChoices[num - 1]);
+            }
         }
     };
     document.addEventListener("keydown", handleKeyDown, true);
     return () => document.removeEventListener("keydown", handleKeyDown, true);
-  }, [showChoices, availableChoices, node, onChoice]);
+  }, [showChoices, availableChoices, availableDialogueChoices, selectedDialogueChoice, node, onChoice, onDialogueChoice]);
 
   if (!node) return null;
+
+  const pendingDialogueChoices = showChoices && availableDialogueChoices.length > 0 && !selectedDialogueChoice
+    ? availableDialogueChoices
+    : [];
+  const visibleActionChoices = showChoices && pendingDialogueChoices.length === 0
+    ? availableChoices
+    : [];
+
+  const handleDialogueChoice = (choice) => {
+    onDialogueChoice?.(choice);
+    setSelectedDialogueChoice(choice);
+
+    const playerLine = choice.say || choice.text;
+    const response = choice.responseText || (choice.reply ? `${node.speaker || "Character"}: '${choice.reply}'` : "");
+    const branchText = [
+      playerLine ? `You: '${playerLine}'` : "",
+      response
+    ].filter(Boolean).join("\n\n");
+    const nextText = `${fullTextRef.current}${branchText ? `\n\n${branchText}` : ""}`;
+
+    fullTextRef.current = nextText;
+    setDisplayText(nextText);
+    setShowChoices(true);
+  };
 
   const speakerImages = {
     "Professor Lin": "images/simulator/characters_v2/professor_lin_v2.jpg",
@@ -95,6 +149,7 @@ export default function StoryPanel({ node, state, availableChoices, onChoice, on
     "Dr. Mei": "images/simulator/characters_v2/dr_mei_v2.jpg",
     "Manager Zhang": "images/simulator/characters_v2/manager_zhang_v2.jpg",
     "Xiao Chen": "images/simulator/characters_v2/xiao_chen_v2.jpg",
+    "Lin Yue": "images/simulator/characters_v2/lin_yue_v2.png",
     "Sophie": "images/simulator/characters_v2/sophie_v2.jpg",
     "Uncle Wang": "images/simulator/characters_v2/uncle_wang_v2.jpg",
     "Neighbor Li": "images/simulator/characters_v2/neighbor_li_v2.jpg",
@@ -113,30 +168,125 @@ export default function StoryPanel({ node, state, availableChoices, onChoice, on
   };
   const speakerImg = node?.speaker ? speakerImages[node.speaker] : null;
   const isCharacterLine = Boolean(speakerImg);
+  const usesVnDialogueLayout = isCharacterLine;
+  const showSpeakerPortrait = Boolean(speakerImg);
+  const isWeeklyPlanner = state?.phase === "In-China" && node.speaker === "Weekly Planner";
+  const isEndingScreen = Boolean(node.choices?.some(choice => choice.action === "reset_game"));
+  const isStoryBeat = Boolean(node.storyBeat) && visibleActionChoices?.length === 1;
+  const useCompactChoiceGrid = isWeeklyPlanner && pendingDialogueChoices.length === 0 && visibleActionChoices?.length >= 6;
+  const useDenseChoiceList = !isWeeklyPlanner && !isStoryBeat && pendingDialogueChoices.length === 0 && visibleActionChoices?.length >= 4;
+  const hasDialogueReplies = pendingDialogueChoices.length > 0;
+  const choiceMenuClass = usesVnDialogueLayout
+    ? `grid w-full max-w-6xl grid-cols-1 gap-2 self-center px-2 sm:pl-32 sm:pr-0 ${hasDialogueReplies || visibleActionChoices?.length > 1 ? "sm:grid-cols-3" : "sm:grid-cols-1"}`
+    : hasDialogueReplies
+    ? "grid w-full max-w-6xl grid-cols-1 gap-2 self-center px-2 sm:grid-cols-3"
+    : useCompactChoiceGrid
+    ? "grid max-h-[46vh] w-full grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2 lg:grid-cols-3 lg:pl-56"
+    : useDenseChoiceList
+      ? "flex max-h-[50vh] flex-col gap-2 items-end overflow-y-auto pr-1"
+      : `flex max-h-[58vh] flex-col gap-2 ${isStoryBeat ? "items-center" : "items-end"} overflow-y-auto pr-1`;
+  const dialogueButtonClass = "group relative flex min-h-[50px] flex-col justify-center rounded-lg border border-cyan-300/45 bg-slate-950/80 px-3 py-2 text-left text-cyan-50 shadow-[0_14px_34px_rgba(0,0,0,0.5)] backdrop-blur-md transition-all hover:border-cyan-200 hover:bg-cyan-950/90";
+  const actionButtonClass = useCompactChoiceGrid
+    ? "bg-slate-900/90 border border-slate-700/60 hover:bg-slate-800 hover:border-amber-500 hover:text-amber-300 text-slate-200 px-3 py-2 rounded-lg text-left w-full min-h-[76px] shadow-xl backdrop-blur-md transition-all group flex flex-col relative"
+    : useDenseChoiceList
+      ? "bg-slate-900/90 border border-slate-700/50 hover:bg-slate-800 hover:border-amber-500 hover:text-amber-400 text-slate-200 px-3 py-2 rounded-lg text-left w-full sm:w-[58%] shadow-xl backdrop-blur-md transition-all group flex flex-col relative"
+      : usesVnDialogueLayout
+      ? "group relative flex min-h-[50px] flex-col justify-center rounded-lg border border-cyan-300/45 bg-slate-950/80 px-3 py-2 text-left text-cyan-50 shadow-[0_14px_34px_rgba(0,0,0,0.5)] backdrop-blur-md transition-all hover:border-cyan-200 hover:bg-cyan-950/90"
+      : isStoryBeat
+      ? "bg-amber-500/95 border border-amber-200/70 hover:bg-amber-400 text-slate-950 px-6 py-3 rounded-lg text-center w-auto min-w-40 shadow-xl transition-all group flex flex-col relative"
+      : "bg-slate-900/90 border border-slate-700/50 hover:bg-slate-800 hover:border-amber-500 hover:text-amber-400 text-slate-200 px-4 py-3 rounded-xl text-left w-full sm:w-2/3 shadow-xl backdrop-blur-md transition-all group flex flex-col relative";
+  const actionIndexClass = useCompactChoiceGrid
+    ? "absolute left-2 top-2 text-slate-600 font-mono text-[10px] opacity-60 group-hover:opacity-100 group-hover:text-amber-500 transition-all"
+    : "absolute left-3 top-1/2 -translate-y-1/2 text-slate-600 font-mono text-[10px] opacity-50 group-hover:opacity-100 group-hover:text-amber-500 transition-all";
+
+  if (isEndingScreen) {
+    return (
+      <div className="z-10 flex flex-1 items-center justify-center p-6">
+        <div
+          key={textKey}
+          onClick={() => {
+            if (!showChoices) revealFullText();
+          }}
+          className="flex h-[82vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-amber-200/25 bg-slate-950/88 shadow-[0_28px_90px_rgba(0,0,0,0.68)] backdrop-blur-md animate-in fade-in zoom-in-95 duration-500"
+        >
+          <EndingStoryContent text={displayText} showCursor={!showChoices} />
+          {showChoices && visibleActionChoices?.length > 0 && (
+            <div className="flex items-center justify-between border-t border-white/10 bg-slate-950/95 px-6 py-4">
+              <div>
+                <div className="text-[10px] font-black uppercase tracking-[0.28em] text-amber-200/70">Ending Complete</div>
+                <div className="mt-1 text-xs text-slate-500">You can restart from a fresh run.</div>
+              </div>
+              <div className="flex items-center gap-3">
+                {onShowScene && (
+                  <button
+                    tabIndex={-1}
+                    onClick={onShowScene}
+                    className="rounded-lg border border-sky-200/50 bg-sky-500/15 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-sky-100 shadow-lg transition-all hover:bg-sky-400/25"
+                  >
+                    Show Scene
+                  </button>
+                )}
+                {visibleActionChoices.map((choice, i) => (
+                  <button
+                    key={i}
+                    tabIndex={-1}
+                    onClick={() => onChoice(choice)}
+                    className="rounded-lg border border-amber-200/70 bg-amber-500 px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-slate-950 shadow-lg transition-all hover:bg-amber-400"
+                  >
+                    {choice.text}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex-1 flex flex-col justify-end p-4 pb-16 z-10 w-full max-w-5xl mx-auto relative pt-24">
+    <div className={`${isWeeklyPlanner ? "max-w-6xl pb-6 pt-28" : (usesVnDialogueLayout ? "max-w-6xl pb-5 pt-20" : "max-w-5xl pb-12 pt-24")} flex-1 flex flex-col justify-end z-10 w-full mx-auto relative`}>
 
       {/* Choice Menu */}
-      <div className={`flex flex-col mb-4 gap-2 items-end transition-all duration-700 ${showChoices ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
-        {showChoices && availableChoices && availableChoices.length > 0 && availableChoices.map((choice, i) => (
+      {!isEndingScreen && <div className={`${choiceMenuClass} ${usesVnDialogueLayout ? "mb-7" : "mb-3"} transition-all duration-700 ${showChoices ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+        {pendingDialogueChoices.length > 0 && pendingDialogueChoices.map((choice, i) => (
+          <button
+            key={`dialogue-${i}`}
+            tabIndex={-1}
+            onClick={() => handleDialogueChoice(choice)}
+            className={dialogueButtonClass}
+          >
+            <div className="flex items-start gap-2">
+              <span className="mt-0.5 font-mono text-[10px] text-cyan-300/60 group-hover:text-cyan-200">[{i+1}]</span>
+              <div className="min-w-0">
+                <div className="text-[9px] font-black uppercase tracking-[0.18em] text-cyan-300/80">Reply</div>
+                <div className="text-sm font-semibold leading-snug sm:text-[15px]">{choice.text}</div>
+              </div>
+              {choice.detail && <div className="mt-1 text-xs leading-snug text-cyan-100/70">{choice.detail}</div>}
+            </div>
+          </button>
+        ))}
+        {visibleActionChoices && visibleActionChoices.length > 0 && visibleActionChoices.map((choice, i) => (
           <button
             key={i}
             tabIndex={-1}
             onClick={() => onChoice(choice)}
-            className="bg-slate-900/90 border border-slate-700/50 hover:bg-slate-800 hover:border-amber-500 hover:text-amber-400 text-slate-200 px-4 py-3 rounded-xl text-left w-full sm:w-2/3 shadow-xl backdrop-blur-md transition-all group flex flex-col relative"
+            className={actionButtonClass}
           >
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600 font-mono text-[10px] opacity-50 group-hover:opacity-100 group-hover:text-amber-500 transition-all">[{i+1}]</div>
-            <div className="font-medium text-base pl-5">{choice.text}</div>
-            {choice.effects && <ChoicePreview effects={choice.effects} />}
+            {!isStoryBeat && <div className={actionIndexClass}>[{i+1}]</div>}
+            <div className={isStoryBeat ? "" : "pl-5"}>
+              <div className={`${useCompactChoiceGrid || useDenseChoiceList ? "text-sm" : "text-base"} font-medium leading-tight`}>{choice.text}</div>
+              {choice.detail && <div className={`${useDenseChoiceList ? "mt-0.5" : "mt-1"} text-xs leading-snug text-slate-400 group-hover:text-slate-300`}>{choice.detail}</div>}
+            </div>
+            {!isStoryBeat && choice.effects && <ChoicePreview effects={choice.effects} compact={useCompactChoiceGrid || useDenseChoiceList} />}
           </button>
         ))}
-      </div>
+      </div>}
 
       {/* Dialogue Box */}
-      <div className={`flex w-full items-end gap-4 ${isCharacterLine ? "justify-start" : "justify-center"}`}>
-        {speakerImg && (
-          <div className="hidden sm:block h-80 w-56 shrink-0 overflow-hidden rounded-t-[2rem] rounded-b-2xl border border-amber-200/30 bg-slate-950/80 shadow-[0_24px_70px_rgba(0,0,0,0.72)] animate-in slide-in-from-left-8 fade-in duration-700 ease-out">
+      <div className={`flex w-full items-end gap-4 ${showSpeakerPortrait ? "justify-start" : "justify-center"}`}>
+        {showSpeakerPortrait && (
+          <div className={`hidden shrink-0 overflow-hidden border border-amber-200/30 bg-slate-950/80 shadow-[0_24px_70px_rgba(0,0,0,0.72)] animate-in slide-in-from-left-8 fade-in duration-700 ease-out sm:block ${usesVnDialogueLayout ? "h-36 w-28 rounded-2xl" : "h-80 w-56 rounded-t-[2rem] rounded-b-2xl"}`}>
             <img src={speakerImg} alt={node.speaker} className="h-full w-full object-cover object-center" />
           </div>
         )}
@@ -146,7 +296,7 @@ export default function StoryPanel({ node, state, availableChoices, onChoice, on
           onClick={() => {
             if (!showChoices) revealFullText();
           }}
-          className={`${isCharacterLine ? "max-w-3xl rounded-[1.6rem] border-amber-200/40 bg-slate-950/95 p-5 sm:p-6" : "max-w-3xl rounded-xl border-slate-700 bg-slate-900/95 p-5"} relative w-full border backdrop-blur-xl shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500`}
+          className={`${isCharacterLine ? "ending-scrollbar max-h-[27vh] max-w-none overflow-y-auto rounded-2xl border-amber-200/35 bg-slate-950/90 p-4" : (isWeeklyPlanner ? "max-w-5xl rounded-xl border-slate-700 bg-slate-900/95 p-3 sm:p-4" : "max-w-3xl rounded-xl border-slate-700 bg-slate-900/95 p-5")} relative min-w-0 w-full border backdrop-blur-md shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500`}
         >
           {speakerImg && (
             <>
@@ -179,12 +329,31 @@ export default function StoryPanel({ node, state, availableChoices, onChoice, on
             )}
           </div>
 
-          <p className={`${isCharacterLine ? "font-sans text-xl text-slate-50" : "font-serif text-lg text-slate-100"} leading-relaxed mt-2 min-h-[3rem] whitespace-pre-wrap`}>
-            {displayText}
-            {!showChoices && <span className="inline-block w-1.5 bg-amber-500 opacity-50 animate-pulse ml-1">&nbsp;</span>}
-          </p>
+          <StoryTextContent
+            text={displayText}
+            isCharacterLine={isCharacterLine}
+            compact={isWeeklyPlanner}
+            showCursor={!showChoices}
+          />
+          {state?.phase === "In-China" && node.speaker === "Weekly Planner" && (
+            <div className="mt-4 space-y-2 text-xs">
+              <div className="rounded-lg border border-slate-600/50 bg-slate-950/70 px-3 py-2 text-slate-300">
+                Choose a category above first; the next screen shows specific activities and their stat tradeoffs.
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-lg border border-cyan-400/25 bg-cyan-400/10 px-3 py-2 text-cyan-100">
+                  <span className="font-bold">Weekday actions</span>
+                  <span className="float-right font-mono">{state.weeklyActions?.weekday ?? 0}/3</span>
+                </div>
+                <div className="rounded-lg border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-amber-100">
+                  <span className="font-bold">Weekend action</span>
+                  <span className="float-right font-mono">{state.weeklyActions?.weekend ?? 0}/1</span>
+                </div>
+              </div>
+            </div>
+          )}
           <div className="mt-4 text-right text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-            {showChoices ? "Choose with mouse or number keys. Space will not select." : "Press Space or Enter to finish this line."}
+            {showChoices ? (isStoryBeat ? "Continue." : (pendingDialogueChoices.length > 0 ? "Choose your reply with mouse or number keys." : "Choose with mouse or number keys. Space will not select.")) : "Press Space or Enter to finish this line."}
           </div>
         </div>
       </div>
@@ -192,20 +361,205 @@ export default function StoryPanel({ node, state, availableChoices, onChoice, on
   );
 }
 
+function EndingStoryContent({ text, showCursor }) {
+  const [endingText = "", afterwordText = ""] = (text || "").split(/\n\n--- PERSONAL AFTERWORD ---\n\n/);
+  const cleanedEnding = endingText.replace(/^ENDING:\s*/i, "").trim();
+  const titleMatch = cleanedEnding.match(/^([^.!?]+)[.!?]\s*([\s\S]*)$/);
+  const endingTitle = titleMatch ? titleMatch[1].trim() : "Ending";
+  const endingBody = titleMatch ? titleMatch[2].trim() : cleanedEnding;
+  const endingSegments = parseStoryText(endingBody);
+  const afterwordCards = afterwordText
+    .split(/\n{2,}/)
+    .map(card => card.trim())
+    .filter(Boolean)
+    .map(card => {
+      const match = card.match(/^([^:]{3,42}):\s*([\s\S]*)$/);
+      if (!match) return { title: "Memory", body: card };
+      return { title: match[1].trim(), body: match[2].trim() };
+    });
+
+  return (
+    <div className="ending-scrollbar min-h-0 flex-1 overflow-y-auto px-6 py-6">
+      <div className="space-y-5">
+        <section className="border-b border-white/10 pb-5">
+          <div className="text-[10px] font-black uppercase tracking-[0.32em] text-amber-300">Ending</div>
+          <h2 className="mt-3 font-serif text-3xl font-black leading-tight text-white sm:text-4xl">
+            {endingTitle}
+          </h2>
+          {endingSegments.length > 0 && (
+            <div className="mt-4 max-w-4xl space-y-3">
+              {endingSegments.map((segment, index) => {
+                const isLast = index === endingSegments.length - 1;
+                if (segment.type === "dialogue") {
+                  return (
+                    <div key={`${segment.speaker}-${index}`} className="rounded-xl border border-white/10 bg-slate-950/35 px-4 py-3">
+                      <div className="text-[10px] font-black uppercase tracking-[0.24em] text-amber-200">{segment.speaker}</div>
+                      <p className="mt-1 whitespace-pre-wrap text-base leading-relaxed text-slate-100 sm:text-lg">
+                        {segment.body}
+                        {showCursor && afterwordCards.length === 0 && isLast && <span className="ml-1 inline-block w-1.5 animate-pulse bg-amber-500 opacity-50">&nbsp;</span>}
+                      </p>
+                    </div>
+                  );
+                }
+
+                return (
+                  <p key={`ending-narration-${index}`} className="whitespace-pre-wrap font-serif text-base leading-relaxed text-slate-100 sm:text-lg">
+                    {segment.body}
+                    {showCursor && afterwordCards.length === 0 && isLast && <span className="ml-1 inline-block w-1.5 animate-pulse bg-amber-500 opacity-50">&nbsp;</span>}
+                  </p>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        {afterwordCards.length > 0 && (
+          <section className="space-y-2">
+            <div className="text-[10px] font-black uppercase tracking-[0.32em] text-amber-200">Personal Afterword</div>
+            <div className="divide-y divide-slate-700/70">
+              {afterwordCards.map((card, index) => {
+                const isLast = index === afterwordCards.length - 1;
+                return (
+                  <article key={`${card.title}-${index}`} className="py-3">
+                    <div className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-200">{card.title}</div>
+                    <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-200 sm:text-base">
+                      {card.body}
+                      {showCursor && isLast && <span className="ml-1 inline-block w-1.5 animate-pulse bg-amber-500 opacity-50">&nbsp;</span>}
+                    </p>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function StoryTextContent({ text, isCharacterLine, compact = false, showCursor }) {
+  const segments = parseStoryText(text);
+
+  if (segments.length === 0) {
+    return (
+      <div className={`${isCharacterLine ? "font-sans text-xl text-slate-50" : (compact ? "font-serif text-base text-slate-100" : "font-serif text-lg text-slate-100")} leading-relaxed mt-2 min-h-[3rem]`}>
+        {showCursor && <span className="inline-block w-1.5 bg-amber-500 opacity-50 animate-pulse ml-1">&nbsp;</span>}
+      </div>
+    );
+  }
+
+  return (
+    <div className={`${isCharacterLine ? "font-sans text-lg text-slate-50" : (compact ? "font-serif text-base text-slate-100" : "font-serif text-lg text-slate-100")} mt-2 min-h-[3rem] space-y-3 leading-relaxed`}>
+      {segments.map((segment, index) => {
+        const isLast = index === segments.length - 1;
+        const cursor = showCursor && isLast ? (
+          <span className="inline-block w-1.5 bg-amber-500 opacity-50 animate-pulse ml-1">&nbsp;</span>
+        ) : null;
+
+        if (segment.type === "dialogue") {
+          const isPlayer = segment.speaker === "You";
+          return (
+            <div key={index} className={`flex ${isPlayer ? "justify-end" : "justify-start"}`}>
+              <div className={`${isPlayer ? "border-cyan-300/35 bg-cyan-950/45 text-cyan-50" : "border-amber-200/30 bg-slate-900/80 text-slate-50"} max-w-[88%] rounded-lg border px-4 py-3 shadow-lg`}>
+                <div className={`${isPlayer ? "text-cyan-300" : "text-amber-300"} mb-1 text-[11px] font-bold uppercase tracking-[0.16em]`}>
+                  {segment.speaker}
+                </div>
+                <div className="whitespace-pre-wrap text-base sm:text-lg">
+                  {segment.body}
+                  {cursor}
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        return (
+          <p key={index} className={`${isCharacterLine ? "text-slate-200/90" : "text-slate-100"} whitespace-pre-wrap ${compact ? "text-base" : "text-base sm:text-lg"}`}>
+            {segment.body}
+            {cursor}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
+function parseStoryText(text) {
+  if (!text) return [];
+
+  return text
+    .split(/\n{2,}/)
+    .filter(segment => segment.length > 0)
+    .map(segment => {
+      const match = segment.match(/^([A-Za-z][A-Za-z .'-]{0,34}):\s*([\s\S]*)$/);
+      if (!match) {
+        return { type: "narration", body: segment };
+      }
+
+      const speaker = match[1].trim();
+      if (speaker.split(/\s+/).length > 3) {
+        return { type: "narration", body: segment };
+      }
+      const body = match[2];
+
+      return { type: "dialogue", speaker, body };
+    });
+}
+
 function buildEndingAfterword(state) {
-   if (!state || !state.relationships) return "";
+   if (!state) return "";
 
    const flags = state.flags || {};
-   const strongest = getStrongestRelationship(state.relationships);
-   const relationshipLine = strongest ? getRelationshipAfterword(strongest.name, strongest.rel, flags) : "";
+   const relationshipLines = getTopRelationships(state.relationships || {}, 3)
+      .map(({ name, rel }) => getRelationshipAfterword(name, rel, flags))
+      .filter(Boolean);
+   const systemLines = getSystemMemoryReflections(flags);
+   const routeLine = getRouteReportLine(state);
+   const lifeCheckLine = getLifeCheckReportLine(state);
    const personalLine = getPersonalReflection(flags);
-   const lines = [relationshipLine, personalLine].filter(Boolean);
+   const lines = [routeLine, lifeCheckLine, ...relationshipLines, ...systemLines, personalLine].filter(Boolean);
 
    if (lines.length === 0) return "";
    return `\n\n--- PERSONAL AFTERWORD ---\n\n${lines.join("\n\n")}`;
 }
 
+function getRouteReportLine(state) {
+   const routes = state.routeCommitments || {};
+   const strongest = Object.entries(routes).sort((a, b) => (b[1] || 0) - (a[1] || 0))[0];
+   if (!strongest || strongest[1] <= 0) return "";
+
+   const labels = {
+      academic: "Academic Portfolio",
+      career: "Internship Dossier",
+      local: "Neighborhood Map",
+      intl: "Support Circle Guide",
+      city: "Shanghai Prototype",
+      survival: "Budget Ledger"
+   };
+   const label = labels[strongest[0]] || strongest[0];
+   return `Route report: this run leaned hardest into the ${label}. The ending is not only a title; it is the shape made by weeks of repeated choices, missed chances, and the systems you kept feeding.`;
+}
+
+function getLifeCheckReportLine(state) {
+   const checks = state.lifeChecks?.history || [];
+   if (checks.length === 0) return "";
+
+   const passed = checks.filter(check => check.success).length;
+   const strained = checks.length - passed;
+   const hardest = checks
+      .slice()
+      .sort((a, b) => (a.margin || 0) - (b.margin || 0))[0];
+   const prepTitles = Array.from(new Set(checks.flatMap(check => (check.prepCards || []).map(card => card.title)))).slice(0, 3);
+   const prepText = prepTitles.length > 0 ? ` The quiet heroes were ${prepTitles.join(", ")}.` : "";
+   const hardestText = hardest ? ` The hardest check was ${hardest.label}, where the margin was ${hardest.margin}.` : "";
+   return `Life check report: ${passed}/${checks.length} key checks held, with ${strained} strained moments that still marked the year.${hardestText}${prepText}`;
+}
+
 function getStrongestRelationship(relationships) {
+   return getTopRelationships(relationships, 1)[0] || null;
+}
+
+function getTopRelationships(relationships, limit = 3) {
    const candidates = Object.entries(relationships)
       .filter(([, rel]) => (rel.friendship || 0) > 0 || (rel.romance || 0) > 0)
       .map(([name, rel]) => ({
@@ -215,7 +569,7 @@ function getStrongestRelationship(relationships) {
       }))
       .sort((a, b) => b.score - a.score);
 
-   return candidates[0] || null;
+   return candidates.slice(0, limit);
 }
 
 function getRelationshipAfterword(name, rel, flags) {
@@ -255,6 +609,22 @@ function getRelationshipAfterword(name, rel, flags) {
          return "Sophie keeps teasing you about the bridge activity, then posts the next signup link before you can protest. The international circle does not vanish; it grows doors.";
       }
       return "Sophie stays pinned near the top of WeChat, proof that sometimes the first person who admits they are lost becomes the map everyone else follows.";
+   }
+
+   if (name === "Lin Yue") {
+      if (flags.lin_yue_soft_romance || romance >= 16) {
+         return "Lin Yue never turns the riverside confession into a grand promise. That is what makes it feel real: two warm drinks, a slower pace, and someone who knows you well enough to ask for clarity instead of drama.";
+      }
+      if (flags.lin_yue_friendship_anchor) {
+         return "Lin Yue remains one of the rare people who made local life feel neither exotic nor effortless. She taught you that friendship can be a boundary kept well, not a boundary erased.";
+      }
+      if (flags.lin_yue_boundary_repaired) {
+         return "The repair with Lin Yue changes how you ask for help after Minghai. You stop treating local knowledge like a bridge people owe you, and start noticing the person standing on it.";
+      }
+      if (flags.lin_yue_presentation_partner) {
+         return "Lin Yue's presentation lesson follows you into every mixed-language room after that: speak before the sentence is perfect, but never make someone else carry the whole room for you.";
+      }
+      return "Lin Yue becomes the classmate whose honesty made Minghai less abstract: not a tour guide, not a translator, but a person who expected you to become clearer.";
    }
 
    if (name === "Neighbor Li") {
@@ -340,7 +710,36 @@ function getPersonalReflection(flags) {
    return "";
 }
 
-function ChoicePreview({ effects }) {
+function getSystemMemoryReflections(flags) {
+   const lines = [];
+
+   if (flags.calendar_final_prepped || flags.calendar_midterm_prepped || flags.delayed_calendar_focus_seen) {
+      lines.push("Your calendar becomes one of the quiet heroes of the year: not glamorous, never photographed, but always waiting with the next thing that needed doing before it became a crisis.");
+   }
+   if (flags.wechat_repair_messages_sent) {
+      lines.push("You learn that WeChat is not just where relationships happen. It is where they need maintenance. The messages you repaired late matter partly because they were late and honest.");
+   } else if (flags.wechat_silence_consequence_ready || flags.wechat_silence_weeks >= 2) {
+      lines.push("A few quiet message threads remain part of the ending too. Nothing exploded; some things simply cooled, which is often how distance tells the truth.");
+   }
+   if (flags.taobao_address_template_fixed || flags.taobao_wrong_address_recovery_used) {
+      lines.push("Taobao teaches you a surprisingly adult skill: a life depends on boring details like address templates, delivery notes, and answering the courier before the second call.");
+   }
+   if (flags.didi_pickup_points_saved || flags.didi_pickup_zone_lesson) {
+      lines.push("DiDi changes from a button into a city literacy test. By the end, you know which gate is real, which map pin lies, and why every shortcut still asks for local knowledge.");
+   }
+   if (flags.housing_energy_scar) {
+      lines.push("The cheap housing choice saves money but leaves a mark on the year: more tired mornings, more careful planning, and a private understanding that survival is also a route.");
+   } else if (flags.housing_friction_repaired || flags.has_housing) {
+      lines.push("Your housing choice becomes more than an address. It shapes who you see, how tired you are, and which version of Shanghai waits outside your door.");
+   }
+   if (flags.emergency_funding_used) {
+      lines.push(`The financial rescue never vanishes from memory. ${flags.emergency_funding_source || "Emergency support"} keeps the year alive, but it also teaches you that every dream needs a backup plan with numbers on it.`);
+   }
+
+   return lines.slice(0, 3);
+}
+
+function ChoicePreview({ effects, compact = false }) {
    if (!effects) return null;
 
    const previews = [];
@@ -358,7 +757,7 @@ function ChoicePreview({ effects }) {
           const color = v > 0 ? "text-emerald-400" : "text-red-400";
           const sign = v > 0 ? "+" : "";
           const name = statNames[k] || (k.charAt(0).toUpperCase() + k.slice(1));
-          previews.push(<span key={k} className={`${color} font-mono text-xs uppercase tracking-wider`}>{name} {sign}{v}</span>);
+          previews.push(<span key={k} className={`${color} font-mono ${compact ? "text-[10px]" : "text-xs"} uppercase tracking-wider`}>{name} {sign}{v}</span>);
        });
    }
    const guanxiNames = {
@@ -371,11 +770,19 @@ function ChoicePreview({ effects }) {
    if (effects.guanxi) {
        Object.entries(effects.guanxi).forEach(([k, v]) => {
            const gSign = v > 0 ? "+" : "";
-           previews.push(<span key={`guanxi_${k}`} className={`text-amber-400 font-mono text-xs uppercase tracking-wider`}>Network({guanxiNames[k] || k}) {gSign}{v}</span>);
+           previews.push(<span key={`guanxi_${k}`} className={`text-amber-400 font-mono ${compact ? "text-[10px]" : "text-xs"} uppercase tracking-wider`}>Network({guanxiNames[k] || k}) {gSign}{v}</span>);
        });
    }
    if (effects.flags && Object.keys(effects.flags).length > 0) {
-       previews.push(<span key="story_updated" className="text-blue-400 font-mono text-xs uppercase tracking-wider">Story Updated</span>);
+       previews.push(<span key="story_updated" className={`text-blue-400 font-mono ${compact ? "text-[10px]" : "text-xs"} uppercase tracking-wider`}>Story Updated</span>);
+   }
+
+   if (effects.lifeCheck) {
+       previews.push(
+         <span key="life_check" className={`text-fuchsia-300 font-mono ${compact ? "text-[10px]" : "text-xs"} uppercase tracking-wider`}>
+           Life Check: {effects.lifeCheck.label || effects.lifeCheck.id} DC {effects.lifeCheck.dc}
+         </span>
+       );
    }
 
    if (effects.relationships) {
@@ -385,7 +792,7 @@ function ChoicePreview({ effects }) {
                const sign = v > 0 ? "+" : "";
                const emoji = type === 'romance' ? "💖 " : "🤝 ";
                const label = type === 'romance' ? "Closeness" : "Bond";
-               previews.push(<span key={`${char}-${type}`} className={`${color} font-mono text-xs uppercase tracking-wider`}>{emoji}{char} {label} {sign}{v}</span>);
+               previews.push(<span key={`${char}-${type}`} className={`${color} font-mono ${compact ? "text-[10px]" : "text-xs"} uppercase tracking-wider`}>{emoji}{char} {label} {sign}{v}</span>);
            });
         });
    }
@@ -393,7 +800,7 @@ function ChoicePreview({ effects }) {
    if (previews.length === 0) return null;
 
    return (
-       <div className="flex flex-wrap gap-2 mt-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
+       <div className={`flex flex-wrap ${compact ? "gap-x-2 gap-y-0.5 mt-1" : "gap-2 mt-1.5"} opacity-60 group-hover:opacity-100 transition-opacity`}>
            {previews}
        </div>
    )
