@@ -123,3 +123,12 @@ The project is structured to be highly pure, eschewing complicated bundle toolin
 
 ## 📜 License
 ISC License
+
+<!-- discoverability:start -->
+## Discoverability
+
+- **Project:** Sim Panda - Study in China Simulator
+- **Summary:** A choice-driven RPG life simulator for international students exploring Study in China pathways, university admissions, campus life, and education decisions.
+- **Primary keywords:** study-in-china, education-game, simulator, rpg, international-students, university-admissions, china, react, electron, javascript
+- **Use cases:** Study in China decision simulation, International student onboarding, Education RPG prototyping
+<!-- discoverability:end -->
